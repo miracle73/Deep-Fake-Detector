@@ -1,0 +1,18 @@
+swagger: '2.0'
+info:
+  title: Deepfake Detector API
+  version: 1.0.0
+host: YOUR_PROJECT_ID.cloud.goog
+x-google-endpoints:
+  - name: YOUR_PROJECT_ID.cloud.goog
+    allowCors: true
+schemes:
+  - https
+paths:
+  /detect:
+    post:
+      summary: Detect deepfake media
+      operationId: detectMedia
+      responses:
+        200:
+          description: Success
