@@ -1,0 +1,28 @@
+{
+  "name": "deep-fake-detector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --watch src --exec tsx src/index.ts",
+    "start": "node --env-file=.env.production dist/index.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.0",
+  "dependencies": {
+    "@google-cloud/storage": "^7.16.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "multer": "1.4.5-lts.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
