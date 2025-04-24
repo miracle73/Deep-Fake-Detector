@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { detectDeepfake } from '../services/deepfakeservice';
+import { detectDeepfake } from '../services/deepfakeservice.js';
 
 export async function detectHandler(req: Request, res: Response) {
   try {
