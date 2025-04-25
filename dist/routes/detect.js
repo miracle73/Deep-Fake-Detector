@@ -1,4 +1,4 @@
-import { detectDeepfake } from '../services/deepfakeservice';
+import { detectDeepfake } from '../services/deepfakeservice.js';
 export async function detectHandler(req, res) {
     try {
         const { mediaUrl } = req.body;
