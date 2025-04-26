@@ -4,10 +4,10 @@ info:
   description: REST API for media detection
   version: 1.0.0
 
-host: YOUR_GATEWAY_HOST
+host: deepfake-gateway-8cz9cte8.uc.gateway.dev
 
 x-google-backend:
-  address: https://YOUR_CLOUD_RUN_URL # or Cloud Function URL
+  address: https://deepfake-detector-655166731472.us-central1.run.app
 
 paths:
   /detect:
