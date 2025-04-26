@@ -7,7 +7,7 @@ info:
 host: deepfake-gateway-8cz9cte8.uc.gateway.dev
 
 x-google-backend:
-  address: https://deepfake-detector-655166731472.us-central1.run.app # or Cloud Function URL
+  address: https://deepfake-detector-655166731472.us-central1.run.app
 
 paths:
   /detect:
