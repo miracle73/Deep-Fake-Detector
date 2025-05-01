@@ -1,0 +1,27 @@
+swagger: '2.0'
+info:
+  title: DeepFake Detector API
+  description: REST API for media detection
+  version: 1.0.0
+
+host: deepfake-gateway-8cz9cte8.uc.gateway.dev
+
+x-google-backend:
+  address: https://deepfake-detector-dev-655166731472.us-central1.run.app
+
+paths:
+  /detect:
+    post:
+      summary: Run deepfake detection
+      operationId: detectDeepfake
+      responses:
+        '200':
+          description: OK
+      security:
+        - api_key: []
+
+securityDefinitions:
+  api_key:
+    type: 'apiKey'
+    name: 'Authorization'
+    in: 'header'
