@@ -208,3 +208,40 @@ curl -X POST https://deepfake-gateway-8cz9cte8.uc.gateway.dev/detect \
   -d '{"mediaUrl": "https://example.com/video.mp4"}'
 
 ```
+
+## Setting up Dev and Test Environments
+
+```pl
+# Build Docker image as usual
+docker build -t gcr.io/deepfake-detector-455108/deepfake-detector-dev .
+
+# Push it
+docker push gcr.io/deepfake-detector-455108/deepfake-detector-dev
+
+# Deploy to Cloud Run (dev)
+gcloud run deploy deepfake-detector-dev \
+  --image gcr.io/deepfake-detector-455108/deepfake-detector-dev \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --project=deepfake-detector-455108
+
+# Same for test
+```
+
+### API GATEWAY CONFIGS
+
+```pl
+
+gcloud api-gateway api-configs create deepfake-config-dev \
+  --api=deepfake-api-dev \
+  --openapi-spec=openapi-dev.yaml \
+  --project=deepfake-detector-455108
+
+gcloud api-gateway gateways create deepfake-gateway-dev \
+  --api=deepfake-api-dev \
+  --api-config=deepfake-config-dev \
+  --location=us-central1 \
+  --project=deepfake-detector-455108
+
+```
