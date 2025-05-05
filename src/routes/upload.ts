@@ -5,14 +5,14 @@ import upload from '../middlewares/upload.js';
 
 const router = express.Router();
 
-router.post('/upload', upload.single('media'), UploadController.uploadSingle);
+router.post('/analyze', upload.single('media'), UploadController.analyze);
 
 router.post(
-  '/upload/batch',
+  '/analyze/batch',
   upload.array('media', 10),
-  UploadController.uploadBatch
+  UploadController.analyzeBulkMedia
 );
 
-router.get('/upload/status/:id', UploadController.getStatus);
+router.get('/analyze/status/:id', UploadController.getStatus);
 
 export default router;

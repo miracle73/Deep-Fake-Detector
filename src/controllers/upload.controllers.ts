@@ -8,7 +8,7 @@ import { bucket } from '../utils/gcsClient.js';
 
 import type { NextFunction, Request, Response } from 'express';
 
-export const uploadSingle = async (
+export const analyze = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -52,7 +52,7 @@ export const uploadSingle = async (
   }
 };
 
-export const uploadBatch = async (
+export const analyzeBulkMedia = async (
   req: Request,
   res: Response,
   next: NextFunction

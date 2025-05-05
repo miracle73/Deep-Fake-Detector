@@ -1,9 +1,8 @@
 import { Storage } from '@google-cloud/storage';
-import path from 'node:path';
 import fs from 'node:fs';
 
 const storage = new Storage();
-const bucketName = 'gcs-bucket-name';
+const bucketName = process.env.GCS_BUCKET_NAME || 'deepfake-detector-media';
 
 export async function uploadToGCS(file: Express.Multer.File): Promise<string> {
   const destination = `uploads/${Date.now()}_${file.originalname}`;
