@@ -62,43 +62,6 @@ gcloud run services describe deepfake-detector \
   --format 'value(status.url)'
 ```
 
----
-
-## 🚀 API Gateway Commands
-
-- **Create API Config from OpenAPI Spec**
-
-```bash
-gcloud api-gateway api-configs create deepfake-config \
-  --api=deepfake-api \
-  --openapi-spec=openapi.yaml \
-  --project=deepfake-detector-455108
-```
-
-- **Create API Gateway**
-
-```bash
-gcloud api-gateway gateways create deepfake-gateway \
-  --api=deepfake-api \
-  --api-config=deepfake-config \
-  --location=us-central1 \
-  --project=deepfake-detector-455108
-```
-
-- **Check API Gateway Gateway URL**
-
-After creating the gateway, you can find it:
-
-```bash
-gcloud api-gateway gateways describe deepfake-gateway \
-  --location=us-central1 \
-  --format='value(defaultHostname)'
-```
-
-Or just check in the GCP Console under **API Gateway > Gateways**.
-
----
-
 ## 🛠️ IAM Policy Setup (for Public Access)
 
 - **Manually Set IAM Permissions if Deployment Fails**
@@ -122,6 +85,13 @@ This allows unauthenticated users (e.g., API Gateway) to invoke your service.
 curl -X POST https://deepfake-gateway-8cz9cte8.uc.gateway.dev/detect \
   -H "Content-Type: application/json" \
   -d '{"mediaUrl": "https://example.com/video.mp4"}'
+
+
+curl -X POST https://deepfake-gateway-8cz9cte8.uc.gateway.dev/detect \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: AIzaSyBeefwGOz1hgLjVJnBC1iRZhmxdf_8CMtc" \
+  -d '{"mediaUrl": "https://example.com/video.mp4"}'
+
 ```
 
 ---
@@ -180,7 +150,7 @@ openapi.yaml
 
 This contains various commands from the documentation used in the setup of phase 1.
 
-- To build and push the docker image
+- **To build and push the docker image**
 
 ```pl
 docker build -t gcr.io/deepfake-detector-455108/deepfake-detector .
@@ -188,7 +158,7 @@ docker build -t gcr.io/deepfake-detector-455108/deepfake-detector .
 docker push gcr.io/deepfake-detector-455108/deepfake-detector
 ```
 
-- To redeploy the image
+- **To redeploy the image**
 
 ```pl
 gcloud run deploy deepfake-detector \
@@ -200,12 +170,33 @@ gcloud run deploy deepfake-detector \
 
 ```
 
-- Test POST - /detect endpoint
+- **Test POST - /detect endpoint\***
 
 ```curl
 curl -X POST https://deepfake-gateway-8cz9cte8.uc.gateway.dev/detect \
   -H "Content-Type: application/json" \
   -d '{"mediaUrl": "https://example.com/video.mp4"}'
+
+```
+
+- **Test POST - /upload endpoint**
+
+```curl
+
+curl -X POST https://deepfake-gateway-8cz9cte8.uc.gateway.dev/media/upload \
+ -H "Content-Type: multipart/form-data" \
+ -F "media=@/path/to/your/video.mp4"
+
+```
+
+- **Test POST - /upload/batch endpoint**
+
+```curl
+
+curl -X POST https://deepfake-gateway-8cz9cte8.uc.gateway.dev/media/upload/batch \
+  -H "Content-Type: multipart/form-data" \
+  -F "media=@/path/to/video1.mp4" \
+  -F "media=@/path/to/video2.mp4"
 
 ```
 
@@ -243,5 +234,42 @@ gcloud api-gateway gateways create deepfake-gateway-dev \
   --api-config=deepfake-config-dev \
   --location=us-central1 \
   --project=deepfake-detector-455108
+
+```
+
+### GCP Storage
+
+- **To find the GCP bucket name**
+
+```pl
+gcloud storage buckets list --project=deepfake-detector-455108
+
+
+# deep-fake-001
+
+```
+
+- **To identify your Cloud Run service's service account**
+
+```pl
+#  Run this to get the service account name:
+gcloud run services describe deepfake-detector \
+  --platform managed \
+  --region us-central1 \
+  --project=deepfake-detector-455108 \
+  --format="value(spec.template.spec.serviceAccountName)"
+
+
+# 655166731472-compute@developer.gserviceaccount.com
+
+```
+
+- **To grant the service account permission to use the bucket**
+
+```pl
+gcloud projects add-iam-policy-binding deepfake-detector-455108 \
+  --member="serviceAccount:655166731472-compute@developer.gserviceaccount.com" \
+  --role="roles/storage.objectAdmin"
+
 
 ```
