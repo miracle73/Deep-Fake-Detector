@@ -195,4 +195,4 @@ npm run dev
 
 ## License
 
-[Add your license information here]
+Please, check the license file for details
