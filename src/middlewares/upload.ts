@@ -1,5 +1,5 @@
 import multer from 'multer';
-import type { NextFunction, Request } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
 // Supported image MIME types
@@ -11,6 +11,10 @@ const ALLOWED_IMAGE_TYPES = [
   'image/tiff', // .tiff
   'image/svg+xml', // .svg
 ];
+
+interface MulterErrorWithCode extends Error {
+  code?: string;
+}
 
 // Maximum file size (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -32,20 +36,24 @@ const imageUpload = multer({
   fileFilter: (req, file, cb) => {
     // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-      const error = new Error(
+      // const error = new Error(
+      //   `Invalid file type. Supported types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
+      // );
+
+      const error: MulterErrorWithCode = new Error(
         `Invalid file type. Supported types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
       );
-      (error as any).code = 'INVALID_FILE_TYPE';
+      error.code = 'INVALID_FILE_TYPE';
       return cb(error);
     }
 
-    // Additional validation can be added here
+    // Additional validation
     // For example, checking file magic numbers for actual image validation
     // (would require reading the buffer)
 
     cb(null, true);
   },
-  filename: generateFilename, // Custom filename function
+  // filename: generateFilename, // Custom filename function
 });
 
 // Middleware wrapper for better error handling
@@ -116,7 +124,6 @@ export const multipleImageUploadMiddleware = (
           errorCode: 'FILE_TOO_LARGE',
         });
       }
-
       if (err.code === 'INVALID_FILE_TYPE') {
         return res.status(400).json({
           success: false,

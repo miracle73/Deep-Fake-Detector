@@ -15,12 +15,12 @@ export const analyze = async (
   req: Request,
   res: ExpressResponse,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const file = req.file;
 
     if (!file) {
-      return res.status(400).json({
+      res.status(400).json({
         statusCode: 400,
         status: 'error',
         success: false,
@@ -28,6 +28,8 @@ export const analyze = async (
         errorCode: 'NO_FILE',
         details: 'Please upload a valid image file',
       });
+
+      return;
     }
 
     const filename = `${uuidv4()}-${file.originalname}`;
@@ -55,7 +57,7 @@ export const analyze = async (
     });
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
-    return res.status(200).json({
+    res.status(200).json({
       statusCode: 200,
       status: 'success',
       success: true,
@@ -77,9 +79,11 @@ export const analyze = async (
   } catch (error) {
     console.log('Failed to upload image', error);
     if (error instanceof Error) {
-      return res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
+      return;
     }
-    return res.status(500).json({ error: 'Unknown error occurred' });
+    res.status(500).json({ error: 'Unknown error occurred' });
+    return;
   }
 };
 
@@ -87,28 +91,31 @@ export const analyzeBulkMedia = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const files = req.files as Express.Multer.File[];
 
     if (!files || files.length === 0) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         errorCode: 'NO_FILES',
         message: 'No files uploaded',
         details: 'Please upload at least one file',
       });
+      return;
     }
 
     // Validate all files first
     for (const file of files) {
       if (!file.buffer || file.size === 0) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           errorCode: 'INVALID_FILE',
           message: 'One or more files are invalid',
           details: `File ${file.originalname} is empty or corrupted`,
         });
+
+        return;
       }
     }
 
@@ -204,6 +211,8 @@ export const analyzeBulkMedia = async (
       message: error instanceof Error ? error.message : 'Unknown error',
       errorCode: 'BULK_ANALYSIS_ERROR',
     });
+
+    return;
   }
 };
 
@@ -214,16 +223,17 @@ export const getStatus = async (req: Request, res: Response) => {
   res.status(200).json({ id: req.params.id, ...job });
 };
 
-export const getJobStatus = (req: Request, res: Response) => {
+export const getJobStatus = (req: Request, res: Response): Promise<void> => {
   const { jobId } = req.params;
   const job = detectionJobs.get(jobId);
 
   if (!job) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       errorCode: 'JOB_NOT_FOUND',
       message: 'Job not found or expired',
     });
+    return Promise.resolve();
   }
 
   res.json({
@@ -235,4 +245,6 @@ export const getJobStatus = (req: Request, res: Response) => {
     createdAt: job.createdAt,
     ...(job.completedAt && { completedAt: job.completedAt }),
   });
+
+  return Promise.resolve();
 };
