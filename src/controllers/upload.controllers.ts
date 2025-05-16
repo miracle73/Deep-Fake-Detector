@@ -4,6 +4,7 @@ import {
   detectionJobs,
   simulateDetection,
 } from '../services/detectionQueue.js';
+import { callVertexAI, callVertexAIBatch } from '../services/vertexClient.js';
 import { bucket } from '../utils/gcsClient.js';
 
 // import { simulateDetection } from '../services/detectionQueue.js';
@@ -11,7 +12,9 @@ import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
 
-import { callVertexAI, callVertexAIBatch } from '../services/vertexClient.js';
+import { PubSub } from '@google-cloud/pubsub';
+
+const pubsub = new PubSub();
 
 export const analyze = async (
   req: Request,
@@ -58,6 +61,13 @@ export const analyze = async (
       blobStream.end(file.buffer);
     });
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+
+    // const publishDetectionJob = async (job: DetectionJob) => {
+    //   const dataBuffer = Buffer.from(JSON.stringify(job));
+    //   await pubsub.topic('detect-media-topic').publish(dataBuffer);
+    // };
+
+    // await publishDetectionJob(job);
 
     const predictions = await callVertexAI(publicUrl);
     if (!predictions) {
