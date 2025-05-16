@@ -6,6 +6,9 @@ export async function detectHandler(req, res) {
         res.json({ success: true, result });
     }
     catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred',
+        });
     }
 }

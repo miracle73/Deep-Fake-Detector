@@ -44,3 +44,5 @@ app.use(errorHandler as express.ErrorRequestHandler);
 app.listen(port, () => {
   console.log(`Server running🏃 on port ${port}...betta go catch it!🚀`);
 });
+
+export default app;
