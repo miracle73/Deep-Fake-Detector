@@ -1,16 +1,16 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { Schema } from 'mongoose';
 
-import { AnalysisHistorySchema } from './subdocs/AnalysisHistory';
-import { BillingHistorySchema } from './subdocs/BillingHistory';
-import { PaymentMethodSchema } from './subdocs/PaymentMethod';
+import { AnalysisHistorySchema } from './subdocs/AnalysisHistory.js';
+import { BillingHistorySchema } from './subdocs/BillingHistory.js';
+import { PaymentMethodSchema } from './subdocs/PaymentMethod.js';
 
-import type { IUser } from '../types/user';
-import { ApiAccessSchema } from './subdocs/ApiAccess';
-import { BillingContactSchema } from './subdocs/BillingContact';
-import { TeamMemberSchema } from './subdocs/TeamMember';
-import { CompanySchema } from './subdocs/Company';
-import { UsageQuotaSchema } from './subdocs/UsageQuota';
+import type { IUser } from '../types/user.js';
+import { ApiAccessSchema } from './subdocs/ApiAccess.js';
+import { BillingContactSchema } from './subdocs/BillingContact.js';
+import { TeamMemberSchema } from './subdocs/TeamMember.js';
+import { CompanySchema } from './subdocs/Company.js';
+import { UsageQuotaSchema } from './subdocs/UsageQuota.js';
 
 const UserSchema: Schema = new Schema(
   {
