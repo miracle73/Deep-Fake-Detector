@@ -3,14 +3,18 @@ import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
 
+import connectDB from './config/db.js';
 import { errorHandler } from './middlewares/error.js';
+import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import uploadRoutes from './routes/upload.js';
 
-dotenv.config({ path: `.env.${process.env.ENV || 'development'}` });
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8080;
+
+connectDB();
 
 app.use(express.json());
 app.use(cors());
@@ -39,8 +43,12 @@ app.get('/health', (req, res) => {
 app.post('/detect', detectHandler);
 app.use('/api', uploadRoutes);
 
+app.use('/api/v1/auth', authRoutes);
+
 app.use(errorHandler as express.ErrorRequestHandler);
 
 app.listen(port, () => {
   console.log(`Server running🏃 on port ${port}...betta go catch it!🚀`);
 });
+
+export default app;

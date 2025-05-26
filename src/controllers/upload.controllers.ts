@@ -4,12 +4,17 @@ import {
   detectionJobs,
   simulateDetection,
 } from '../services/detectionQueue.js';
+import { callVertexAI, callVertexAIBatch } from '../services/vertexClient.js';
 import { bucket } from '../utils/gcsClient.js';
 
 // import { simulateDetection } from '../services/detectionQueue.js';
 import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
+
+import { PubSub } from '@google-cloud/pubsub';
+
+const pubsub = new PubSub();
 
 export const analyze = async (
   req: Request,
@@ -57,24 +62,64 @@ export const analyze = async (
     });
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
+    // const publishDetectionJob = async (job: DetectionJob) => {
+    //   const dataBuffer = Buffer.from(JSON.stringify(job));
+    //   await pubsub.topic('detect-media-topic').publish(dataBuffer);
+    // };
+
+    // await publishDetectionJob(job);
+
+    const predictions = await callVertexAI(publicUrl);
+    if (!predictions) {
+      res.status(500).json({
+        statusCode: 500,
+        status: 'error',
+        success: false,
+        message: 'No predictions found',
+        errorCode: 'NO_PREDICTIONS',
+        details: 'No predictions were returned from the model',
+      });
+      return;
+    }
+
     res.status(200).json({
       statusCode: 200,
       status: 'success',
       success: true,
+      message: 'Image analysis complete',
       data: {
         uploadedTo: publicUrl,
         result: {
-          isDeepfake: true,
-          confidence: '94%',
-          message: 'Mock detection complete',
-          // Add more metadata as needed
+          isDeepfake: predictions.isDeepfake,
+          confidence: predictions.confidence,
+          message: predictions.message,
+          // more metadata later
           fileInfo: {
             originalName: file.originalname,
             size: file.size,
             mimetype: file.mimetype,
           },
         },
+        links: {
+          status: `/jobs/${predictions.jobId}/status`,
+          results: `/jobs/${predictions.jobId}/results`,
+        },
       },
+      // Mock response for testing
+      // data: {
+      //   uploadedTo: publicUrl,
+      //   result: {
+      //     isDeepfake: true,
+      //     confidence: '94%',
+      //     message: 'Mock detection complete',
+      //     // Add more metadata as needed
+      //     fileInfo: {
+      //       originalName: file.originalname,
+      //       size: file.size,
+      //       mimetype: file.mimetype,
+      //     },
+      //   },
+      // },
     });
   } catch (error) {
     console.log('Failed to upload image', error);
@@ -193,13 +238,40 @@ export const analyzeBulkMedia = async (
 
     const results = await Promise.all(uploadPromises);
 
+    const mediaUrls = results.map((result) => result.fileInfo.publicUrl);
+
+    const predictions = await callVertexAIBatch(mediaUrls);
+
     res.status(202).json({
       // 202 Accepted for async processing
       success: true,
+
+      message: 'Bulk analysis started',
+
       count: results.length,
       jobs: results,
-      _links: {
-        batchStatus: '/jobs/batch/status', // Endpoint to check all jobs status
+      data: {
+        predictions: predictions.map(
+          (
+            prediction: {
+              isDeepfake: boolean;
+              confidence: number;
+              message: string;
+            },
+            index: number
+          ) => ({
+            jobId: results[index].jobId,
+            isDeepfake: prediction.isDeepfake,
+            confidence: prediction.confidence,
+            message: prediction.message,
+            fileInfo: results[index].fileInfo,
+          })
+        ),
+        // Add more metadata as needed
+      },
+      links: {
+        status: `/jobs/${results[0].jobId}/status`,
+        results: `/jobs/${results[0].jobId}/results`,
       },
     });
   } catch (error) {
