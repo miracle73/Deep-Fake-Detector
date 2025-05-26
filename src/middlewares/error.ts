@@ -1,40 +1,49 @@
-import type { NextFunction, Request, Response } from 'express';
-import ApiError from '../utils/error.js';
+import type { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 
-export const errorHandler = (
-  err: {
-    message: string;
-    stack: any;
-    code: number;
-    success: boolean;
-    details?: any;
-  },
+export class AppError extends Error {
+  constructor(public message: string, public statusCode = 400) {
+    super(message);
+    this.name = 'AppError';
+  }
+}
+
+export function errorHandler(
+  err: unknown,
   req: Request,
   res: Response,
   next: NextFunction
-) => {
-  console.error('Error:', {
-    message: err.message,
-    // stack: err.stack,
-    details: (err as any).details || 'No additional details',
-  });
+) {
+  console.error('[Error]', err); // Logs error for debugging
 
-  // if (err instanceof ApiError) {
-  //   res.status(err.code).json({
-  //     success: err.success,
-  //     status: 'error',
-  //     code: err.code,
-  //     message: err.message,
-  //     details: err.details || 'No additional details',
-  //   });
-  //   return;
-  // }
+  // Zod validation error
+  if (err instanceof ZodError) {
+    const formattedErrors = err.errors.map((e) => ({
+      field: e.path.join('.') || 'unknown',
+      message: e.message,
+    }));
 
+    return res.status(400).json({
+      success: false,
+      code: 400,
+      message: 'Validation failed',
+      errors: formattedErrors,
+    });
+  }
+
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      code: err.statusCode,
+      message: err.message,
+    });
+  }
+
+  // Fallback for unknown errors
   res.status(500).json({
-    success: err.success,
-    status: 'error',
-    code: err.code,
-    message: err.message || 'Internal server error',
-    details: err.details || 'No additional details',
+    success: false,
+    code: 500,
+    message: 'Something went wrong',
+    ...(process.env.NODE_ENV === 'development' && { error: err }),
   });
-};
+}

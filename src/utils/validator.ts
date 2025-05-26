@@ -1,4 +1,3 @@
-// Future: add file type/size validation logic if needed
 export function isValidFile(file: Express.Multer.File): boolean {
   const allowedTypes = ['video/mp4', 'image/jpeg'];
   const maxSizeMB = 50;
