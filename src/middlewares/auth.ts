@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import type { Request, Response, NextFunction } from 'express';
+import type { UserRole } from '../types/roles.js';
 
 export const protect = async (
   req: Request,
@@ -96,3 +97,16 @@ export const enterpriseOnly = (
 
   next();
 };
+
+// export const requireRole = (...allowedRoles: UserRole[]) => {
+//   return (req: Request, res: Response, next: NextFunction) => {
+//     if (!req.user?.roles.some((role) => allowedRoles.includes(role))) {
+//       return res.status(403).json({
+//         success: false,
+//         error: 'Forbidden',
+//         message: `Requires one of these roles: ${allowedRoles.join(', ')}`,
+//       });
+//     }
+//     next();
+//   };
+// };
