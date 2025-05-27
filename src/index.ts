@@ -6,8 +6,11 @@ import morgan from 'morgan';
 import connectDB from './config/db.js';
 import { errorHandler } from './middlewares/error.js';
 import authRoutes from './routes/authRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import uploadRoutes from './routes/upload.js';
+
+import { handleStripeWebhook } from './webhooks/stripeWebhookHandler.js';
 
 dotenv.config();
 
@@ -44,6 +47,13 @@ app.post('/detect', detectHandler);
 app.use('/api', uploadRoutes);
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/billing', billingRoutes);
+
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 
 app.use(errorHandler as express.ErrorRequestHandler);
 

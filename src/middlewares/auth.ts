@@ -7,7 +7,7 @@ export const protect = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<any> => {
   let token: string | undefined;
 
   const authorization = req.headers.authorization;

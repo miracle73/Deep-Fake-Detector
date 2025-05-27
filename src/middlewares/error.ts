@@ -14,9 +14,8 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error('[Error]', err); // Logs error for debugging
+  console.error('[Error]', err);
 
-  // Zod validation error
   if (err instanceof ZodError) {
     const formattedErrors = err.errors.map((e) => ({
       field: e.path.join('.') || 'unknown',
