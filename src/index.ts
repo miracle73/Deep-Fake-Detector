@@ -1,17 +1,24 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import helmet from 'helmet';
 import morgan from 'morgan';
+import userRoutes from 'routes/userRoutes.js';
+
+import swaggerJSDoc from 'swagger-jsdoc';
+
+import swaggerUi from 'swagger-ui-express';
 
 import connectDB from './config/db.js';
 import { errorHandler } from './middlewares/error.js';
+import { limiter } from './middlewares/rateLimit.js';
 import authRoutes from './routes/authRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import uploadRoutes from './routes/upload.js';
-import { handleStripeWebhook } from './webhooks/stripeWebhookHandler.js';
 import logger from './utils/logger.js';
-import userRoutes from 'routes/userRoutes.js';
+import { handleStripeWebhook } from './webhooks/stripeWebhookHandler.js';
+import { swaggerOptions } from './config/swagger.js';
 
 dotenv.config();
 
@@ -20,10 +27,15 @@ const port = process.env.PORT || 8080;
 
 // connectDB();
 
+app.use(helmet());
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use(limiter);
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
   res.status(200).json({
