@@ -1,8 +1,8 @@
-import { AppError } from '../middlewares/error.js';
 import { stripe } from '../services/stripeService.js';
 
 import type { checkoutSchema } from '../lib/schemas/billing.schema.js';
 import type { Request, Response } from 'express';
+import { AppError } from '../utils/error.js';
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
@@ -11,13 +11,13 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
 
     if (!user || !user.stripeCustomerId) {
       throw new AppError(
-        'User is not authenticated or does not have a Stripe customer ID',
-        401
+        401,
+        'User is not authenticated or does not have a Stripe customer ID'
       );
     }
 
     if (!priceId) {
-      throw new AppError('Price ID is required', 400);
+      throw new AppError(400, 'Price ID is required');
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -52,8 +52,8 @@ export const createCustomerPortal = async (req: Request, res: Response) => {
 
     if (!user || !user.stripeCustomerId) {
       throw new AppError(
-        'User is not authenticated or does not have a Stripe customer ID',
-        401
+        401,
+        'User is not authenticated or does not have a Stripe customer ID'
       );
     }
 

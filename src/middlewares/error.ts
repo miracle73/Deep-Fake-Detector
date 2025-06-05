@@ -1,12 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
+import { AppError } from '../utils/error.js';
 import { ZodError } from 'zod';
-
-export class AppError extends Error {
-  constructor(public message: string, public statusCode = 400) {
-    super(message);
-    this.name = 'AppError';
-  }
-}
+import logger from '../utils/logger.js';
 
 export function errorHandler(
   err: unknown,
@@ -38,11 +33,20 @@ export function errorHandler(
     });
   }
 
+  logger.error('Unhandled error:', err);
+
+  const message =
+    process.env.NODE_ENV === 'production'
+      ? 'Internal server error'
+      : err instanceof Error
+      ? err.message
+      : 'Unknown error occurred';
+
   // Fallback for unknown errors
   res.status(500).json({
     success: false,
     code: 500,
-    message: 'Something went wrong',
+    message,
     ...(process.env.NODE_ENV === 'development' && { error: err }),
   });
 }
