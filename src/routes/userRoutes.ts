@@ -6,7 +6,7 @@ import { protect } from '../middlewares/auth.js';
 import { validateInput } from '../middlewares/validate.js';
 import { updateUserSchema } from '../lib/schemas/user.schema.js';
 
-userRouter.get('/me', protect, UserController.getCurrentUser);
+userRouter.get('/', protect, UserController.getCurrentUser);
 
 userRouter.put(
   '/update',

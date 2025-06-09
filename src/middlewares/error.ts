@@ -9,28 +9,22 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error('[Error]', err);
-
   if (err instanceof ZodError) {
     const formattedErrors = err.errors.map((e) => ({
       field: e.path.join('.') || 'unknown',
       message: e.message,
     }));
-
     return res.status(400).json({
       success: false,
       code: 400,
       message: 'Validation failed',
       errors: formattedErrors,
+      ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     });
   }
 
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      success: false,
-      code: err.statusCode,
-      message: err.message,
-    });
+    return res.status(err.statusCode).json(err);
   }
 
   logger.error('Unhandled error:', err);
@@ -42,11 +36,13 @@ export function errorHandler(
       ? err.message
       : 'Unknown error occurred';
 
-  // Fallback for unknown errors
   res.status(500).json({
     success: false,
     code: 500,
     message,
-    ...(process.env.NODE_ENV === 'development' && { error: err }),
+    ...(process.env.NODE_ENV !== 'production' && {
+      error: err,
+      stack: err instanceof Error ? err.stack : undefined,
+    }),
   });
 }
