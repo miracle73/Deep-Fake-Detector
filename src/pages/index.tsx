@@ -1,0 +1,668 @@
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Upload, CheckCircle, Check, Plus, X } from "lucide-react";
+import { Headphones, Play, ImageIcon } from "lucide-react";
+
+export default function DeepfakeDetector() {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <span className="text-xl font-bold text-gray-900">DF</span>
+              <span className="text-xl font-normal text-gray-600 ml-1">
+                Detector
+              </span>
+            </div>
+            <nav className="hidden md:flex items-center space-x-8">
+              <a href="#" className="text-gray-600 hover:text-gray-900">
+                Products
+              </a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">
+                Pricing
+              </a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">
+                News
+              </a>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                Get Started
+              </Button>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+            Advanced Model for Reliable
+            <br />
+            Deepfake Detection.
+          </h1>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Our cutting-edge AI technology can accurately identify manipulated
+            media content. Test individual videos to determine their
+            authenticity and get results you can trust.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-lg">
+              Continue with Email
+            </Button>
+            <Button
+              variant="outline"
+              className="px-8 py-3 rounded-md text-lg border-gray-300"
+            >
+              Learn More →
+            </Button>
+          </div>
+        </div>
+
+        {/* Detection Interface */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Upload Area */}
+            <Card className="p-8 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-500">Upload media to analyze</p>
+              </div>
+            </Card>
+
+            {/* Results Area */}
+            <Card className="p-8 border border-gray-200">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Deepfake Detected
+                </h3>
+                <p className="text-sm text-gray-500">Analysis complete</p>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* AI Content Information Section */}
+        <div className="max-w-6xl mx-auto mt-20 mb-12">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Navigating the Age of AI-Generated Content
+            </h2>
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto">
+              Today's AI technologies can create remarkably realistic content
+              across multiple media types. Our advanced detection system helps
+              you identify artificially generated audio, video, and images with
+              high accuracy and confidence.
+            </p>
+          </div>
+
+          {/* Content Types Grid */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {/* Audio */}
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                <Headphones className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Audio
+              </h3>
+              <p className="text-gray-600">
+                Detect artificially generated speech, voice cloning, and
+                synthetic audio content with advanced acoustic analysis and
+                pattern recognition.
+              </p>
+            </div>
+
+            {/* Video */}
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <Play className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Video
+              </h3>
+              <p className="text-gray-600">
+                Identify deepfake videos, face swaps, and manipulated footage
+                using cutting-edge computer vision and temporal analysis
+                techniques.
+              </p>
+            </div>
+
+            {/* Image */}
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                <ImageIcon className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Image
+              </h3>
+              <p className="text-gray-600">
+                Detect AI-generated images, synthetic faces, and digitally
+                manipulated photos with pixel-level analysis and authenticity
+                verification.
+              </p>
+            </div>
+          </div>
+
+          {/* For Individuals Section */}
+          <div className="grid md:grid-cols-3 gap-8 items-start mb-20">
+            <div className="md:col-span-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                For Individuals
+              </h3>
+              <p className="text-gray-600 mb-8 max-w-2xl">
+                This platform is for non-technical individuals who need an
+                intuitive, easy-to-use platform for detecting deepfakes in
+                various media formats (audio, video, images).
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex items-start space-x-3 pb-6 border-b border-gray-200">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg
+                      className="w-5 h-5 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Instant Analysis
+                    </h4>
+                    <p className="text-gray-600">
+                      Upload your file and get results in moments. No technical
+                      expertise needed.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 pb-6 border-b border-gray-200">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg
+                      className="w-5 h-5 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Supports All Media
+                    </h4>
+                    <p className="text-gray-600">
+                      Check videos, audio clips, and images for manipulation.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg
+                      className="w-5 h-5 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Clear & Simple Results
+                    </h4>
+                    <p className="text-gray-600">
+                      Understand detection outcomes with easy-to-read reports
+                      and confidence scores.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-1">
+              <div className="bg-gray-300 rounded-2xl h-64 w-full"></div>
+            </div>
+          </div>
+
+          {/* For Media Houses & Enterprise Section */}
+          <div className="grid md:grid-cols-3 gap-8 items-start mb-20">
+            <div className="md:col-span-1">
+              <div className="bg-gray-300 rounded-2xl h-64 w-full"></div>
+            </div>
+
+            <div className="md:col-span-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                For Media Houses & Enterprise
+              </h3>
+              <p className="text-gray-600 mb-8 max-w-2xl">
+                Large-scale media organizations requiring automated and robust
+                deepfake detection capabilities.
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex items-start space-x-3 pb-6 border-b border-gray-200">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg
+                      className="w-5 h-5 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Robust API Integration
+                    </h4>
+                    <p className="text-gray-600">
+                      Seamlessly connect our detection capabilities into your
+                      existing CMS and workflows.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 pb-6 border-b border-gray-200">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg
+                      className="w-5 h-5 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Detailed Reporting & Analytics
+                    </h4>
+                    <p className="text-gray-600">
+                      Track usage, model performance, and gain insights into
+                      detected manipulations.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg
+                      className="w-5 h-5 text-gray-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Bulk Media Analysis
+                    </h4>
+                    <p className="text-gray-600">
+                      Process large volumes of content efficiently for real-time
+                      deepfake detection.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing Section */}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+              Explore Plans
+            </h2>
+
+            {/* Toggle Buttons */}
+            <div className="flex justify-center mb-12">
+              <div className="bg-gray-100 rounded-full p-1 flex">
+                <button className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium">
+                  Individual
+                </button>
+                <button className="text-gray-600 px-6 py-2 rounded-full text-sm font-medium hover:text-gray-900">
+                  Teams & Enterprises
+                </button>
+              </div>
+            </div>
+
+            {/* Pricing Cards */}
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {/* Free Plan */}
+              <Card className="p-6 border border-gray-200 rounded-2xl">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Free
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-gray-900">$0</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Try DF detector for free
+                  </p>
+
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-start space-x-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-600">
+                        Analyze media for up to 4,000 seconds each month.
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full">
+                    Subscribe
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Pro Plan */}
+              <Card className="p-6 border-2 border-yellow-400 rounded-2xl relative shadow-lg">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Pro
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-gray-900">
+                      $19
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-6">
+                    per month, billed annually
+                  </p>
+
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-start space-x-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-600">
+                        All features in Free mode.
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-600">
+                        Analyze media for 15,000 seconds each month.
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full">
+                    Subscribe
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Max Plan */}
+              <Card className="p-6 border border-gray-200 rounded-2xl">
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Max
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-gray-900">
+                      $49
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-6">
+                    per month, billed annually
+                  </p>
+
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-start space-x-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-600">
+                        All features in Pro mode.
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-600">
+                        Analyze media for 45,000 seconds each month.
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full">
+                    Subscribe
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="max-w-3xl mx-auto mb-20">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
+              Frequently Asked Questions
+            </h2>
+
+            <div className="space-y-6">
+              {/* FAQ Item 1 - Expanded */}
+              <div className="border-b border-gray-200 pb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    What is the "Robust Open-Source Deepfake Detector" project
+                  </h3>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="text-gray-600">
+                  <p>
+                    This project aims to develop an AI-based system designed to
+                    detect deepfakes in video, audio, and image media. Its
+                    primary goal is to help combat manipulated media and
+                    misinformation, with a focus on providing a scalable,
+                    robust, and easy-to-use solution.
+                  </p>
+                </div>
+              </div>
+
+              {/* FAQ Item 2 - Collapsed */}
+              <div className="border-b border-gray-200 pb-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Is this project open source, and can I contribute to its
+                    development?
+                  </h3>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* FAQ Item 3 - Collapsed */}
+              <div className="border-b border-gray-200 pb-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    How is the security of my uploaded media handled?
+                  </h3>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* FAQ Item 4 - Collapsed */}
+              <div className="border-b border-gray-200 pb-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    How does DF detector ensure it remains effective against new
+                    deepfake techniques?
+                  </h3>
+                  <button className="text-gray-400 hover:text-gray-600">
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Company Column */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-400 mb-4">
+                Company
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Media
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Cookies Column */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-400 mb-4">
+                Cookies
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Terms of Use
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Privacy Policies
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Responsible Disclosure Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Compliance
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Contacts Column */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-400 mb-4">
+                Contacts
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    X
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Facebook
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:info@DFdetector.com"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Mail: info@DFdetector.com
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="border-t border-gray-700 mt-12 pt-8">
+            <p className="text-center text-sm text-gray-400">
+              © 2024, All Rights Reserved
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
