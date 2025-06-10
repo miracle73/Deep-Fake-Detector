@@ -3,11 +3,21 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ISubscription extends Document {
   userId: mongoose.Types.ObjectId;
   planId: string;
+  priceId: string;
+  productId: string;
   stripeSubscriptionId: string;
-  status: 'active' | 'canceled' | 'past_due';
+  status:
+    | 'active'
+    | 'incomplete'
+    | 'incomplete_expired'
+    | 'trialing'
+    | 'past_due'
+    | 'canceled'
+    | 'unpaid';
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
+  canceledAt: Date;
 }
 
 const subscriptionSchema = new Schema<ISubscription>(
@@ -22,6 +32,13 @@ const subscriptionSchema = new Schema<ISubscription>(
       required: true,
       enum: ['free', 'pro', 'max'],
     },
+    priceId: {
+      type: String,
+      required: true,
+    },
+    productId: {
+      type: String,
+    },
     stripeSubscriptionId: {
       type: String,
       required: true,
@@ -29,8 +46,16 @@ const subscriptionSchema = new Schema<ISubscription>(
     },
     status: {
       type: String,
+      enum: [
+        'active',
+        'incomplete',
+        'incomplete_expired',
+        'trialing',
+        'past_due',
+        'canceled',
+        'unpaid',
+      ],
       required: true,
-      enum: ['active', 'canceled', 'past_due'],
     },
     currentPeriodStart: {
       type: Date,
@@ -43,6 +68,9 @@ const subscriptionSchema = new Schema<ISubscription>(
     cancelAtPeriodEnd: {
       type: Boolean,
       default: false,
+    },
+    canceledAt: {
+      type: Date,
     },
   },
   {

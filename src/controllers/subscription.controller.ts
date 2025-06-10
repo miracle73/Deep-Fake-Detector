@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 
 import { AuthRequest } from '../middlewares/auth.js';
 import Subscription from '../models/Subscription.js';
+import User from '../models/User.js';
 import {
   handleFailedPayment,
   handleSubscriptionUpdate,
@@ -13,6 +14,7 @@ import logger from '../utils/logger.js';
 
 import type { checkoutSchema } from '../lib/schemas/billing.schema.js';
 import type { NextFunction, Request, Response } from 'express';
+
 export const getSubscriptionsPlan = async (
   req: Request,
   res: Response,
@@ -45,6 +47,16 @@ export const createCheckoutSession = async (
       throw new AppError(400, 'Price ID is required in the request body', null);
     }
 
+    const allowedPriceIds = [
+      process.env.STRIPE_PRICE_FREE,
+      process.env.STRIPE_PRICE_PRO,
+      process.env.STRIPE_PRICE_MAX,
+    ];
+
+    if (!allowedPriceIds.includes(priceId)) {
+      throw new AppError(400, 'Invalid priceId passed');
+    }
+
     if (!user) {
       throw new NotFoundError('User not found');
     }
@@ -68,10 +80,19 @@ export const createCheckoutSession = async (
       customer: user.stripeCustomerId,
       payment_method_types: ['card'],
       mode: 'subscription',
+      metadata: {
+        userId: user._id.toString(),
+        email: user.email,
+        planIntent: priceId,
+      },
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.FRONTEND_URL}/`,
+      success_url: `${process.env.FRONTEND_URL}/billing/success/`,
       cancel_url: `${process.env.FRONTEND_URL}/billing/cancelled`,
     });
+
+    if (!session) {
+      throw new AppError(400, 'Failed to create checkout session', session);
+    }
 
     res.status(200).json({
       success: true,
@@ -80,6 +101,7 @@ export const createCheckoutSession = async (
       data: {
         sessionId: session.id,
         sessionUrl: session.url,
+        amount: session.amount_total! / 100,
       },
     });
   } catch (error) {
@@ -190,7 +212,21 @@ export const handleStripeWebhook = async (
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdate(subscription);
+        const user = await User.findOne({
+          stripeCustomerId: subscription.customer,
+        });
+        if (!user) return;
+
+        const updatedSub = await handleSubscriptionUpdate(subscription, user);
+        console.log(updatedSub);
+        break;
+
+      case 'customer.subscription.deleted':
+        const sub = event.data.object as Stripe.Subscription;
+        await Subscription.findOneAndUpdate(
+          { stripeSubscriptionId: sub.id },
+          { status: 'canceled', canceledAt: new Date() }
+        );
         break;
 
       case 'invoice.payment_succeeded':

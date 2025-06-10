@@ -95,4 +95,5 @@ export const enterpriseOnly = (
 
 export interface AuthRequest extends Request {
   user?: any;
+  subscription?: any;
 }
