@@ -1,6 +1,8 @@
-import { NextFunction, Response } from 'express';
-import { AuthRequest } from './auth';
+import express from 'express';
 import Subscription from 'models/Subscription';
+
+import type { NextFunction, Response } from 'express';
+import type { AuthRequest } from './auth';
 
 export const checkSubscription = async (
   req: AuthRequest,
@@ -19,3 +21,5 @@ export const checkSubscription = async (
   req.subscription = subscription;
   next();
 };
+
+export const stripeWebhook = express.raw({ type: 'application/json' });

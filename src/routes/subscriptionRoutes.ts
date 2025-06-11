@@ -18,4 +18,6 @@ router.post(
 
 router.post('/portal', protect, SubscriptionController.createCustomerPortal);
 
+router.post('/webhook', SubscriptionController.handleStripeWebhook);
+
 export default router;

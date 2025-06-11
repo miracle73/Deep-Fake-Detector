@@ -1,6 +1,6 @@
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 
-import { AuthRequest } from '../middlewares/auth.js';
+import type { AuthRequest } from '../middlewares/auth.js';
 import Subscription from '../models/Subscription.js';
 import User from '../models/User.js';
 import {
@@ -94,6 +94,8 @@ export const createCheckoutSession = async (
       throw new AppError(400, 'Failed to create checkout session', session);
     }
 
+    // const amount = session.amount_total/100 || null
+
     res.status(200).json({
       success: true,
       code: 200,
@@ -101,7 +103,7 @@ export const createCheckoutSession = async (
       data: {
         sessionId: session.id,
         sessionUrl: session.url,
-        amount: session.amount_total! / 100,
+        amount: session.amount_total ? session.amount_total / 100 : null,
       },
     });
   } catch (error) {
@@ -186,15 +188,18 @@ export const handleStripeWebhook = async (
   next: NextFunction
 ) => {
   try {
+    console.log(process.env.STRIPE_WEBHOOK_SECRET);
+    // console.log('Webhook received', JSON.stringify(req.body, null, 2));
     const sig = req.headers['stripe-signature'] as string;
+    const rawBody = req.body; // Now a Buffer
 
     let event: Stripe.Event;
 
     try {
       event = stripe.webhooks.constructEvent(
-        req.body,
+        rawBody,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET!
+        process.env.STRIPE_WEBHOOK_SECRET || ''
       );
     } catch (error) {
       logger.error(
@@ -208,9 +213,15 @@ export const handleStripeWebhook = async (
       );
     }
 
+    console.log('event type', event.type);
+
     switch (event.type) {
+      case 'checkout.session.completed':
+        console.log('namedeyrun', event);
+        break;
+
       case 'customer.subscription.created':
-      case 'customer.subscription.updated':
+      case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         const user = await User.findOne({
           stripeCustomerId: subscription.customer,
@@ -220,24 +231,30 @@ export const handleStripeWebhook = async (
         const updatedSub = await handleSubscriptionUpdate(subscription, user);
         console.log(updatedSub);
         break;
+      }
 
-      case 'customer.subscription.deleted':
+      case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
         await Subscription.findOneAndUpdate(
           { stripeSubscriptionId: sub.id },
           { status: 'canceled', canceledAt: new Date() }
         );
-        break;
 
-      case 'invoice.payment_succeeded':
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         await handleSuccessfulPayment(invoice);
-        break;
 
-      case 'invoice.payment_failed':
+        break;
+      }
+
+      case 'invoice.payment_failed': {
         const failedInvoice = event.data.object as Stripe.Invoice;
         await handleFailedPayment(failedInvoice);
         break;
+      }
     }
 
     res.status(200).json({

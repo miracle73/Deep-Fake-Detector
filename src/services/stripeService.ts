@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { config } from 'dotenv';
 import User from '../models/User.js';
 import Subscription from '../models/Subscription.js';
-import { IUser } from '../types/user.js';
+import type { IUser } from '../types/user.js';
 import PaymentHistory from '../models/PaymentHistory.js';
 
 config();

@@ -25,6 +25,10 @@ const port = process.env.PORT || 8080;
 // connectDB();
 
 app.use(helmet());
+app.use(
+  '/api/v1/subscriptions/webhook',
+  express.raw({ type: 'application/json' })
+);
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));

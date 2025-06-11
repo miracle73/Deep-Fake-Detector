@@ -5,13 +5,13 @@ export const subscriptionPlans = {
     price: 0,
     features: [
       'Access to web interface only',
-      '50 media analyses per month',
+      '5 media analyses per month',
       'Community support',
       'Limited model accuracy',
     ],
     stripeProductId: null,
     stripePriceId: null,
-    requestLimit: 50,
+    requestLimit: 5,
   },
 
   pro: {
@@ -20,14 +20,14 @@ export const subscriptionPlans = {
     price: 29,
     features: [
       'API + web access',
-      '5,000 media analyses/month',
+      '20 media analyses/month',
       'High-accuracy detection model',
       'Detection confidence scores',
       'Email support',
     ],
     stripeProductId: 'prod_safeguard_pro',
     stripePriceId: 'price_safeguard_pro',
-    requestLimit: 500,
+    requestLimit: 20,
   },
 
   max: {
@@ -44,6 +44,6 @@ export const subscriptionPlans = {
     ],
     stripeProductId: 'prod_safeguard_max',
     stripePriceId: 'price_safeguard_max',
-    requestLimit: Infinity,
+    requestLimit: Number.POSITIVE_INFINITY,
   },
 };
