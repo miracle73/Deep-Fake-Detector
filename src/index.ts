@@ -1,25 +1,42 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import helmet from 'helmet';
 import morgan from 'morgan';
+import userRoutes from 'routes/userRoutes.js';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 import connectDB from './config/db.js';
+import { swaggerOptions } from './config/swagger.js';
 import { errorHandler } from './middlewares/error.js';
+import { limiter } from './middlewares/rateLimit.js';
 import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import uploadRoutes from './routes/upload.js';
+import logger from './utils/logger.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-connectDB();
+// connectDB();
 
+app.use(helmet());
+app.use(
+  '/api/v1/subscriptions/webhook',
+  express.raw({ type: 'application/json' })
+);
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use(limiter);
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -44,11 +61,22 @@ app.post('/detect', detectHandler);
 app.use('/api', uploadRoutes);
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
 
 app.use(errorHandler as express.ErrorRequestHandler);
 
-app.listen(port, () => {
-  console.log(`Server running🏃 on port ${port}...betta go catch it!🚀`);
+app.listen(port, async () => {
+  try {
+    await connectDB();
+    logger.info(`Server running🏃 on port ${port}...betta go catch it!🚀`);
+    logger.info(
+      `API Documentation available at http://localhost:${port}/api-docs`
+    );
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
 });
 
 export default app;

@@ -34,6 +34,15 @@ export const resetPasswordSchema = z.object({
     .min(8, { message: 'Confirm password must be at least 8 characters long' }),
 });
 
+export const updateUserSchema = z.object({
+  lastName: z.string().min(2).optional(),
+  firstName: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8).optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type UpdateInput = z.infer<typeof updateUserSchema>;

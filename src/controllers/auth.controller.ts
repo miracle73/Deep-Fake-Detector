@@ -1,11 +1,15 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
 import crypto from 'node:crypto';
+import { AppError } from 'utils/error.js';
 
+import User from '../models/User.js';
+import { stripe } from '../services/stripeService.js';
 import { generateToken } from '../utils/generateToken.js';
 
-import type { Request, Response } from 'express';
+import logger from '../utils/logger';
+
+import type { NextFunction, Request, Response } from 'express';
 import type { Secret } from 'jsonwebtoken';
 import type {
   ForgotPasswordInput,
@@ -13,7 +17,11 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const {
       email,
@@ -26,22 +34,28 @@ export const register = async (req: Request, res: Response) => {
     } = req.body as RegisterInput;
 
     if (!agreedToTerms) {
-      return res.status(400).json({
-        success: false,
-        code: 400,
-        message: 'You must agree to the terms and conditions',
-        details: null,
-      });
+      throw new AppError(
+        400,
+        'You must agree to the terms and conditions',
+        null
+      );
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        code: 400,
-        message: 'User with this email already exists',
-        details: null,
-      });
+      throw new AppError(400, 'User with this email already exists', null);
+    }
+
+    const stripeCustomer = await stripe.customers.create({
+      email,
+      name: `${firstName} ${lastName}`,
+      metadata: {
+        appUserType: userType,
+      },
+    });
+
+    if (!stripeCustomer) {
+      throw new AppError(400, 'Failed to setup stripe for user', null);
     }
 
     const userData = {
@@ -53,6 +67,7 @@ export const register = async (req: Request, res: Response) => {
       agreedToTerms,
       termsAgreedAt: new Date(),
       plan,
+      stripeCustomerId: stripeCustomer.id,
       isEmailVerified: false,
       ...(userType === 'enterprise'
         ? {
@@ -64,11 +79,11 @@ export const register = async (req: Request, res: Response) => {
 
     const user = await User.create(userData);
 
-    const verificationToken = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET as Secret,
-      { expiresIn: '24h' }
-    );
+    // const verificationToken = jwt.sign(
+    //   { userId: user._id },
+    //   process.env.JWT_SECRET as Secret,
+    //   { expiresIn: '24h' }
+    // );
 
     // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     // console.log(verificationUrl);
@@ -89,13 +104,8 @@ export const register = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Failed to register user:', error);
-    res.status(500).json({
-      success: false,
-      code: 500,
-      message: 'Internal server error',
-      details: null,
-    });
+    logger.error('Failed to register user:', error);
+    next(error);
   }
 };
 

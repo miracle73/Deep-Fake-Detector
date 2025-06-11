@@ -2,12 +2,13 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import type { Request, Response, NextFunction } from 'express';
 import type { UserRole } from '../types/roles.js';
+import { AppError } from 'utils/error.js';
 
 export const protect = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<any> => {
   let token: string | undefined;
 
   const authorization = req.headers.authorization;
@@ -17,12 +18,7 @@ export const protect = async (
   }
 
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      code: 401,
-      message: 'Not authorized to access this route',
-      details: null,
-    });
+    throw new AppError(401, 'Not authorized to access this route', null);
   }
 
   try {
@@ -33,23 +29,16 @@ export const protect = async (
 
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        code: 401,
-        message: 'Not authorized to access this route',
-        details: null,
-      });
+      throw new AppError(401, 'Not authorized to access this route', null);
     }
 
     if (user.passwordChangedAt) {
       const changedTimestamp = user.passwordChangedAt.getTime() / 1000;
       if (decoded.iat && changedTimestamp > decoded.iat) {
-        return res.status(401).json({
-          success: false,
-          code: 401,
-          message: 'User recently changed password. Please log in again',
-          details: null,
-        });
+        throw new AppError(
+          401,
+          'User recently changed password. Please log in again'
+        );
       }
     }
 
@@ -57,12 +46,7 @@ export const protect = async (
     next();
   } catch (error) {
     console.error('Error verifying token:', error);
-    return res.status(401).json({
-      success: false,
-      code: 401,
-      message: 'Not authorized to access this route',
-      details: null,
-    });
+    next(error);
   }
 };
 
@@ -70,7 +54,7 @@ export const authorize =
   (...roles: string[]) =>
   (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.userType)) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         code: 403,
         message: 'You do not have permission to perform this action',
@@ -86,13 +70,11 @@ export const enterpriseOnly = (
   next: NextFunction
 ) => {
   if (!req.user || req.user.userType !== 'enterprise') {
-    return res.status(403).json({
-      success: false,
-      code: 403,
-      message:
-        'This feature is only available for teams and enterprise accounts',
-      details: null,
-    });
+    throw new AppError(
+      403,
+      'This feature is only available for teams and enterprise accounts',
+      null
+    );
   }
 
   next();
@@ -110,3 +92,8 @@ export const enterpriseOnly = (
 //     next();
 //   };
 // };
+
+export interface AuthRequest extends Request {
+  user?: any;
+  subscription?: any;
+}

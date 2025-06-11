@@ -36,6 +36,7 @@ const UserSchema: Schema = new Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     phoneNumber: { type: String },
+    stripeCustomerId: { type: String },
     avatar: { type: String },
     plan: {
       type: String,

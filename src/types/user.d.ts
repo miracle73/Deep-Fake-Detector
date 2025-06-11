@@ -39,6 +39,7 @@ export interface BaseUserFields {
   isGoogleUser: boolean;
   isEmailVerified: boolean;
   firstName: string;
+  stripeCustomerId?: string;
   lastName: string;
   phoneNumber?: string;
   avatar?: string;
