@@ -1,11 +1,14 @@
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Upload, CheckCircle, Check, Plus, X } from "lucide-react";
-import { Headphones, Play, ImageIcon } from "lucide-react";
+// import { Headphones, Play } from "lucide-react";
+// import { DownwardArrow } from "../assets/svg";
+import { FaArrowDownLong } from "react-icons/fa6";
+import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
 
 export default function DeepfakeDetector() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white ">
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,7 +29,7 @@ export default function DeepfakeDetector() {
               <a href="#" className="text-gray-600 hover:text-gray-900">
                 News
               </a>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+              <Button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[50px]">
                 Get Started
               </Button>
             </nav>
@@ -44,19 +47,20 @@ export default function DeepfakeDetector() {
             Deepfake Detection.
           </h1>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Our cutting-edge AI technology can accurately identify manipulated
-            media content. Test individual videos to determine their
-            authenticity and get results you can trust.
+            Instantly analyze media for AI manipulation with our robust and
+            easy-to-use platform. From individual checks to enterprise-scale
+            integration, get the clarity you need.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-lg">
+            <Button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-8 py-7 rounded-[50px] text-lg">
               Continue with Email
             </Button>
             <Button
               variant="outline"
-              className="px-8 py-3 rounded-md text-lg border-gray-300"
+              className="!px-10 !py-7 rounded-[50px] text-lg border-gray-300"
             >
-              Learn More →
+              Learn More
+              <FaArrowDownLong />
             </Button>
           </div>
         </div>
@@ -90,16 +94,16 @@ export default function DeepfakeDetector() {
         </div>
 
         {/* AI Content Information Section */}
-        <div className="max-w-6xl mx-auto mt-20 mb-12">
+        <div className="max-w-6xl mx-auto mt-40 max-md:mt-20 mb-12">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Navigating the Age of AI-Generated Content
             </h2>
             <p className="text-lg text-gray-600 max-w-4xl mx-auto">
-              Today's AI technologies can create remarkably realistic content
-              across multiple media types. Our advanced detection system helps
-              you identify artificially generated audio, video, and images with
-              high accuracy and confidence.
+              In today's digital landscape, the core challenge is that deepfakes
+              can severely damage your brand. However, our advanced AI analyzes
+              media files for subtle artifacts and inconsistencies indicative of
+              deepfakes.
             </p>
           </div>
 
@@ -107,52 +111,50 @@ export default function DeepfakeDetector() {
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             {/* Audio */}
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                <Headphones className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 mx-auto mb-4  rounded-full flex items-center justify-center">
+                <AudioIcon />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Audio
               </h3>
               <p className="text-gray-600">
-                Detect artificially generated speech, voice cloning, and
-                synthetic audio content with advanced acoustic analysis and
-                pattern recognition.
+                Detect advanced audio scams, voice impersonation, and social
+                engineering.
               </p>
             </div>
 
             {/* Video */}
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                <Play className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <VideoIcon />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Video
               </h3>
               <p className="text-gray-600">
-                Identify deepfake videos, face swaps, and manipulated footage
-                using cutting-edge computer vision and temporal analysis
-                techniques.
+                Uncover and block deepfake videos, synthetic impersonations, and
+                visual social engineering.
               </p>
             </div>
 
             {/* Image */}
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
-                <ImageIcon className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                {/* <A className="w-8 h-8 text-purple-600" /> */}
+                <ImageIcon />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Image
               </h3>
               <p className="text-gray-600">
-                Detect AI-generated images, synthetic faces, and digitally
-                manipulated photos with pixel-level analysis and authenticity
-                verification.
+                Detect image manipulation, AI-generated forgeries, and visual
+                identity fraud-instantly.
               </p>
             </div>
           </div>
 
           {/* For Individuals Section */}
-          <div className="grid md:grid-cols-3 gap-8 items-start mb-20">
+          <div className="grid md:grid-cols-3 gap-10 items-start mb-20 mt-40 max-md:mt-20">
             <div className="md:col-span-2">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 For Individuals
@@ -247,14 +249,14 @@ export default function DeepfakeDetector() {
             </div>
 
             <div className="md:col-span-1">
-              <div className="bg-gray-300 rounded-2xl h-64 w-full"></div>
+              <div className="bg-gray-300 rounded-2xl h-[400px] w-full"></div>
             </div>
           </div>
 
           {/* For Media Houses & Enterprise Section */}
-          <div className="grid md:grid-cols-3 gap-8 items-start mb-20">
-            <div className="md:col-span-1">
-              <div className="bg-gray-300 rounded-2xl h-64 w-full"></div>
+          <div className="grid md:grid-cols-3 gap-10 items-start mb-20 mt-40 max-md:mt-20">
+            <div className="md:col-span-1 order-1 md:order-2">
+              <div className="bg-gray-300 rounded-2xl h-[400px] w-full"></div>
             </div>
 
             <div className="md:col-span-2">
@@ -352,7 +354,7 @@ export default function DeepfakeDetector() {
           </div>
 
           {/* Pricing Section */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 mt-40 max-md:mt-20">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
               Explore Plans
             </h2>
@@ -360,7 +362,7 @@ export default function DeepfakeDetector() {
             {/* Toggle Buttons */}
             <div className="flex justify-center mb-12">
               <div className="bg-gray-100 rounded-full p-1 flex">
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-medium">
+                <button className="bg-[#0F2FA3] text-white px-6 py-2 rounded-full text-sm font-medium">
                   Individual
                 </button>
                 <button className="text-gray-600 px-6 py-2 rounded-full text-sm font-medium hover:text-gray-900">
@@ -393,7 +395,7 @@ export default function DeepfakeDetector() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full">
+                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full">
                     Subscribe
                   </Button>
                 </div>
@@ -429,7 +431,7 @@ export default function DeepfakeDetector() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full">
+                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full">
                     Subscribe
                   </Button>
                 </div>
@@ -465,7 +467,7 @@ export default function DeepfakeDetector() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full">
+                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full">
                     Subscribe
                   </Button>
                 </div>
@@ -474,7 +476,7 @@ export default function DeepfakeDetector() {
           </div>
 
           {/* FAQ Section */}
-          <div className="max-w-3xl mx-auto mb-20">
+          <div className="max-w-3xl mx-auto mb-20 mt-40 max-md:mt-20">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
               Frequently Asked Questions
             </h2>
