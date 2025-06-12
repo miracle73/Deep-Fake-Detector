@@ -128,7 +128,7 @@ function Signin() {
                 {/* Sign In Button */}
                 <button
                   type="submit"
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl"
+                  className="w-full h-12 bg-[#0F2FA3] hover:bg-blue-700 text-white font-medium rounded-[50px]"
                 >
                   Sign In
                 </button>
