@@ -1,6 +1,3 @@
-import type Stripe from 'stripe';
-
-import type { AuthRequest } from '../middlewares/auth.js';
 import Subscription from '../models/Subscription.js';
 import User from '../models/User.js';
 import {
@@ -12,6 +9,9 @@ import {
 import { AppError, NotFoundError } from '../utils/error.js';
 import logger from '../utils/logger.js';
 
+import type Stripe from 'stripe';
+
+import type { AuthRequest } from '../middlewares/auth.js';
 import type { checkoutSchema } from '../lib/schemas/billing.schema.js';
 import type { NextFunction, Request, Response } from 'express';
 
@@ -188,10 +188,8 @@ export const handleStripeWebhook = async (
   next: NextFunction
 ) => {
   try {
-    console.log(process.env.STRIPE_WEBHOOK_SECRET);
-    // console.log('Webhook received', JSON.stringify(req.body, null, 2));
     const sig = req.headers['stripe-signature'] as string;
-    const rawBody = req.body; // Now a Buffer
+    const rawBody = req.body;
 
     let event: Stripe.Event;
 
@@ -213,11 +211,8 @@ export const handleStripeWebhook = async (
       );
     }
 
-    console.log('event type', event.type);
-
     switch (event.type) {
       case 'checkout.session.completed':
-        console.log('namedeyrun', event);
         break;
 
       case 'customer.subscription.created':
@@ -229,7 +224,7 @@ export const handleStripeWebhook = async (
         if (!user) return;
 
         const updatedSub = await handleSubscriptionUpdate(subscription, user);
-        console.log(updatedSub);
+        logger.info(updatedSub);
         break;
       }
 

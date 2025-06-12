@@ -1,4 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose from 'mongoose';
+
+import type { Document } from 'mongoose';
 
 export interface ISubscription extends Document {
   userId: mongoose.Types.ObjectId;
@@ -20,10 +22,10 @@ export interface ISubscription extends Document {
   canceledAt: Date;
 }
 
-const subscriptionSchema = new Schema<ISubscription>(
+const subscriptionSchema = new mongoose.Schema<ISubscription>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },

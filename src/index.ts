@@ -15,6 +15,7 @@ import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import uploadRoutes from './routes/upload.js';
+import waitlistRoutes from './routes/waitlistRoutes.js';
 import logger from './utils/logger.js';
 
 dotenv.config();
@@ -36,7 +37,7 @@ app.use(morgan('dev'));
 app.use(limiter);
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
--app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -63,6 +64,7 @@ app.use('/api', uploadRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/waitlist', waitlistRoutes);
 
 app.use(errorHandler as express.ErrorRequestHandler);
 
