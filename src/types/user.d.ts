@@ -38,9 +38,7 @@ export interface BaseUserFields {
   password: string;
   isGoogleUser: boolean;
   isEmailVerified: boolean;
-  firstName: string;
   stripeCustomerId?: string;
-  lastName: string;
   googleId: string;
   phoneNumber?: string;
   avatar?: string;
@@ -57,6 +55,8 @@ export interface BaseUserFields {
 }
 
 export interface IndividualUser extends BaseUserFields {
+  firstName: string;
+  lastName: string;
   userType: 'individual';
   paymentMethods?: PaymentMethod[];
   usageQuota: {
@@ -95,3 +95,63 @@ export type IUser = Document &
     createdAt: Date;
     updatedAt: Date;
   };
+
+export interface BaseUserResponse {
+  id: string;
+  email: string;
+  userType: 'individual' | 'enterprise';
+  plan: 'free' | 'pro' | 'max';
+}
+
+export interface IndividualUserResponse extends BaseUserResponse {
+  userType: 'individual';
+  firstName: string;
+  lastName: string;
+}
+
+export interface EnterpriseUserResponse extends BaseUserResponse {
+  userType: 'enterprise';
+  company: {
+    name: string;
+    website: string;
+    size?: string;
+    industry?: string;
+  };
+  billingContact: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}
+
+export type UserResponse = IndividualUserResponse | EnterpriseUserResponse;
+
+export interface AuthResponse {
+  success: boolean;
+  token: string;
+  user: UserResponse;
+}
+
+export const formatUserResponse = (user: IUser): UserResponse => {
+  const baseResponse: BaseUserResponse = {
+    id: user._id.toString(),
+    email: user.email,
+    userType: user.userType,
+    plan: user.plan,
+  };
+
+  if (user.userType === 'individual') {
+    return {
+      ...baseResponse,
+      userType: 'individual',
+      firstName: (user as IndividualUser).firstName,
+      lastName: (user as IndividualUser).lastName,
+    };
+  }
+  return {
+    ...baseResponse,
+    userType: 'enterprise',
+    company: (user as EnterpriseUser).company,
+    billingContact: (user as EnterpriseUser).billingContact,
+  };
+};
