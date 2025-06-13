@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
-import { AppError } from 'utils/error.js';
+import { AppError } from '../utils/error.js';
 
 import User from '../models/User.js';
 import { stripe } from '../services/stripeService.js';
