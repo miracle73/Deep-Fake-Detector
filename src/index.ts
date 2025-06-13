@@ -14,7 +14,7 @@ import { limiter } from './middlewares/rateLimit.js';
 import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
-import uploadRoutes from './routes/upload.js';
+import detectRoutes from './routes/analyze.js';
 import waitlistRoutes from './routes/waitlistRoutes.js';
 import logger from './utils/logger.js';
 
@@ -43,11 +43,6 @@ app.get('/', (req, res) => {
   res.status(200).json({
     message: 'Welcome to the image detection API',
     version: '1.0.0',
-    endpoints: {
-      '/detect': 'POST - Detect objects in an image',
-      '/api/analyze': 'POST - Analyze an image',
-      '/api/analyze/batch': 'POST - Analyze multiple images',
-    },
   });
 });
 
@@ -59,7 +54,7 @@ app.get('/health', (req, res) => {
 });
 
 app.post('/detect', detectHandler);
-app.use('/api', uploadRoutes);
+app.use('/api/v1/detect', detectRoutes);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/user', userRoutes);

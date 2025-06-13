@@ -1,6 +1,6 @@
 import express from 'express';
 
-import * as UploadController from '../controllers/upload.controllers.js';
+import * as DetectController from '../controllers/detect.controller.js';
 import upload, {
   imageUploadMiddleware,
   multipleImageUploadMiddleware,
@@ -8,14 +8,14 @@ import upload, {
 
 const router = express.Router();
 
-router.post('/analyze', imageUploadMiddleware, UploadController.analyze);
+router.post('/analyze', imageUploadMiddleware, DetectController.analyze);
 
 router.post(
   '/analyze/batch',
   multipleImageUploadMiddleware,
-  UploadController.analyzeBulkMedia
+  DetectController.analyzeBulkMedia
 );
 
-router.get('/analyze/status/:id', UploadController.getJobStatus);
+router.get('/analyze/status/:id', DetectController.getJobStatus);
 
 export default router;
