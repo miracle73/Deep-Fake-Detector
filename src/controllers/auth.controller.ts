@@ -1,13 +1,11 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { AppError } from 'utils/error.js';
 
 import User from '../models/User.js';
 import { stripe } from '../services/stripeService.js';
 import { generateToken } from '../utils/generateToken.js';
-
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 import type { NextFunction, Request, Response } from 'express';
 import type { Secret } from 'jsonwebtoken';

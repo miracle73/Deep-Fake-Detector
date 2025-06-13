@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import request from 'supertest';
 
 import app from '../index.js';

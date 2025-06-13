@@ -1,8 +1,9 @@
 import express from 'express';
-import Subscription from 'models/Subscription';
+
+import Subscription from '../models/Subscription.js';
 
 import type { NextFunction, Response } from 'express';
-import type { AuthRequest } from './auth';
+import type { AuthRequest } from './auth.js';
 
 export const checkSubscription = async (
   req: AuthRequest,

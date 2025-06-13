@@ -1,10 +1,11 @@
-import { NextFunction, Response } from 'express';
+import { compare } from 'bcryptjs';
 
-import { AuthRequest } from '../middlewares/auth.js';
 import User from '../models/User.js';
 import { NotFoundError, ValidationError } from '../utils/error.js';
 import logger from '../utils/logger.js';
-import { compare } from 'bcryptjs';
+
+import type { NextFunction, Response } from 'express';
+import type { AuthRequest } from '../middlewares/auth.js';
 
 export async function getCurrentUser(
   req: AuthRequest,

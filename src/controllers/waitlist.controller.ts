@@ -6,7 +6,7 @@ import type { NextFunction, Request, Response } from 'express';
 import type {
   WaitlistSignup,
   WaitlistStatus,
-} from '../lib/schemas/waitlist.schema';
+} from '../lib/schemas/waitlist.schema.js';
 
 export const SignupForWaitlist = async (
   req: Request,

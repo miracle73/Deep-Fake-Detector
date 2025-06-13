@@ -1,5 +1,5 @@
 import { PubSub } from '@google-cloud/pubsub';
-import { callVertexAI } from '../services/vertexClient';
+import { callVertexAI } from '../services/vertexClient.js';
 
 const pubsub = new PubSub();
 const subscriptionName = 'detect-media-sub';

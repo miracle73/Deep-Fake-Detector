@@ -3,13 +3,13 @@ import * as WaitlistController from '../controllers/waitlist.controller.js';
 import {
   waitlistSignupLimiter,
   waitlistStatusLimiter,
-} from 'middlewares/rateLimit';
+} from '../middlewares/rateLimit.js';
 import {
   waitlistSignupSchema,
   waitlistStatusSchema,
-} from 'lib/schemas/waitlist.schema';
-import { validate, validateInput } from '../middlewares/validate';
-import { authorize, authorizeRoles, protect } from 'middlewares/auth.js';
+} from '../lib/schemas/waitlist.schema.js';
+import { validate, validateInput } from '../middlewares/validate.js';
+import { authorize, authorizeRoles, protect } from '../middlewares/auth.js';
 
 const router = Router();
 

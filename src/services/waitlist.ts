@@ -11,7 +11,7 @@ import type {
   WaitlistSignupData,
   WaitlistSignupResult,
   WaitlistStatusResult,
-} from '../types/waitlist.d';
+} from '../types/waitlist.d.js';
 
 export async function addToWaitlist(
   data: WaitlistSignupData

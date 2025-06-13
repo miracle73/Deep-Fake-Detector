@@ -1,4 +1,4 @@
-import { sendEmail } from '../services/emailService';
+import { sendEmail } from '../services/emailService.js';
 
 export function calculateEstimatedWaitTime(position: number): string {
   // assuming 10 users invited per week
