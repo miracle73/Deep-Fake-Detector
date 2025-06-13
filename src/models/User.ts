@@ -31,13 +31,36 @@ const UserSchema: Schema = new Schema(
       minlength: 8,
       select: false,
     },
-    isGoogleUser: { type: Boolean, default: false },
-    isEmailVerified: { type: Boolean, default: false },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    phoneNumber: { type: String },
-    stripeCustomerId: { type: String },
-    avatar: { type: String },
+    isGoogleUser: {
+      type: Boolean,
+      default: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+    },
+    stripeCustomerId: {
+      type: String,
+    },
+    avatar: {
+      type: String,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
     plan: {
       type: String,
       enum: ['free', 'pro', 'max'],
@@ -45,12 +68,26 @@ const UserSchema: Schema = new Schema(
     },
     analysisHistory: [AnalysisHistorySchema],
     billingHistory: [BillingHistorySchema],
-    agreedToTerms: { type: Boolean, required: true },
-    termsAgreedAt: { type: Date, required: true },
-    resetPasswordToken: { type: String },
-    resetPasswordExpire: { type: Date },
-    passwordChangedAt: { type: Date },
-    lastLogin: { type: Date },
+    agreedToTerms: {
+      type: Boolean,
+      required: true,
+    },
+    termsAgreedAt: {
+      type: Date,
+      required: true,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpire: {
+      type: Date,
+    },
+    passwordChangedAt: {
+      type: Date,
+    },
+    lastLogin: {
+      type: Date,
+    },
     userType: {
       type: String,
       enum: ['individual', 'enterprise'],

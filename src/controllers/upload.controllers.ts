@@ -1,3 +1,4 @@
+import { PubSub } from '@google-cloud/pubsub';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -6,13 +7,12 @@ import {
 } from '../services/detectionQueue.js';
 import { callVertexAI, callVertexAIBatch } from '../services/vertexClient.js';
 import { bucket } from '../utils/gcsClient.js';
+import logger from '../utils/logger.js';
 
 // import { simulateDetection } from '../services/detectionQueue.js';
 import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
-
-import { PubSub } from '@google-cloud/pubsub';
 
 const pubsub = new PubSub();
 
@@ -122,7 +122,7 @@ export const analyze = async (
       // },
     });
   } catch (error) {
-    console.log('Failed to upload image', error);
+    logger.info('Failed to upload image', error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
       return;

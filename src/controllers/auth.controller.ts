@@ -191,7 +191,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       'host'
     )}/api/v1/auth/reset-password/${resetToken}`;
 
-    console.log(resetUrl);
+    logger.info(resetUrl);
 
     // send mail
     // await sendPasswordResetEmail(user.email, resetUrl);

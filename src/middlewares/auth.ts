@@ -2,13 +2,13 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import type { Request, Response, NextFunction } from 'express';
 import type { UserRole } from '../types/roles.js';
-import { AppError } from 'utils/error.js';
+import { AppError, AuthenticationError } from '../utils/error.js';
 
 export const protect = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   let token: string | undefined;
 
   const authorization = req.headers.authorization;
@@ -63,6 +63,20 @@ export const authorize =
     }
     next();
   };
+
+export function authorizeRoles(...roles: string[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AuthenticationError('Not authenticated'));
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return next(new AuthenticationError('Not authorized'));
+    }
+
+    next();
+  };
+}
 
 export const enterpriseOnly = (
   req: Request,

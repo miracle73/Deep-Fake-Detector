@@ -52,6 +52,7 @@ export interface BaseUserFields {
   resetPasswordExpire?: Date;
   passwordChangedAt?: Date;
   lastLogin?: Date;
+  role: string;
 }
 
 export interface IndividualUser extends BaseUserFields {
