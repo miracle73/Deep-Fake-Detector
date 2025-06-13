@@ -41,6 +41,7 @@ export interface BaseUserFields {
   firstName: string;
   stripeCustomerId?: string;
   lastName: string;
+  googleId: string;
   phoneNumber?: string;
   avatar?: string;
   plan: 'free' | 'pro' | 'max';

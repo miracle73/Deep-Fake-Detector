@@ -9,6 +9,7 @@ import {
 import { validateInput } from '../middlewares/validate.js';
 
 import type { RequestHandler } from 'express';
+import { convertAccessTokenToIdToken } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -33,6 +34,12 @@ router.post(
 router.post(
   '/reset-password/:resetToken',
   AuthController.resetPassword as RequestHandler
+);
+
+router.post(
+  '/google',
+  convertAccessTokenToIdToken,
+  AuthController.googleLogin as RequestHandler
 );
 
 export default router;

@@ -35,6 +35,9 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
+    googleId: {
+      type: String,
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,

@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
-import { AppError } from '../utils/error.js';
 
 import User from '../models/User.js';
 import { stripe } from '../services/stripeService.js';
+import { AppError } from '../utils/error.js';
 import { generateToken } from '../utils/generateToken.js';
 import logger from '../utils/logger.js';
 
@@ -14,6 +14,7 @@ import type {
   LoginInput,
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
+import type { IUser } from '../types/user.js';
 
 export const register = async (
   req: Request,
@@ -107,7 +108,11 @@ export const register = async (
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body as LoginInput;
 
@@ -149,17 +154,107 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Failed to login user:', error);
-    res.status(500).json({
-      success: false,
-      code: 500,
-      message: 'Internal server error',
-      details: null,
-    });
+    logger.error('Failed to login user:', error);
+    next(error);
   }
 };
 
-export const forgotPassword = async (req: Request, res: Response) => {
+export const googleLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, googleId, firstName, lastName } = req.user as IUser;
+    const { userType, agreedToTerms, plan = 'free' } = req.body;
+
+    if (!agreedToTerms) {
+      throw new AppError(
+        400,
+        'You must agree to the terms and conditions',
+        null
+      );
+    }
+
+    logger.info(req.user);
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.isGoogleUser = true;
+
+        if (!user.firstName) user.firstName = firstName || 'Unknown';
+        if (!user.lastName) user.lastName = lastName || 'Unknown';
+
+        await user.save();
+      } else if (user.googleId !== googleId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already associated with different Google account',
+        });
+      }
+    } else {
+      const stripeCustomer = await stripe.customers.create({
+        email,
+        name: `${firstName} ${lastName}`,
+        metadata: {
+          appUserType: 'individual',
+        },
+      });
+
+      if (!stripeCustomer) {
+        throw new AppError(400, 'Failed to setup stripe for user', null);
+      }
+
+      const userData = {
+        email,
+        firstName,
+        lastName,
+        userType,
+        googleId,
+        agreedToTerms: true,
+        termsAgreedAt: new Date(),
+        plan,
+        stripeCustomerId: stripeCustomer.id,
+        isEmailVerified: false,
+        ...(userType === 'enterprise'
+          ? {
+              company: req.body.company,
+              billingContact: req.body.billingContact,
+            }
+          : {}),
+      };
+
+      user = await User.create(userData);
+    }
+
+    const token = generateToken(user._id.toString());
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userType: user.userType,
+        plan: user.plan,
+      },
+    });
+  } catch (error) {
+    logger.error('Google sign-in failed', error);
+    next(error);
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email } = req.body as ForgotPasswordInput;
 
@@ -200,13 +295,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
       message: 'Password reset email sent',
     });
   } catch (error) {
-    console.error('Failed to send password reset email:', error);
-    res.status(500).json({
-      success: false,
-      code: 500,
-      message: 'Internal server error',
-      details: null,
-    });
+    logger.error('Failed to send password reset email:', error);
+    next(error);
   }
 };
 

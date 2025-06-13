@@ -1,8 +1,12 @@
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
+
 import User from '../models/User.js';
+import { AppError, AuthenticationError } from '../utils/error.js';
+import logger from '../utils/logger.js';
+
 import type { Request, Response, NextFunction } from 'express';
 import type { UserRole } from '../types/roles.js';
-import { AppError, AuthenticationError } from '../utils/error.js';
 
 export const protect = async (
   req: Request,
@@ -111,3 +115,47 @@ export interface AuthRequest extends Request {
   user?: any;
   subscription?: any;
 }
+
+export const convertAccessTokenToIdToken = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { access_token } = req.body.idToken; // This is actually the access token
+
+    if (!access_token) {
+      res.status(400).json({ message: 'Access Token required' });
+    }
+
+    // Fetch user info using the access token
+    // const response = await axios.get(
+    //   `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`
+    // );
+
+    const response = await axios.get(
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      { headers: { Authorization: `Bearer ${access_token}` } }
+    );
+
+    if (!response.data.email) {
+      res.status(400).json({ message: 'Invalid Google Access Token' });
+    }
+
+    logger.info('response from google', response.data);
+
+    req.user = {
+      email: response.data.email,
+      firstName: response.data.given_name,
+      lastName: response.data.family_name,
+      googleId: response.data.sub,
+    };
+
+    next();
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occured';
+    logger.error('Token conversion error:', errorMessage);
+    next(error);
+  }
+};
