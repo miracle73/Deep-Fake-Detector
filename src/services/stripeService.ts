@@ -218,15 +218,27 @@ export const handleUpcomingInvoice = async (invoice: Stripe.Invoice) => {
   });
   if (!user) return;
 
-  await sendEmail({
-    to: user.email,
-    subject: 'Your subscription is renewing soon',
-    text: `upcoming-invoice plan: ${user.plan}, amount: ${
-      invoice.amount_due / 100
-    }, renewDate: ${
-      invoice.due_date
-        ? new Date(invoice.due_date * 1000).toLocaleDateString()
-        : null
-    }`,
-  });
+  const subscription = await stripe.subscriptions.retrieve(
+    invoice.parent?.subscription_details?.subscription as string
+  );
+
+  const plan = subscription.items.data[0].price.lookup_key || user.plan;
+  const amount = invoice.amount_due / 100;
+  const chargeDate = invoice.next_payment_attempt
+    ? new Date(invoice.next_payment_attempt * 1000)
+    : null;
+
+  // Add to queue
+  // await queueEmailNotification.add('upcoming-invoice-email', {
+  //   to: user.email,
+  //   subject: 'Upcoming Subscription Payment',
+  //   template: 'upcoming-invoice',
+  //   data: {
+  //     amount,
+  //     plan,
+  //     chargeDate: chargeDate.toDateString(),
+  //   },
+  // });
+
+  logger.info(`Queued upcoming invoice email for ${user.email}`);
 };

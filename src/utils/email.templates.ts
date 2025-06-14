@@ -1,8 +1,12 @@
-export const generatePaymentReceipt = (
-  amount: string,
-  date: string,
-  invoiceUrl: string
-) => {
+export const generatePaymentReceipt = ({
+  amount,
+  date,
+  invoiceUrl,
+}: {
+  amount: string;
+  date: string;
+  invoiceUrl: string;
+}) => {
   return `<html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -64,12 +68,17 @@ export const generatePaymentReceipt = (
 `;
 };
 
-export const generateUpcomingInvoice = (
-  firstName: string,
-  amount: string,
-  plan: string,
-  renewDate: string
-) => {
+export const generateUpcomingInvoice = ({
+  firstName,
+  amount,
+  plan,
+  renewDate,
+}: {
+  firstName: string;
+  amount: string;
+  plan: string;
+  renewDate: string;
+}) => {
   return `<html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -120,11 +129,15 @@ export const generateUpcomingInvoice = (
 `;
 };
 
-export const generateFailedPaymentEmail = (
-  amount: string,
-  date: string,
-  billingUrl: string
-) => {
+export const generateFailedPaymentEmail = ({
+  amount,
+  date,
+  billingUrl,
+}: {
+  amount: string;
+  date: string;
+  billingUrl: string;
+}) => {
   return `
     <html lang="en">
   <head>
@@ -184,3 +197,25 @@ export const generateFailedPaymentEmail = (
 </html>
 `;
 };
+
+export const upcomingInvoiceTemplate = ({
+  plan,
+  amount,
+  chargeDate,
+}: {
+  plan: string;
+  amount: number;
+  chargeDate: string;
+}) => `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+    <h2 style="color: #333;">Upcoming Subscription Payment</h2>
+    <p>Hi there,</p>
+    <p>This is a reminder that your <strong>${plan}</strong> subscription will renew soon.</p>
+    <p><strong>Amount:</strong> $${amount}</p>
+    <p><strong>Charge Date:</strong> ${chargeDate}</p>
+    <p>If you need to update your payment method or cancel, please visit your dashboard.</p>
+    <br />
+    <p>Thanks,</p>
+    <p><strong>Your App Team</strong></p>
+  </div>
+`;
