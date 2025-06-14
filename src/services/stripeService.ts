@@ -153,6 +153,12 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
     invoice.parent?.subscription_details?.subscription as string
   );
 
+  const price = subscription.items.data[0].price;
+  const productId = price.product as string;
+
+  const product = await stripe.products.retrieve(productId);
+  const productName = product.name;
+
   const user = await User.findOne({
     stripeCustomerId: invoice.customer as string,
   });
@@ -166,7 +172,7 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
         billingHistory: {
           invoiceId: invoice.id,
           amount: invoice.amount_paid / 100,
-          plan: subscription.items.data[0].price.lookup_key || user.plan,
+          plan: productName,
           status: 'paid',
           date: new Date(),
         },
