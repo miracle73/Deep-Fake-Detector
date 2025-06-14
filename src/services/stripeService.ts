@@ -4,6 +4,8 @@ import User from '../models/User.js';
 import Subscription from '../models/Subscription.js';
 import type { IUser } from '../types/user.js';
 import PaymentHistory from '../models/PaymentHistory.js';
+import logger from '../utils/logger.js';
+import { sendEmail } from './emailService.js';
 
 config();
 
@@ -15,63 +17,216 @@ export const stripe = new Stripe(stripeApiKey as string, {
   apiVersion: '2025-04-30.basil',
 });
 
-export async function handleSubscriptionUpdate(
-  sub: Stripe.Subscription,
-  user: IUser
-) {
-  const price = sub.items.data[0].price;
+export const handleCheckoutSessionCompleted = async (
+  session: Stripe.Checkout.Session
+) => {
+  try {
+    if (session.mode !== 'subscription') return;
 
-  const subscription = await Subscription.findOneAndUpdate(
-    { stripeSubscriptionId: sub.id },
+    if (!session.customer || typeof session.customer !== 'string') {
+      throw new Error('Missing customer ID in checkout session');
+    }
+
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription as string
+    );
+
+    const user = await User.findOneAndUpdate(
+      { stripeCustomerId: session.customer },
+      {
+        plan: subscription.items.data[0].price.lookup_key || 'pro',
+        isActive: true,
+        // $push: {
+        //   billingHistory: {
+        //     invoiceId: session.invoice as string,
+        //     amount: session.amount_total ? session.amount_total / 100 : 0,
+        //     plan: subscription.items.data[0].price.lookup_key || 'pro',
+        //     status: 'paid',
+        //     date: new Date(),
+        //   },
+        // },
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new Error(`User not found for customer ID: ${session.customer}`);
+    }
+
+    await Subscription.findOneAndUpdate(
+      { stripeSubscriptionId: subscription.id },
+      {
+        userId: user._id,
+        status: subscription.status,
+        planId: subscription.items.data[0].price.id,
+        currentPeriodStart: new Date(subscription.start_date * 1000),
+        currentPeriodEnd: subscription.cancel_at
+          ? new Date(subscription.cancel_at * 1000)
+          : null,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      },
+      { upsert: true, new: true }
+    );
+
+    logger.info(`Checkout completed for user ${user.email}`);
+  } catch (error) {
+    logger.error('Failed to handle checkout.session.completed', error);
+    throw error;
+  }
+};
+
+export const handleSubscriptionChange = async (
+  subscription: Stripe.Subscription
+) => {
+  const user = await User.findOne({
+    stripeCustomerId: subscription.customer as string,
+  });
+  if (!user) return;
+
+  // Update user plan status
+  const plan = subscription.items.data[0].price.lookup_key || user.plan;
+
+  await User.updateOne(
+    { _id: user._id },
     {
-      user: user._id,
-      stripeSubscriptionId: sub.id,
-      status: sub.status,
-      priceId: price.id,
-      productId: price.product as string,
-      plan: price.nickname?.toLowerCase() ?? 'unknown',
-      startDate: new Date(sub.start_date * 1000),
-      currentPeriodStart: new Date(sub.start_date * 1000),
-      currentPeriodEnd: sub.cancel_at ? new Date(sub.cancel_at * 1000) : null,
-      cancelAtPeriodEnd: sub.cancel_at_period_end,
-    },
-    { upsert: true, new: true }
+      plan,
+      isActive: ['active', 'trialing'].includes(subscription.status),
+    }
   );
 
-  return subscription;
-}
+  await Subscription.findOneAndUpdate(
+    { stripeSubscriptionId: subscription.id },
+    {
+      status: subscription.status,
+      planId: subscription.items.data[0].price.id,
+      currentPeriodStart: new Date(subscription.start_date * 1000),
+      currentPeriodEnd: subscription.cancel_at
+        ? new Date(subscription.cancel_at * 1000)
+        : null,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    }
+  );
 
-export async function handleSuccessfulPayment(invoice: Stripe.Invoice) {
-  // TODO: Implement payment handling
-  // const customer = await stripe.customers.retrieve(invoice.customer as string);
-  // const userId = customer.metadata.userId;
-  // await PaymentHistory.create({
-  //   userId,
-  //   stripePaymentIntentId: invoice.payment_intent as string,
-  //   amount: invoice.amount_paid,
-  //   currency: invoice.currency,
-  //   status: 'succeeded',
-  //   paymentMethod: invoice.payment_method_types?.[0] || 'card',
-  // });
-}
+  logger.info(
+    `Subscription ${subscription.id} updated to status: ${subscription.status}`
+  );
+};
 
-export async function handleFailedPayment(invoice: Stripe.Invoice) {
-  // const customer = await stripe.customers.retrieve(invoice.customer as string);
-  // const userId = customer.metadata.userId;
-  // await PaymentHistory.create({
-  //   userId,
-  //   stripePaymentIntentId: invoice.payment_intent as string,
-  //   amount: invoice.amount_due,
-  //   currency: invoice.currency,
-  //   status: 'failed',
-  //   paymentMethod: invoice.payment_method_types?.[0] || 'card',
+export const handleSubscriptionCancelled = async (
+  subscription: Stripe.Subscription
+) => {
+  await Subscription.findOneAndUpdate(
+    { stripeSubscriptionId: subscription.id },
+    {
+      status: 'canceled',
+      canceledAt: new Date(),
+      cancelAtPeriodEnd: false,
+    }
+  );
+
+  // Optionally downgrade user immediately or wait until period ends
+  const user = await User.findOne({
+    stripeCustomerId: subscription.customer as string,
+  });
+  if (user) {
+    await User.updateOne(
+      { _id: user._id },
+      {
+        plan: 'free',
+        isActive: false,
+        $push: {
+          billingHistory: {
+            invoiceId: `cancel_${Date.now()}`,
+            status: 'canceled',
+            date: new Date(),
+          },
+        },
+      }
+    );
+  }
+
+  logger.info(`Subscription ${subscription.id} canceled`);
+};
+
+export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
+  const subscription = await stripe.subscriptions.retrieve(
+    invoice.parent?.subscription_details?.subscription as string
+  );
+
+  const user = await User.findOne({
+    stripeCustomerId: invoice.customer as string,
+  });
+
+  if (!user) return;
+
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $push: {
+        billingHistory: {
+          invoiceId: invoice.id,
+          amount: invoice.amount_paid / 100,
+          plan: subscription.items.data[0].price.lookup_key || user.plan,
+          status: 'paid',
+          date: new Date(),
+        },
+      },
+    }
+  );
+
+  // await sendEmail({
+  //   to: user.email,
+  //   subject: 'Payment Receipt',
+  //   text: `payment-receipt - amount:  ${
+  //     invoice.amount_paid / 100
+  //   } date - ${new Date(
+  //     invoice.created * 1000
+  //   ).toLocaleDateString()} invoiceUrl- ${invoice.hosted_invoice_url}`,
   // });
-  // const subscription = await Subscription.findOne({
-  //   userId,
-  //   status: 'active',
-  // });
-  // if (subscription) {
-  //   subscription.status = 'past_due';
-  //   await subscription.save();
-  // }
-}
+
+  logger.info(`Payment succeeded for invoice ${invoice.id}`);
+};
+
+export const handleFailedPayment = async (invoice: Stripe.Invoice) => {
+  const user = await User.findOne({
+    stripeCustomerId: invoice.customer as string,
+  });
+  if (!user) return;
+
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $push: {
+        billingHistory: {
+          invoiceId: invoice.id,
+          amount: invoice.amount_due / 100,
+          plan: user.plan,
+          status: 'failed',
+          date: new Date(),
+        },
+      },
+    }
+  );
+
+  // Optionally send payment failure email
+  logger.warn(`Payment failed for invoice ${invoice.id}`);
+};
+
+export const handleUpcomingInvoice = async (invoice: Stripe.Invoice) => {
+  const user = await User.findOne({
+    stripeCustomerId: invoice.customer as string,
+  });
+  if (!user) return;
+
+  await sendEmail({
+    to: user.email,
+    subject: 'Your subscription is renewing soon',
+    text: `upcoming-invoice plan: ${user.plan}, amount: ${
+      invoice.amount_due / 100
+    }, renewDate: ${
+      invoice.due_date
+        ? new Date(invoice.due_date * 1000).toLocaleDateString()
+        : null
+    }`,
+  });
+};
