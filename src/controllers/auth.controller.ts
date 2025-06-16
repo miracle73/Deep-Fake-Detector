@@ -25,6 +25,7 @@ import {
   type EnterpriseUser,
   type AuthResponse,
   formatUserResponse,
+  type GoogleTempUser,
 } from '../types/user.d.js';
 
 type UserData = {
@@ -64,7 +65,6 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    console.log(req.body);
     const {
       email,
       password,
@@ -206,7 +206,7 @@ export const googleLogin = async (
   next: NextFunction
 ) => {
   try {
-    const { email, googleId, firstName, lastName } = req.user as IUser;
+    const { email, googleId, firstName, lastName } = req.user as GoogleTempUser;
     const { userType, agreedToTerms, plan = 'free' } = req.body;
 
     if (!agreedToTerms) {
@@ -338,7 +338,11 @@ export const forgotPassword = async (
   }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { password } = req.body;
 
@@ -381,18 +385,13 @@ export const resetPassword = async (req: Request, res: Response) => {
         id: user._id,
         email: user.email,
         userType: user.userType,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        // firstName: user.firstName,
+        // lastName: user.lastName,
         plan: user.plan,
       },
     });
   } catch (error) {
-    console.error('Failed to reset password:', error);
-    res.status(500).json({
-      success: false,
-      code: 500,
-      message: 'Internal server error',
-      details: null,
-    });
+    logger.error('Failed to reset password:', error);
+    next(error);
   }
 };

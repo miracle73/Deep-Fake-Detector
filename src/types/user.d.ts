@@ -156,3 +156,10 @@ export const formatUserResponse = (user: IUser): UserResponse => {
     billingContact: (user as EnterpriseUser).billingContact,
   };
 };
+
+export interface GoogleTempUser {
+  email: string;
+  googleId: string;
+  firstName: string;
+  lastName: string;
+}
