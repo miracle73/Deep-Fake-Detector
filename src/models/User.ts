@@ -42,17 +42,6 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
-    firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
-      type: String,
-      required: true,
-    },
-    phoneNumber: {
-      type: String,
-    },
     stripeCustomerId: {
       type: String,
     },
@@ -100,12 +89,35 @@ const UserSchema: Schema = new Schema(
       enum: ['individual', 'enterprise'],
       required: true,
     },
-    // Individual user fields
+    firstName: {
+      type: String,
+      required: function (this: IUser) {
+        return this.userType === 'individual';
+      },
+    },
+    lastName: {
+      type: String,
+      required: function (this: IUser) {
+        return this.userType === 'individual';
+      },
+    },
+    phoneNumber: {
+      type: String,
+    },
     paymentMethods: [PaymentMethodSchema],
     usageQuota: UsageQuotaSchema,
-    // Enterprise user fields
-    company: CompanySchema,
-    billingContact: BillingContactSchema,
+    company: {
+      type: CompanySchema,
+      required: function (this: IUser) {
+        return this.userType === 'enterprise';
+      },
+    },
+    billingContact: {
+      type: BillingContactSchema,
+      required: function (this: IUser) {
+        return this.userType === 'enterprise';
+      },
+    },
     teamMembers: [TeamMemberSchema],
     apiAccess: ApiAccessSchema,
   },

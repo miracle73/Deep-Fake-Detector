@@ -1,11 +1,16 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
+import type { z } from 'zod';
 
 import User from '../models/User.js';
 import { stripe } from '../services/stripeService.js';
 import { AppError } from '../utils/error.js';
 import { generateToken } from '../utils/generateToken.js';
 import logger from '../utils/logger.js';
+import type {
+  individualUserSchema,
+  enterpriseUserSchema,
+} from '../lib/schemas/user.schema.js';
 
 import type { NextFunction, Request, Response } from 'express';
 import type { Secret } from 'jsonwebtoken';
@@ -14,7 +19,45 @@ import type {
   LoginInput,
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
-import type { IUser } from '../types/user.js';
+import {
+  type IUser,
+  type IndividualUser,
+  type EnterpriseUser,
+  type AuthResponse,
+  formatUserResponse,
+  type GoogleTempUser,
+} from '../types/user.d.js';
+
+type UserData = {
+  email: string;
+  password: string;
+  userType: 'individual' | 'enterprise';
+  agreedToTerms: boolean;
+  termsAgreedAt: Date;
+  plan: 'free' | 'pro' | 'max';
+  isEmailVerified: boolean;
+  stripeCustomerId?: string;
+} & (
+  | {
+      userType: 'individual';
+      firstName: string;
+      lastName: string;
+    }
+  | {
+      userType: 'enterprise';
+      company: {
+        name: string;
+        website: string;
+        size?: string;
+        industry?: string;
+      };
+      billingContact: {
+        name: string;
+        email: string;
+        phone: string;
+      };
+    }
+);
 
 export const register = async (
   req: Request,
@@ -25,8 +68,6 @@ export const register = async (
     const {
       email,
       password,
-      firstName,
-      lastName,
       agreedToTerms,
       userType,
       plan = 'free',
@@ -45,9 +86,48 @@ export const register = async (
       throw new AppError(400, 'User with this email already exists', null);
     }
 
+    // Handle user type specific data
+    let userData: UserData = {
+      email,
+      password,
+      userType,
+      agreedToTerms,
+      termsAgreedAt: new Date(),
+      plan,
+      isEmailVerified: false,
+    } as UserData;
+
+    // Add type-specific fields
+    if (userType === 'individual') {
+      const { firstName, lastName } = req.body as z.infer<
+        typeof individualUserSchema
+      >;
+      userData = {
+        ...userData,
+        userType: 'individual',
+        firstName,
+        lastName,
+      } as UserData & { userType: 'individual' };
+    } else {
+      const { company, billingContact } = req.body as z.infer<
+        typeof enterpriseUserSchema
+      >;
+      userData = {
+        ...userData,
+        userType: 'enterprise',
+        company,
+        billingContact,
+      } as UserData & { userType: 'enterprise' };
+    }
+
     const stripeCustomer = await stripe.customers.create({
       email,
-      name: `${firstName} ${lastName}`,
+      name:
+        userType === 'individual'
+          ? `${(userData as UserData & { userType: 'individual' }).firstName} ${
+              (userData as UserData & { userType: 'individual' }).lastName
+            }`
+          : (userData as UserData & { userType: 'enterprise' }).company.name,
       metadata: {
         appUserType: userType,
       },
@@ -57,51 +137,17 @@ export const register = async (
       throw new AppError(400, 'Failed to setup stripe for user', null);
     }
 
-    const userData = {
-      email,
-      password,
-      firstName,
-      lastName,
-      userType,
-      agreedToTerms,
-      termsAgreedAt: new Date(),
-      plan,
-      stripeCustomerId: stripeCustomer.id,
-      isEmailVerified: false,
-      ...(userType === 'enterprise'
-        ? {
-            company: req.body.company,
-            billingContact: req.body.billingContact,
-          }
-        : {}),
-    };
-
+    userData.stripeCustomerId = stripeCustomer.id;
     const user = await User.create(userData);
-
-    // const verificationToken = jwt.sign(
-    //   { userId: user._id },
-    //   process.env.JWT_SECRET as Secret,
-    //   { expiresIn: '24h' }
-    // );
-
-    // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    // console.log(verificationUrl);
-    // await sendVerificationEmail(user.email, verificationToken);
-
     const token = generateToken(user._id.toString());
 
-    res.status(201).json({
+    const response: AuthResponse = {
       success: true,
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userType: user.userType,
-        plan: user.plan,
-      },
-    });
+      user: formatUserResponse(user),
+    };
+
+    res.status(201).json(response);
   } catch (error) {
     logger.error('Failed to register user:', error);
     next(error);
@@ -141,18 +187,13 @@ export const login = async (
 
     const token = generateToken(user._id.toString());
 
-    res.status(200).json({
+    const response: AuthResponse = {
       success: true,
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userType: user.userType,
-        plan: user.plan,
-      },
-    });
+      user: formatUserResponse(user),
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     logger.error('Failed to login user:', error);
     next(error);
@@ -165,7 +206,7 @@ export const googleLogin = async (
   next: NextFunction
 ) => {
   try {
-    const { email, googleId, firstName, lastName } = req.user as IUser;
+    const { email, googleId, firstName, lastName } = req.user as GoogleTempUser;
     const { userType, agreedToTerms, plan = 'free' } = req.body;
 
     if (!agreedToTerms) {
@@ -176,8 +217,6 @@ export const googleLogin = async (
       );
     }
 
-    logger.info(req.user);
-
     let user = await User.findOne({ email });
 
     if (user) {
@@ -185,8 +224,10 @@ export const googleLogin = async (
         user.googleId = googleId;
         user.isGoogleUser = true;
 
-        if (!user.firstName) user.firstName = firstName || 'Unknown';
-        if (!user.lastName) user.lastName = lastName || 'Unknown';
+        if (user.userType === 'individual') {
+          if (!user.firstName) user.firstName = firstName || 'Unknown';
+          if (!user.lastName) user.lastName = lastName || 'Unknown';
+        }
 
         await user.save();
       } else if (user.googleId !== googleId) {
@@ -198,9 +239,12 @@ export const googleLogin = async (
     } else {
       const stripeCustomer = await stripe.customers.create({
         email,
-        name: `${firstName} ${lastName}`,
+        name:
+          userType === 'individual'
+            ? `${firstName} ${lastName}`
+            : req.body.company?.name || email,
         metadata: {
-          appUserType: 'individual',
+          appUserType: userType,
         },
       });
 
@@ -210,21 +254,20 @@ export const googleLogin = async (
 
       const userData = {
         email,
-        firstName,
-        lastName,
         userType,
         googleId,
         agreedToTerms: true,
         termsAgreedAt: new Date(),
         plan,
         stripeCustomerId: stripeCustomer.id,
-        isEmailVerified: false,
-        ...(userType === 'enterprise'
-          ? {
+        isEmailVerified: true,
+        isGoogleUser: true,
+        ...(userType === 'individual'
+          ? { firstName, lastName }
+          : {
               company: req.body.company,
               billingContact: req.body.billingContact,
-            }
-          : {}),
+            }),
       };
 
       user = await User.create(userData);
@@ -232,18 +275,13 @@ export const googleLogin = async (
 
     const token = generateToken(user._id.toString());
 
-    res.status(200).json({
+    const response: AuthResponse = {
       success: true,
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userType: user.userType,
-        plan: user.plan,
-      },
-    });
+      user: formatUserResponse(user),
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     logger.error('Google sign-in failed', error);
     next(error);
@@ -300,7 +338,11 @@ export const forgotPassword = async (
   }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { password } = req.body;
 
@@ -343,18 +385,13 @@ export const resetPassword = async (req: Request, res: Response) => {
         id: user._id,
         email: user.email,
         userType: user.userType,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        // firstName: user.firstName,
+        // lastName: user.lastName,
         plan: user.plan,
       },
     });
   } catch (error) {
-    console.error('Failed to reset password:', error);
-    res.status(500).json({
-      success: false,
-      code: 500,
-      message: 'Internal server error',
-      details: null,
-    });
+    logger.error('Failed to reset password:', error);
+    next(error);
   }
 };
