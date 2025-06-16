@@ -46,6 +46,7 @@ export interface BaseUserFields {
   createdAt: Date;
   updatedAt: Date;
   agreedToTerms: boolean;
+  isActive: boolean;
   termsAgreedAt: Date;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;

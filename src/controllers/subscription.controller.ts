@@ -1,9 +1,12 @@
 import Subscription from '../models/Subscription.js';
 import User from '../models/User.js';
 import {
+  handleCheckoutSessionCompleted,
   handleFailedPayment,
-  handleSubscriptionUpdate,
+  handleSubscriptionCancelled,
+  handleSubscriptionChange,
   handleSuccessfulPayment,
+  handleUpcomingInvoice,
   stripe,
 } from '../services/stripeService.js';
 import { AppError, NotFoundError } from '../utils/error.js';
@@ -78,6 +81,7 @@ export const createCheckoutSession = async (
 
     const session = await stripe.checkout.sessions.create({
       customer: user.stripeCustomerId,
+      // invoice_creation: true,
       payment_method_types: ['card'],
       mode: 'subscription',
       metadata: {
@@ -86,15 +90,13 @@ export const createCheckoutSession = async (
         planIntent: priceId,
       },
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.FRONTEND_URL}/billing/success/`,
+      success_url: `${process.env.FRONTEND_URL}`, // /billing/success/`,
       cancel_url: `${process.env.FRONTEND_URL}/billing/cancelled`,
     });
 
     if (!session) {
       throw new AppError(400, 'Failed to create checkout session', session);
     }
-
-    // const amount = session.amount_total/100 || null
 
     res.status(200).json({
       success: true,
@@ -213,43 +215,40 @@ export const handleStripeWebhook = async (
 
     switch (event.type) {
       case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(
+          event.data.object as Stripe.Checkout.Session
+        );
+
+        // send email
         break;
 
       case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-        const user = await User.findOne({
-          stripeCustomerId: subscription.customer,
-        });
-        if (!user) return;
-
-        const updatedSub = await handleSubscriptionUpdate(subscription, user);
-        logger.info(updatedSub);
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const sub = event.data.object as Stripe.Subscription;
-        await Subscription.findOneAndUpdate(
-          { stripeSubscriptionId: sub.id },
-          { status: 'canceled', canceledAt: new Date() }
+      case 'customer.subscription.updated':
+        await handleSubscriptionChange(
+          event.data.object as Stripe.Subscription
         );
-
         break;
-      }
 
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice;
-        await handleSuccessfulPayment(invoice);
-
+      case 'customer.subscription.deleted':
+        await handleSubscriptionCancelled(
+          event.data.object as Stripe.Subscription
+        );
         break;
-      }
 
-      case 'invoice.payment_failed': {
-        const failedInvoice = event.data.object as Stripe.Invoice;
-        await handleFailedPayment(failedInvoice);
+      case 'invoice.upcoming':
+        await handleUpcomingInvoice(event.data.object as Stripe.Invoice);
         break;
-      }
+
+      case 'invoice.payment_succeeded':
+        await handleSuccessfulPayment(event.data.object as Stripe.Invoice);
+        break;
+
+      case 'invoice.payment_failed':
+        await handleFailedPayment(event.data.object as Stripe.Invoice);
+        break;
+
+      default:
+        logger.info(`Unhandled event type: ${event.type}`);
     }
 
     res.status(200).json({

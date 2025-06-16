@@ -45,6 +45,10 @@ const UserSchema: Schema = new Schema(
     stripeCustomerId: {
       type: String,
     },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
     avatar: {
       type: String,
     },
