@@ -264,7 +264,11 @@ export const handleStripeWebhook = async (
   }
 };
 
-export const createCustomerPortal = async (req: Request, res: Response) => {
+export const createCustomerPortal = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const user = req.user;
 
@@ -286,12 +290,7 @@ export const createCustomerPortal = async (req: Request, res: Response) => {
       url: session.url,
     });
   } catch (error) {
-    console.error('Error creating customer portal:', error);
-    res.status(500).json({
-      success: false,
-      code: 500,
-      mesage: 'Failed to create customer portal',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
+    logger.error('Error creating customer portal:', error);
+    next(error);
   }
 };

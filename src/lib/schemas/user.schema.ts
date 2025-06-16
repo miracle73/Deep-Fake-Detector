@@ -1,29 +1,55 @@
 import { z } from 'zod';
 
-export const registerSchema = z.object({
+const baseUserSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
   password: z
     .string()
     .min(8, { message: 'Password must be at least 8 characters long' }),
-  firstName: z.string().min(1, { message: 'First name is required' }),
-  lastName: z.string().min(1, { message: 'Last name is required' }),
   agreedToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms and conditions',
   }),
-  userType: z.enum(['individual', 'enterprise']),
-  plan: z.string().optional().default('free'),
+  plan: z.enum(['free', 'pro', 'max']).optional().default('free'),
 });
+
+export const individualUserSchema = baseUserSchema.extend({
+  userType: z.literal('individual'),
+  firstName: z.string().min(1, { message: 'First name is required' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
+});
+
+const companySchema = z.object({
+  name: z.string().min(1, { message: 'Company name is required' }),
+  website: z.string().url({ message: 'Valid website URL is required' }),
+  size: z.string().optional(),
+  industry: z.string().optional(),
+});
+
+const billingContactSchema = z.object({
+  name: z.string().min(1, { message: 'Contact name is required' }),
+  email: z.string().email({ message: 'Valid contact email is required' }),
+  phone: z.string().min(1, { message: 'Contact phone is required' }),
+});
+
+export const enterpriseUserSchema = baseUserSchema.extend({
+  userType: z.literal('enterprise'),
+  company: companySchema,
+  billingContact: billingContactSchema,
+});
+
+export const registerSchema = z.discriminatedUnion('userType', [
+  individualUserSchema,
+  enterpriseUserSchema,
+]);
 
 export const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
-  password: z
-    .string()
-    .min(8, { message: 'Password must be at least 8 characters long' }),
+  password: z.string().min(1, { message: 'Password is required' }),
 });
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
 });
+
 export const resetPasswordSchema = z.object({
   resetToken: z.string().min(1, { message: 'Reset token is required' }),
   newPassword: z

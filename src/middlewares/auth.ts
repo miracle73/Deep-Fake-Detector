@@ -49,7 +49,7 @@ export const protect = async (
     req.user = user;
     next();
   } catch (error) {
-    console.error('Error verifying token:', error);
+    logger.error('Error verifying token:', error);
     next(error);
   }
 };
@@ -112,7 +112,9 @@ export const enterpriseOnly = (
 // };
 
 export interface AuthRequest extends Request {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   user?: any;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   subscription?: any;
 }
 
