@@ -1,3 +1,10 @@
+import type {
+  BaseUserResponse,
+  EnterpriseUser,
+  IndividualUser,
+  IUser,
+  UserResponse,
+} from '../types/user.js';
 import { sendEmail } from '../services/emailService.js';
 
 export function calculateEstimatedWaitTime(position: number): string {
@@ -70,3 +77,27 @@ export async function sendInvitationEmail(email: string) {
     text: emailContent,
   });
 }
+
+export const formatUserResponse = (user: IUser): UserResponse => {
+  const baseResponse: BaseUserResponse = {
+    id: user._id.toString(),
+    email: user.email,
+    userType: user.userType,
+    plan: user.plan,
+  };
+
+  if (user.userType === 'individual') {
+    return {
+      ...baseResponse,
+      userType: 'individual',
+      firstName: (user as IndividualUser).firstName,
+      lastName: (user as IndividualUser).lastName,
+    };
+  }
+  return {
+    ...baseResponse,
+    userType: 'enterprise',
+    company: (user as EnterpriseUser).company,
+    billingContact: (user as EnterpriseUser).billingContact,
+  };
+};

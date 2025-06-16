@@ -1,12 +1,15 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
-import type { z } from 'zod';
 
+import { formatUserResponse } from '../lib/helpers.js';
 import User from '../models/User.js';
 import { stripe } from '../services/stripeService.js';
 import { AppError } from '../utils/error.js';
 import { generateToken } from '../utils/generateToken.js';
 import logger from '../utils/logger.js';
+
+import type { z } from 'zod';
+
 import type {
   individualUserSchema,
   enterpriseUserSchema,
@@ -19,14 +22,7 @@ import type {
   LoginInput,
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
-import {
-  type IUser,
-  type IndividualUser,
-  type EnterpriseUser,
-  type AuthResponse,
-  formatUserResponse,
-  type GoogleTempUser,
-} from '../types/user.d.js';
+import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
 
 type UserData = {
   email: string;
