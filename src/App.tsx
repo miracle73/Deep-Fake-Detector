@@ -5,6 +5,7 @@ import SecondPage from "./pages";
 import Signin from "./pages/signin";
 import SignUp from "./pages/signup";
 import Dashboard from "./pages/dashboard";
+
 function App() {
   return (
     <>

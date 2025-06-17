@@ -19,6 +19,7 @@ import {
 import { NoAnalysisYet, UploadIcon } from "../assets/svg";
 import FirstImage from "../assets/images/firstImage.png";
 import SecondImage from "../assets/images/secondImage.png";
+import ThirdImage from "../assets/images/thirdImage.png";
 
 const mockAnalyses = [
   {
@@ -68,6 +69,27 @@ const Dashboard = () => {
   const [hasAnalyses, setHasAnalyses] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{
+    name: string;
+    size: string;
+    thumbnail: string;
+  } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Modify the handleUploadMedia function
+  const handleUploadMedia = () => {
+    setIsUploading(true);
+
+    // Simulate file upload with delay
+    setTimeout(() => {
+      setUploadedFile({
+        name: "Video_Clip_01.mp4",
+        size: "17.53 MB",
+        thumbnail: ThirdImage,
+      });
+      setIsUploading(false);
+    }, 3000);
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -86,6 +108,25 @@ const Dashboard = () => {
     // Handle file drop logic here
   };
 
+  // const handleUploadMedia = () => {
+  //   // Simulate file upload
+  //   setUploadedFile({
+  //     name: "Video_Clip_01.mp4",
+  //     size: "17.53 MB",
+  //     thumbnail:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-PfGOczEHEKWpuIxew8P36mT0KzEkji.png",
+  //   });
+  // };
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
+  };
+
+  const handleAnalyseMedia = () => {
+    // Handle analysis logic here
+    console.log("Analysing media...");
+    setUploadedFile(null);
+  };
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
     switch (status) {
@@ -101,7 +142,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50`}>
       {/* Full Width Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 w-full">
         <div className="flex items-center justify-between">
@@ -267,22 +308,68 @@ const Dashboard = () => {
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
                 >
-                  <div className="flex justify-center items-center mb-4">
-                    <UploadIcon />
-                  </div>
+                  {!uploadedFile ? (
+                    <>
+                      <div className="flex justify-center items-center mb-4">
+                        <UploadIcon />
+                      </div>
 
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                    Drag and drop to upload or browse files
-                  </h3>
-                  <p className="text-xs sm:text-sm text-red-500 mb-6">
-                    Supports audio, video and image format. Max file size 1GB
-                  </p>
-                  <button
-                    className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
-                    onClick={() => setHasAnalyses(!hasAnalyses)}
-                  >
-                    Upload Media
-                  </button>
+                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                        Drag and drop to upload or browse files
+                      </h3>
+                      <p className="text-xs sm:text-sm text-red-500 mb-6">
+                        Supports audio, video and image format. Max file size
+                        1GB
+                      </p>
+                      <button
+                        className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
+                        onClick={() => {
+                          setHasAnalyses(!hasAnalyses);
+                          handleUploadMedia();
+                        }}
+                        disabled={isUploading}
+                      >
+                        Upload Media
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center space-y-4">
+                      {/* Video Thumbnail */}
+                      <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200">
+                        <img
+                          src={ThirdImage}
+                          alt="Video thumbnail"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      {/* File Info */}
+                      <div className="flex items-center space-x-2">
+                        <div className=" flex items-center gap-4">
+                          <p className="text-sm sm:text-base font-medium text-gray-900">
+                            {uploadedFile.name}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            ({uploadedFile.size})
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleRemoveFile}
+                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
+                        >
+                          <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+
+                      {/* Analyse Button */}
+                      <button
+                        onClick={handleAnalyseMedia}
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors"
+                      >
+                        Analyse Media
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -304,21 +391,21 @@ const Dashboard = () => {
                     How it Works
                   </h3>
                   <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="text-gray-400 mt-1">→</div>
+                    <div className="flex items-center justify-start gap-4">
+                      <div>→</div>
                       <p className="text-xs sm:text-sm text-gray-600">
                         Upload your media
                       </p>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="text-gray-400 mt-1">→</div>
+                    <div className="flex items-center justify-start gap-4">
+                      <div>→</div>
                       <p className="text-xs sm:text-sm text-gray-600">
                         Our model automatically processes the media to determine
                         whether it is AI generated or not.
                       </p>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="text-gray-400 mt-1">→</div>
+                    <div className="flex items-center justify-start gap-4">
+                      <div>→</div>
                       <p className="text-xs sm:text-sm text-gray-600">
                         Get instant and clear results with confidence.
                       </p>
