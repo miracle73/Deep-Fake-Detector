@@ -3,20 +3,24 @@ import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import userRoutes from './routes/userRoutes.js';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 import connectDB from './config/db.js';
+import { startQueues } from './config/queues.js';
 import { swaggerOptions } from './config/swagger.js';
 import { errorHandler } from './middlewares/error.js';
 import { limiter } from './middlewares/rateLimit.js';
+import emailQueue from './queues/emailQueue.js';
+import detectRoutes from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
-import detectRoutes from './routes/analyze.js';
+import userRoutes from './routes/userRoutes.js';
 import waitlistRoutes from './routes/waitlistRoutes.js';
 import logger from './utils/logger.js';
+
+import type { Request, Response } from 'express';
 
 dotenv.config();
 
@@ -39,14 +43,39 @@ app.use(limiter);
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     message: 'Welcome to the image detection API',
     version: '1.0.0',
   });
 });
 
-app.get('/health', (req, res) => {
+app.get('/email', async (req: Request, res: Response) => {
+  logger.info('sending email...');
+
+  await emailQueue.add(
+    'send-test-mail',
+    {
+      to: 'finzyphinzy@gmail.com',
+      subject: 'hello world',
+      text: 'i greet you boss',
+    },
+    {
+      attempts: 1,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
+    }
+  );
+
+  res.status(200).json({
+    success: true,
+    message: 'Email sent successfully',
+  });
+});
+
+app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     message: 'Server is running smoothly',
@@ -66,6 +95,9 @@ app.use(errorHandler as express.ErrorRequestHandler);
 app.listen(port, async () => {
   try {
     await connectDB();
+
+    startQueues();
+
     logger.info(`Server running🏃 on port ${port}...betta go catch it!🚀`);
     logger.info(
       `API Documentation available at http://localhost:${port}/api-docs`
