@@ -1,40 +1,48 @@
 import { Worker } from 'bullmq';
-import { redisConnection } from '../config/redis';
-// import {
-//   sendReceiptEmail,
-//   sendInvoiceReminder,
-//   sendFailureEmail,
-// } from '../utils/email.templates.ts';
 
-const worker = new Worker(
+import { redisConnection } from '../config/redis';
+import { sendEmail } from '../services/emailService.js';
+import logger from '../utils/logger.js';
+
+import type { EmailJob } from '../types/email.d.js';
+
+logger.info('🚀 Email worker is running...');
+
+const mainWorkerOptions = {
+  connection: redisConnection,
+  concurrency: 5,
+  removeOnFail: { count: 0 },
+};
+
+export const emailWorker = new Worker(
   'emailQueue',
   async (job) => {
-    const { name, to } = job.data;
-
-    switch (job.name) {
-      case 'sendReceiptEmail':
-        // await sendReceiptEmail(job.data);
-        break;
-
-      case 'upcomingInvoiceReminder':
-        // await sendInvoiceReminder(job.data);
-        break;
-
-      case 'paymentFailedNotice':
-        // await sendFailureEmail(job.data);
-        break;
-
-      default:
-        throw new Error(`Unknown job type: ${job.name}`);
-    }
+    logger.info(job.name);
+    // logger.info(job.data);
+    mailUser(job);
   },
-  { connection: redisConnection }
+  mainWorkerOptions
 );
 
-worker.on('completed', (job) => {
-  console.log(`✅ Email job ${job.name} completed`);
+emailWorker.on('error', (err) => {
+  logger.error(`Error processing job: ${err}`);
 });
 
-worker.on('failed', (job, err) => {
-  console.error(`❌ Email job ${job?.name} failed:`, err);
+emailWorker.on('completed', (job) => {
+  logger.info(`✅ Email job ${job.name} completed`);
 });
+
+emailWorker.on('failed', (job, err) => {
+  logger.error(`❌ Email job ${job?.name} failed:`, err);
+});
+
+const mailUser = async (job: EmailJob) => {
+  const { to, subject, text } = job.data;
+  await sendEmail({
+    to,
+    subject,
+    text,
+  });
+
+  return;
+};
