@@ -60,6 +60,20 @@ export const resetPasswordSchema = z.object({
     .min(8, { message: 'Confirm password must be at least 8 characters long' }),
 });
 
+export const resetPasswordBodySchema = z.object({
+  password: z
+    .string()
+    .min(8, { message: 'Password must be at least 8 characters long' }),
+});
+
+export const resendVerificationEmailSchema = z.object({
+  email: z.string().email({ message: 'Valid email address is required' }),
+});
+
+export const verifyEmailQuerySchema = z.object({
+  token: z.string().min(1, { message: 'Verification token is required' }),
+});
+
 export const updateUserSchema = z.object({
   lastName: z.string().min(2).optional(),
   firstName: z.string().min(2).optional(),
@@ -72,3 +86,8 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type UpdateInput = z.infer<typeof updateUserSchema>;
+export type ResetPasswordBodyInput = z.infer<typeof resetPasswordBodySchema>;
+export type ResendVerificationEmailInput = z.infer<
+  typeof resendVerificationEmailSchema
+>;
+export type VerifyEmailQueryInput = z.infer<typeof verifyEmailQuerySchema>;

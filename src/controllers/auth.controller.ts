@@ -23,6 +23,15 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
+import emailQueue from '../queues/emailQueue.js';
+import {
+  generateVerificationEmail,
+  generateWelcomeEmail,
+} from '../utils/email.templates.js';
+import {
+  generateEmailVerificationToken,
+  verifyEmailVerificationToken,
+} from '../utils/token.js';
 
 type UserData = {
   email: string;
@@ -82,7 +91,6 @@ export const register = async (
       throw new AppError(400, 'User with this email already exists', null);
     }
 
-    // Handle user type specific data
     let userData: UserData = {
       email,
       password,
@@ -93,7 +101,6 @@ export const register = async (
       isEmailVerified: false,
     } as UserData;
 
-    // Add type-specific fields
     if (userType === 'individual') {
       const { firstName, lastName } = req.body as z.infer<
         typeof individualUserSchema
@@ -136,6 +143,20 @@ export const register = async (
     userData.stripeCustomerId = stripeCustomer.id;
     const user = await User.create(userData);
     const token = generateToken(user._id.toString());
+
+    const emailToken = generateEmailVerificationToken(user._id.toString());
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailToken}`;
+
+    const verificationEmail = generateVerificationEmail({
+      name: req.body.firstName || req.body.company.name,
+      verificationUrl,
+    });
+
+    await emailQueue.add('verification-email', {
+      to: email,
+      subject: 'Welcome to SafeGuard Media – Verify Your Email',
+      html: verificationEmail,
+    });
 
     const response: AuthResponse = {
       success: true,
@@ -388,6 +409,98 @@ export const resetPassword = async (
     });
   } catch (error) {
     logger.error('Failed to reset password:', error);
+    next(error);
+  }
+};
+
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { token } = req.validatedQuery;
+
+    if (!token || typeof token !== 'string') {
+      throw new AppError(400, 'Invalid or missing verification token', null);
+    }
+
+    const { userId } = verifyEmailVerificationToken(token);
+
+    const user = await User.findById(userId);
+    if (!user) throw new AppError(404, 'User not found', null);
+
+    if (user.isEmailVerified) {
+      return res
+        .status(200)
+        .json({ success: true, message: 'Email already verified.' });
+    }
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    const welcomeEmail = generateWelcomeEmail({
+      name: req.body.firstName || req.body.company.name,
+    });
+
+    await emailQueue.add('verification-email', {
+      to: user.email,
+      subject: 'Welcome to SafeGuard Media',
+      html: welcomeEmail,
+    });
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Email verified successfully!' });
+  } catch (error) {
+    logger.error('Email verification failed:', error);
+    next(error);
+  }
+};
+
+export const resendVerificationEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      throw new AppError(400, 'Email is required', null);
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw new AppError(404, 'No user found with that email', null);
+    }
+
+    if (user.isEmailVerified) {
+      throw new AppError(404, 'Email is already verified', null);
+    }
+
+    const token = generateToken(user._id.toString());
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+    const html = generateVerificationEmail({
+      name: 'there',
+      verificationUrl,
+    });
+
+    await emailQueue.add('verification-email', {
+      to: user.email,
+      subject: 'Verify Your Email',
+      html,
+    });
+
+    logger.info(`Resent verification email to: ${user.email}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification email sent.',
+    });
+  } catch (error) {
+    logger.error('Error in resendVerificationEmail:', error);
     next(error);
   }
 };

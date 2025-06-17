@@ -5,11 +5,14 @@ import {
   forgotPasswordSchema,
   loginSchema,
   registerSchema,
+  resendVerificationEmailSchema,
+  resetPasswordBodySchema,
+  verifyEmailQuerySchema,
 } from '../lib/schemas/user.schema.js';
-import { validateInput } from '../middlewares/validate.js';
+import { convertAccessTokenToIdToken } from '../middlewares/auth.js';
+import { validateInput, validateQuery } from '../middlewares/validate.js';
 
 import type { RequestHandler } from 'express';
-import { convertAccessTokenToIdToken } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -33,6 +36,7 @@ router.post(
 
 router.post(
   '/reset-password/:resetToken',
+  validateInput(resetPasswordBodySchema),
   AuthController.resetPassword as RequestHandler
 );
 
@@ -40,6 +44,18 @@ router.post(
   '/google',
   convertAccessTokenToIdToken,
   AuthController.googleLogin as RequestHandler
+);
+
+router.get(
+  '/verify-email',
+  validateQuery(verifyEmailQuerySchema),
+  AuthController.verifyEmail as RequestHandler
+);
+
+router.post(
+  '/resend-verification',
+  validateInput(resendVerificationEmailSchema),
+  AuthController.resendVerificationEmail
 );
 
 export default router;

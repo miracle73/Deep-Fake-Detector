@@ -37,11 +37,11 @@ emailWorker.on('failed', (job, err) => {
 });
 
 const mailUser = async (job: EmailJob) => {
-  const { to, subject, text } = job.data;
+  const { to, subject, html } = job.data;
   await sendEmail({
     to,
     subject,
-    text,
+    html,
   });
 
   return;
