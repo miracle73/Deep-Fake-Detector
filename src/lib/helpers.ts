@@ -50,7 +50,7 @@ export async function sendWelcomeEmail(data: {
   await sendEmail({
     to: data.email,
     subject: `Welcome to the waitlist - Position #${data.position}`,
-    text: emailContent,
+    html: emailContent,
   });
 }
 
@@ -74,7 +74,7 @@ export async function sendInvitationEmail(email: string) {
   await sendEmail({
     to: email,
     subject: 'Your invitation is ready! 🎉',
-    text: emailContent,
+    html: emailContent,
   });
 }
 
