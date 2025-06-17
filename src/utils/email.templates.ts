@@ -262,6 +262,7 @@ export const generateWelcomeEmail = ({
             Whether you're using it for personal safety, journalism, or content integrity — you’re in good company. 🛡️
           </p>
 
+
           <div style="margin: 24px 0; text-align: center;">
             <a href="${appUrl}" style="background-color: #1a73e8; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; display: inline-block;">Get Started</a>
           </div>
@@ -288,4 +289,28 @@ export const generateWelcomeEmail = ({
   </body>
 </html>
 `;
+};
+
+export const generateVerificationEmail = ({
+  name,
+  verificationUrl,
+}: {
+  name: string;
+  verificationUrl: string;
+}) => {
+  return `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; background-color: #f9fbfc; padding: 40px 30px; border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.05);">
+      <div style="text-align: center;">
+        <h2 style="color: #1a73e8; margin-bottom: 10px;">Verify Your Email</h2>
+        <p style="font-size: 16px; color: #333;">You're almost set up, <strong>${name}</strong>!</p>
+        <p style="font-size: 15px; color: #555; line-height: 1.6;">
+          To activate your SafeGuard Media account, just click the button below. It only takes a second.
+        </p>
+        <a href="${verificationUrl}" style="margin-top: 20px; display: inline-block; padding: 14px 24px; background-color: #1a73e8; color: #ffffff; text-decoration: none; font-weight: 600; border-radius: 8px;">Verify My Email</a>
+        <p style="font-size: 13px; color: #888; margin-top: 30px;">
+          Didn’t create this account? No worries—just ignore this message.
+        </p>
+      </div>
+    </div>
+  `;
 };
