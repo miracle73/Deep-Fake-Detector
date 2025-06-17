@@ -50,31 +50,6 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/email', async (req: Request, res: Response) => {
-  logger.info('sending email...');
-
-  await emailQueue.add(
-    'send-test-mail',
-    {
-      to: 'finzyphinzy@gmail.com',
-      subject: 'hello world',
-      text: 'i greet you boss',
-    },
-    {
-      attempts: 1,
-      backoff: {
-        type: 'exponential',
-        delay: 2000,
-      },
-    }
-  );
-
-  res.status(200).json({
-    success: true,
-    message: 'Email sent successfully',
-  });
-});
-
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',

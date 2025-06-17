@@ -23,6 +23,8 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
+import emailQueue from '../queues/emailQueue.js';
+import { generateWelcomeEmail } from '../utils/email.templates.js';
 
 type UserData = {
   email: string;
@@ -82,7 +84,6 @@ export const register = async (
       throw new AppError(400, 'User with this email already exists', null);
     }
 
-    // Handle user type specific data
     let userData: UserData = {
       email,
       password,
@@ -93,7 +94,6 @@ export const register = async (
       isEmailVerified: false,
     } as UserData;
 
-    // Add type-specific fields
     if (userType === 'individual') {
       const { firstName, lastName } = req.body as z.infer<
         typeof individualUserSchema
@@ -136,6 +136,16 @@ export const register = async (
     userData.stripeCustomerId = stripeCustomer.id;
     const user = await User.create(userData);
     const token = generateToken(user._id.toString());
+
+    const welcomeHtml = generateWelcomeEmail({
+      name: req.body.firstName || req.body.company.name,
+    });
+
+    await emailQueue.add('welcome-email', {
+      to: email,
+      subject: 'Welcome to SafeGuard Media',
+      html: welcomeHtml,
+    });
 
     const response: AuthResponse = {
       success: true,
