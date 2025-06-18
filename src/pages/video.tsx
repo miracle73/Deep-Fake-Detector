@@ -1,0 +1,468 @@
+import { useState } from "react";
+import {
+  Bell,
+  ChevronDown,
+  LayoutGrid,
+  Video,
+  ImageIcon,
+  Clock,
+  FileText,
+  HelpCircle,
+  AudioLines,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
+} from "lucide-react";
+import { NoAnalysisYet } from "../assets/svg";
+import FirstImage from "../assets/images/firstImage.png";
+import SecondImage from "../assets/images/secondImage.png";
+import FourthImage from "../assets/images/fourthImage.png";
+
+const mockAnalyses = [
+  {
+    id: 1,
+    fileName: "Video_Clip_01.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Authentic",
+    confidence: 88,
+    type: "video",
+    image: FirstImage,
+  },
+  {
+    id: 2,
+    fileName: "Audio_Clip_02.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Uncertain",
+    confidence: 20,
+    type: "audio",
+    image: SecondImage,
+  },
+  {
+    id: 3,
+    fileName: "Image_Clip_03.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Deepfake",
+    confidence: 97,
+    type: "image",
+    image: FirstImage,
+  },
+  {
+    id: 4,
+    fileName: "Video_Clip_04.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Deepfake",
+    confidence: 98,
+    type: "video",
+    image: SecondImage,
+  },
+];
+
+const VideoScreen = () => {
+  const [hasAnalyses, setHasAnalyses] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Modify the handleUploadMedia function
+
+  // const handleUploadMedia = () => {
+  //   // Simulate file upload
+  //   setUploadedFile({
+  //     name: "Video_Clip_01.mp4",
+  //     size: "17.53 MB",
+  //     thumbnail:
+  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-PfGOczEHEKWpuIxew8P36mT0KzEkji.png",
+  //   });
+  // };
+
+  const getStatusBadge = (status: string) => {
+    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+    switch (status) {
+      case "Authentic":
+        return `${baseClasses} bg-green-100 text-green-800`;
+      case "Uncertain":
+        return `${baseClasses} bg-yellow-100 text-yellow-800`;
+      case "Deepfake":
+        return `${baseClasses} bg-red-100 text-red-800`;
+      default:
+        return `${baseClasses} bg-gray-100 text-gray-800`;
+    }
+  };
+
+  return (
+    <div className={`min-h-screen bg-gray-50`}>
+      {/* Full Width Header */}
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 w-full">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {/* Mobile menu button */}
+            <button
+              className="lg:hidden p-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+              <span className="font-bold">Df</span>{" "}
+              <span className="font-normal">Detector</span>
+            </h1>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden sm:flex border border-[#8C8C8C] bg-[#FBFBEF] rounded-[30px] pl-2 gap-2 justify-between items-center">
+              <span className="text-sm text-gray-600">4,000 sec left</span>
+              <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[30px] text-sm font-medium">
+                Upgrade
+              </button>
+            </div>
+
+            {/* Mobile upgrade button */}
+            <button className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium">
+              Upgrade
+            </button>
+
+            <button className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]">
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
+            <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">
+                  U
+                </span>
+              </div>
+              <span className="hidden sm:inline text-sm text-gray-700">
+                Username
+              </span>
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="relative flex flex-col w-64 bg-white border-r border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 py-6 space-y-6 px-4">
+              <div className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer">
+                <LayoutGrid className="w-6 h-6" />
+                <span className="text-sm">Dashboard</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+                <AudioLines className="w-6 h-6" />
+                <span className="text-sm">Audio</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+                <Video className="w-6 h-6" />
+                <span className="text-sm">Video</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+                <ImageIcon className="w-6 h-6" />
+                <span className="text-sm">Image</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+                <Clock className="w-6 h-6" />
+                <span className="text-sm">History</span>
+              </div>
+              <div className="border-t border-gray-200 pt-6 space-y-6">
+                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+                  <FileText className="w-6 h-6" />
+                  <span className="text-sm">Documentation</span>
+                </div>
+                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+                  <HelpCircle className="w-6 h-6" />
+                  <span className="text-sm">Help</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content Area with Sidebar */}
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:flex w-24 bg-white border-r border-gray-200 flex-col items-center py-6 space-y-8 min-h-[calc(100vh-73px)]">
+          <div className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer">
+            <LayoutGrid className="w-6 h-6" />
+            <span className="text-xs">Dashboard</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+            <AudioLines className="w-6 h-6" />
+            <span className="text-xs">Audio</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+            <Video className="w-6 h-6" />
+            <span className="text-xs">Video</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-xs">Image</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+            <Clock className="w-6 h-6" />
+            <span className="text-xs">History</span>
+          </div>
+          <div className="mt-auto space-y-8 border-t border-[#8C8C8C] pt-8 pb-24">
+            <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <FileText className="w-6 h-6" />
+              <span className="text-xs">Documentation</span>
+            </div>
+            <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <HelpCircle className="w-6 h-6" />
+              <span className="text-xs">Help</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Container */}
+        <div className="flex-1 flex flex-col">
+          {/* Upper Section: Upload Area + Right Sidebar */}
+          <div className="flex flex-col lg:flex-row">
+            {/* Main Content Area */}
+            <div className="w-full lg:w-2/3 p-4 sm:p-6">
+              {/* Getting Started Section */}
+              <div>
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
+                  Let's get started!
+                </h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-6">
+                  Upload your file for analysis, supports video, audio, and
+                  image formats.
+                </p>
+
+                {/* Upload Area */}
+                {/* <div
+                  className={`border-2 border rounded-xl p-6 sm:p-12 text-center transition-colors h-full ${
+                    dragActive
+                      ? "border-blue-400 bg-blue-50"
+                      : "border-gray-300 bg-white"
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                > */}
+                <img src={FourthImage} />
+                {/* </div> */}
+              </div>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="w-full lg:w-1/3 p-4 sm:p-6 lg:mt-22">
+              {/* Combined Subscription and How it Works Card */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full flex flex-col">
+                {/* Subscription Header */}
+                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4">
+                  <span className="text-xs sm:text-sm font-medium">
+                    Subscribe to Max plan and get 30% off
+                  </span>
+                </div>
+
+                {/* How it Works Content */}
+                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-center">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                    How it Works
+                  </h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center justify-start gap-4">
+                      <div>→</div>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        Upload your media
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-start gap-4">
+                      <div>→</div>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        Our model automatically processes the media to determine
+                        whether it is AI generated or not.
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-start gap-4">
+                      <div>→</div>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        Get instant and clear results with confidence.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Analyses Section - Full Width */}
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+              <div className="mb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                  Your Recent Analyses
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Review the results of your recently uploaded media files.
+                  Results are stored for 30 days.
+                </p>
+              </div>
+
+              {hasAnalyses ? (
+                /* Analyses Table View */
+                <div>
+                  {/* Desktop Table Header */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500">
+                    <div className="col-span-4">File name/thumbnail</div>
+                    <div className="col-span-3">Upload date/time</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2">Confidence score</div>
+                    <div className="col-span-1"></div>
+                  </div>
+
+                  {/* Table Rows */}
+                  <div className="space-y-3 mt-4">
+                    {mockAnalyses.map((analysis) => (
+                      <div key={analysis.id}>
+                        {/* Desktop Row */}
+                        <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
+                          <div className="col-span-4 flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                              <img
+                                src={analysis.image || "/placeholder.svg"}
+                                alt={analysis.fileName}
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {analysis.fileName}
+                            </span>
+                          </div>
+                          <div className="col-span-3">
+                            <span className="text-sm text-gray-600">
+                              {analysis.uploadDate}
+                            </span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className={getStatusBadge(analysis.status)}>
+                              {analysis.status}
+                            </span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {analysis.confidence}%
+                            </span>
+                          </div>
+                          <div className="col-span-1 flex justify-end">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Mobile Card */}
+                        <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <img
+                                src={analysis.image || "/placeholder.svg"}
+                                alt={analysis.fileName}
+                                className="w-12 h-12 rounded-lg object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {analysis.fileName}
+                                  </p>
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    {analysis.uploadDate}
+                                  </p>
+                                </div>
+                                <button className="p-1 hover:bg-gray-200 rounded ml-2">
+                                  <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                                </button>
+                              </div>
+                              <div className="flex items-center justify-between mt-3">
+                                <span
+                                  className={getStatusBadge(analysis.status)}
+                                >
+                                  {analysis.status}
+                                </span>
+                                <span className="text-sm font-medium text-gray-900">
+                                  {analysis.confidence}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
+                    <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
+                      <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                    </button>
+                    {[1, 2, 3, 4, 5].map((page) => (
+                      <button
+                        key={page}
+                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium ${
+                          currentPage === page
+                            ? "bg-[#0F2FA3] text-white"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
+                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Empty State */}
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="flex justify-center items-center mb-4">
+                      <NoAnalysisYet />
+                    </div>
+                    <h4 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                      No Analyses Yet!
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
+                      Upload your first video, audio, or image file to check for
+                      manipulation.
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Our model will provide a quick and clear assessment.
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VideoScreen;
