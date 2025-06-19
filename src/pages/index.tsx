@@ -10,7 +10,7 @@ export default function DeepfakeDetector() {
   return (
     <div className="min-h-screen bg-white ">
       {/* Header */}
-      <header className="border-b border-gray-200">
+      <header className="">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -660,7 +660,7 @@ export default function DeepfakeDetector() {
           {/* Bottom Section */}
           <div className="border-t border-gray-700 mt-12 pt-8">
             <p className="text-center text-sm text-gray-400">
-              © 2024, All Rights Reserved
+              © 2025, All Rights Reserved
             </p>
           </div>
         </div>

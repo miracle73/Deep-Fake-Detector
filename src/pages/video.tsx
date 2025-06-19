@@ -1,3 +1,5 @@
+import type React from "react";
+
 import { useState } from "react";
 import {
   Bell,
@@ -9,89 +11,58 @@ import {
   FileText,
   HelpCircle,
   AudioLines,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
   Menu,
   X,
+  Download,
+  Trash2,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
 } from "lucide-react";
-import { NoAnalysisYet } from "../assets/svg";
-import FirstImage from "../assets/images/firstImage.png";
-import SecondImage from "../assets/images/secondImage.png";
 import FourthImage from "../assets/images/fourthImage.png";
-
-const mockAnalyses = [
-  {
-    id: 1,
-    fileName: "Video_Clip_01.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Authentic",
-    confidence: 88,
-    type: "video",
-    image: FirstImage,
-  },
-  {
-    id: 2,
-    fileName: "Audio_Clip_02.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Uncertain",
-    confidence: 20,
-    type: "audio",
-    image: SecondImage,
-  },
-  {
-    id: 3,
-    fileName: "Image_Clip_03.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Deepfake",
-    confidence: 97,
-    type: "image",
-    image: FirstImage,
-  },
-  {
-    id: 4,
-    fileName: "Video_Clip_04.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Deepfake",
-    confidence: 98,
-    type: "video",
-    image: SecondImage,
-  },
-];
+import { BackIcon } from "../assets/svg";
+import FifthImage from "../assets/images/fifthImage.png";
 
 const VideoScreen = () => {
-  const [hasAnalyses, setHasAnalyses] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration] = useState(531); // 8:51 in seconds
 
-  // Modify the handleUploadMedia function
+  const handleBack = () => {
+    // Handle back navigation
+    console.log("Going back...");
+  };
 
-  // const handleUploadMedia = () => {
-  //   // Simulate file upload
-  //   setUploadedFile({
-  //     name: "Video_Clip_01.mp4",
-  //     size: "17.53 MB",
-  //     thumbnail:
-  //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-PfGOczEHEKWpuIxew8P36mT0KzEkji.png",
-  //   });
-  // };
+  const handleDownloadReport = () => {
+    // Handle download report
+    console.log("Downloading report...");
+  };
 
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
-    switch (status) {
-      case "Authentic":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "Uncertain":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "Deepfake":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
+  const handleDeleteReport = () => {
+    // Handle delete report
+    console.log("Deleting report...");
+  };
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+    const newTime = Math.floor(percentage * duration);
+    setCurrentTime(newTime);
   };
 
   return (
@@ -234,73 +205,297 @@ const VideoScreen = () => {
         </div>
 
         {/* Main Content Container */}
-        <div className="flex-1 flex flex-col">
-          {/* Upper Section: Upload Area + Right Sidebar */}
-          <div className="flex flex-col lg:flex-row">
-            {/* Main Content Area */}
-            <div className="w-full lg:w-2/3 p-4 sm:p-6">
-              {/* Getting Started Section */}
-              <div>
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                  Let's get started!
-                </h2>
-                <p className="text-sm sm:text-base text-gray-600 mb-6">
-                  Upload your file for analysis, supports video, audio, and
-                  image formats.
-                </p>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Upper Section: File Header + Right Sidebar */}
+          {/* File Header Section - Full Width */}
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+            <div className=" p-2 sm:p-4 mb-2 sm:mb-6">
+              {/* Header with Back button, filename and action buttons */}
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleBack}
+                      className=" hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <BackIcon />
+                    </button>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-semibold text-[#020717]">
+                        Back
+                      </h2>
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                      Video_Clip_01.mp4
+                    </h2>
+                  </div>
+                  {/* File details */}
+                  <div className="text-sm text-gray-600">
+                    <span>File size: 17.53 MB</span>
+                    <span className="mx-2">•</span>
+                    <span>Date: 9th May, 2025, 10:34 am</span>
+                  </div>
+                </div>
+                {/* Right side - Action buttons */}
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <button
+                    onClick={handleDownloadReport}
+                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <Download className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Download Report
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleDeleteReport}
+                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Delete Report</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Upload Area */}
-                {/* <div
-                  className={`border-2 border rounded-xl p-6 sm:p-12 text-center transition-colors h-full ${
-                    dragActive
-                      ? "border-blue-400 bg-blue-50"
-                      : "border-gray-300 bg-white"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                > */}
-                <img src={FourthImage} />
-                {/* </div> */}
+          {/* Video Preview and DF Results Section - Side by Side */}
+          <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6">
+            {/* Video Preview - Left Side */}
+            <div className="w-full lg:w-2/3">
+              <div className=" rounded-xl overflow-hidden">
+                <img
+                  src={FourthImage || "/placeholder.svg"}
+                  alt="Video preview showing analysis result"
+                  className="w-full h-auto"
+                />
               </div>
             </div>
 
-            {/* Right Sidebar */}
-            <div className="w-full lg:w-1/3 p-4 sm:p-6 lg:mt-22">
-              {/* Combined Subscription and How it Works Card */}
+            {/* DF Results Card - Right Side */}
+            <div className="w-full lg:w-1/3">
+              {/* DF Results Card */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full flex flex-col">
-                {/* Subscription Header */}
-                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4">
-                  <span className="text-xs sm:text-sm font-medium">
-                    Subscribe to Max plan and get 30% off
+                {/* Header with DF Results and Deepfake badge */}
+                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                  <span className="text-sm sm:text-base font-medium">
+                    DF Results
+                  </span>
+                  <span className="bg-white text-red-600 px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                    Deepfake
                   </span>
                 </div>
 
-                {/* How it Works Content */}
-                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-center">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
-                    How it Works
-                  </h3>
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-start gap-4">
-                      <div>→</div>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        Upload your media
+                {/* Results Content */}
+                <div className="flex-1 flex flex-col">
+                  {/* Confidence Score */}
+                  <div className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm sm:text-base text-gray-700 font-medium">
+                        Confidence Score
+                      </span>
+                      <span className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        98%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-200"></div>
+
+                  {/* Result Summary */}
+                  <div className="flex-1 p-4 sm:p-6">
+                    <h4 className="text-sm sm:text-base font-semibold text-[#020717] mb-3">
+                      Result Summary:
+                    </h4>
+                    <p className="text-xs sm:text-sm text-[#020717] font-[300] leading-relaxed">
+                      Our model analysis found significant indicators on this
+                      media file strongly suggesting this media has been
+                      manipulated using deepfake techniques.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Video Analysis Interface - New Section */}
+          <div className="px-2 sm:px-4 md:px-6 py-4 sm:py-6">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+              {/* Video Player Interface - Left Side */}
+              <div className="w-full lg:w-2/3">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  {/* Video Player Controls */}
+                  <div className="p-4 sm:p-6">
+                    {/* Time Display and Controls */}
+                    <div className="flex flex-row items-center justify-center space-x-4 gap-2 sm:gap-4 mb-4">
+                      <div className="flex items-center justify-between sm:justify-start space-x-4 order-1 sm:order-1">
+                        <span className="text-sm font-mono text-gray-600">
+                          {formatTime(currentTime)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center space-x-4 order-2 sm:order-2">
+                        <button
+                          onClick={() =>
+                            setCurrentTime(Math.max(0, currentTime - 10))
+                          }
+                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                          <SkipBack className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <button
+                          onClick={handlePlayPause}
+                          className="p-3 bg-[#0F2FA3] hover:bg-blue-700 rounded-full transition-colors"
+                        >
+                          {isPlaying ? (
+                            <Pause className="w-5 h-5 text-white" />
+                          ) : (
+                            <Play className="w-5 h-5 text-white ml-0.5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCurrentTime(Math.min(duration, currentTime + 10))
+                          }
+                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                          <SkipForward className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end space-x-4 order-3 sm:order-3">
+                        <span className="text-sm font-mono text-gray-600">
+                          {formatTime(duration)}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Timeline Scrubber */}
+                    <div className="mb-4">
+                      <div
+                        className="relative h-1 bg-gray-200 rounded-full cursor-pointer"
+                        onClick={handleTimelineClick}
+                      >
+                        <div
+                          className="absolute top-0 left-0 h-full bg-[#0F2FA3] rounded-full transition-all duration-150"
+                          style={{
+                            width: `${(currentTime / duration) * 100}%`,
+                          }}
+                        />
+                        <div
+                          className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-[#0F2FA3] rounded-full border-2 border-white shadow-md transition-all duration-150"
+                          style={{
+                            left: `${(currentTime / duration) * 100}%`,
+                            marginLeft: "-8px",
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Timeline Markers */}
+                    <div className="flex justify-between text-xs text-gray-500 mb-4 px-1">
+                      <span>0s</span>
+                      <span className="hidden xs:inline">1m</span>
+                      <span>2m</span>
+                      <span className="hidden xs:inline">4m</span>
+                      <span>6m</span>
+                      <span>8m</span>
+                    </div>
+
+                    {/* Video Thumbnails Timeline */}
+                    <div className="overflow-x-auto pb-2">
+                      <div
+                        className="flex space-x-1"
+                        style={{ minWidth: "max-content" }}
+                      >
+                        {Array.from({ length: 11 }, (_, i) => (
+                          <div
+                            key={i}
+                            className="flex-shrink-0 w-10 h-6 sm:w-12 sm:h-8 md:w-16 md:h-10 bg-gray-200 rounded border overflow-hidden cursor-pointer hover:border-[#0F2FA3] transition-colors"
+                            onClick={() =>
+                              setCurrentTime(Math.floor((i / 7) * duration))
+                            }
+                          >
+                            <img
+                              src={FifthImage || "/placeholder.svg"}
+                              alt={`Frame ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Analysis Note */}
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-xs sm:text-sm text-gray-700">
+                        <span className="font-medium">Note:</span> Highlights
+                        indicate areas where our model detected anomalies most
+                        strongly associated with known deepfake methods.
                       </p>
                     </div>
-                    <div className="flex items-center justify-start gap-4">
-                      <div>→</div>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        Our model automatically processes the media to determine
-                        whether it is AI generated or not.
-                      </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Results Explanation Panel - Right Side */}
+              <div className="w-full lg:w-1/3">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full">
+                  {/* Header */}
+                  <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4">
+                    <h3 className="text-sm sm:text-base font-medium">
+                      What Do My Results Mean?
+                    </h3>
+                  </div>
+
+                  {/* Results Categories */}
+                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+                    <h3 className="text-sm sm:text-base font-medium text-[#020717]">
+                      What Do My Results Mean?
+                    </h3>
+                    {/* Authentic */}
+                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
+                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#E8F8EA] rounded-full flex-shrink-0 self-start">
+                        <h4 className="text-xs sm:text-sm font-semibold text-[#257933]">
+                          Authentic
+                        </h4>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                          Our model found little to no evidence of manipulation.
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-start gap-4">
-                      <div>→</div>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        Get instant and clear results with confidence.
-                      </p>
+
+                    {/* Uncertain */}
+                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
+                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#FFF8E5] rounded-full flex-shrink-0 self-start">
+                        <h4 className="text-xs sm:text-sm font-semibold text-[#8F6D00]">
+                          Uncertain
+                        </h4>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                          Our model detected some indicators of manipulation,
+                          but the evidence isn't conclusive, or the media
+                          quality impacts certainty.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Deepfake */}
+                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
+                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#FDEDEE] rounded-full flex-shrink-0 self-start">
+                        <h4 className="text-xs sm:text-sm font-semibold text-[#B5171F]">
+                          Deepfake
+                        </h4>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                          Our model found significant evidence suggesting this
+                          media has been manipulated.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -309,156 +504,7 @@ const VideoScreen = () => {
           </div>
 
           {/* Recent Analyses Section - Full Width */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
-              <div className="mb-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                  Your Recent Analyses
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  Review the results of your recently uploaded media files.
-                  Results are stored for 30 days.
-                </p>
-              </div>
-
-              {hasAnalyses ? (
-                /* Analyses Table View */
-                <div>
-                  {/* Desktop Table Header */}
-                  <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500">
-                    <div className="col-span-4">File name/thumbnail</div>
-                    <div className="col-span-3">Upload date/time</div>
-                    <div className="col-span-2">Status</div>
-                    <div className="col-span-2">Confidence score</div>
-                    <div className="col-span-1"></div>
-                  </div>
-
-                  {/* Table Rows */}
-                  <div className="space-y-3 mt-4">
-                    {mockAnalyses.map((analysis) => (
-                      <div key={analysis.id}>
-                        {/* Desktop Row */}
-                        <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
-                          <div className="col-span-4 flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                              <img
-                                src={analysis.image || "/placeholder.svg"}
-                                alt={analysis.fileName}
-                                className="w-10 h-10 rounded-lg object-cover"
-                              />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 truncate">
-                              {analysis.fileName}
-                            </span>
-                          </div>
-                          <div className="col-span-3">
-                            <span className="text-sm text-gray-600">
-                              {analysis.uploadDate}
-                            </span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className={getStatusBadge(analysis.status)}>
-                              {analysis.status}
-                            </span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-sm font-medium text-gray-900">
-                              {analysis.confidence}%
-                            </span>
-                          </div>
-                          <div className="col-span-1 flex justify-end">
-                            <button className="p-1 hover:bg-gray-100 rounded">
-                              <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Mobile Card */}
-                        <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <img
-                                src={analysis.image || "/placeholder.svg"}
-                                alt={analysis.fileName}
-                                className="w-12 h-12 rounded-lg object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">
-                                    {analysis.fileName}
-                                  </p>
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    {analysis.uploadDate}
-                                  </p>
-                                </div>
-                                <button className="p-1 hover:bg-gray-200 rounded ml-2">
-                                  <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                                </button>
-                              </div>
-                              <div className="flex items-center justify-between mt-3">
-                                <span
-                                  className={getStatusBadge(analysis.status)}
-                                >
-                                  {analysis.status}
-                                </span>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {analysis.confidence}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Pagination */}
-                  <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
-                    <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
-                      <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                    </button>
-                    {[1, 2, 3, 4, 5].map((page) => (
-                      <button
-                        key={page}
-                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium ${
-                          currentPage === page
-                            ? "bg-[#0F2FA3] text-white"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                    <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
-                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Empty State */}
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="flex justify-center items-center mb-4">
-                      <NoAnalysisYet />
-                    </div>
-                    <h4 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                      No Analyses Yet!
-                    </h4>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                      Upload your first video, audio, or image file to check for
-                      manipulation.
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-600">
-                      Our model will provide a quick and clear assessment.
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6"></div>
         </div>
       </div>
     </div>
