@@ -53,6 +53,11 @@ export interface BaseUserFields {
   passwordChangedAt?: Date;
   lastLogin?: Date;
   role: string;
+  usageQuota: {
+    monthlyAnalysis: number;
+    remainingAnalysis: number;
+    lastReset: Date;
+  };
 }
 
 export interface IndividualUser extends BaseUserFields {
@@ -60,11 +65,6 @@ export interface IndividualUser extends BaseUserFields {
   lastName: string;
   userType: 'individual';
   paymentMethods?: PaymentMethod[];
-  usageQuota: {
-    monthlyAnalysis: number;
-    remainingAnalysis: number;
-    lastReset: Date;
-  };
 }
 
 export interface EnterpriseUser extends BaseUserFields {
