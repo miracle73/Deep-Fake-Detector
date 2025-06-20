@@ -444,7 +444,10 @@ export default function DeepfakeDetector() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto">
+                  <Button
+                    className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto"
+                    onClick={() => navigate("/plans")}
+                  >
                     Subscribe
                   </Button>
                 </Card>
@@ -487,7 +490,10 @@ export default function DeepfakeDetector() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto">
+                  <Button
+                    className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto"
+                    onClick={() => navigate("/plans")}
+                  >
                     Subscribe
                   </Button>
                 </Card>
@@ -530,7 +536,10 @@ export default function DeepfakeDetector() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto">
+                  <Button
+                    className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto"
+                    onClick={() => navigate("/plans")}
+                  >
                     Subscribe
                   </Button>
                 </Card>
