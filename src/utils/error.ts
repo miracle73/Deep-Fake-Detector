@@ -2,6 +2,7 @@ export class AppError extends Error {
   constructor(
     public statusCode: number,
     public message: string,
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     public details?: any
   ) {
     super(message);
@@ -22,6 +23,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   constructor(message: string, details: any = null) {
     super(400, message, details);
   }
@@ -36,7 +38,8 @@ export class ValidationError extends AppError {
 }
 
 export class AuthenticationError extends AppError {
-  constructor(message: string = 'Authentication failed', details: any = null) {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  constructor(message = 'Authentication failed', details: any = null) {
     super(401, message, details);
   }
 
@@ -51,7 +54,8 @@ export class AuthenticationError extends AppError {
 
 export class AuthorizationError extends AppError {
   constructor(
-    message: string = 'Not authorized to access this resource',
+    message = 'Not authorized to access this resource',
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     details: any = null
   ) {
     super(403, message, details);
@@ -67,7 +71,8 @@ export class AuthorizationError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found', details: any = null) {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  constructor(message = 'Resource not found', details: any = null) {
     super(404, message, details);
   }
 
@@ -81,6 +86,7 @@ export class NotFoundError extends AppError {
 }
 
 export class ConflictError extends AppError {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   constructor(message: string, details: any = null) {
     super(409, message, details);
   }

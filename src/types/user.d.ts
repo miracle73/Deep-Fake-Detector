@@ -51,12 +51,15 @@ export interface BaseUserFields {
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
   passwordChangedAt?: Date;
+  unlimitedQuota: boolean;
   lastLogin?: Date;
   role: string;
   usageQuota: {
     monthlyAnalysis: number;
     remainingAnalysis: number;
     lastReset: Date;
+    lastResetAt: Date;
+    lastUsedAt: Date;
   };
 }
 

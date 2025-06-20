@@ -105,6 +105,10 @@ const UserSchema: Schema = new Schema(
       type: String,
     },
     paymentMethods: [PaymentMethodSchema],
+    unlimitedQuota: {
+      type: Boolean,
+      default: false,
+    },
     usageQuota: {
       type: UsageQuotaSchema,
       required: true,
@@ -112,6 +116,8 @@ const UserSchema: Schema = new Schema(
         monthlyAnalysis: 3,
         remainingAnalysis: 3,
         lastReset: Date.now(),
+        lastResetAt: { type: Date, default: Date.now },
+        lastUsedAt: Date,
       },
     },
     company: {
