@@ -47,3 +47,8 @@ export const subscriptionPlans = {
     requestLimit: Number.POSITIVE_INFINITY,
   },
 };
+
+// subscriptionPlans =
+//   free - 3 media analyses per month,
+// pro - 30 media analyses/month - $10,
+// max - Unlimited access to all features - $25

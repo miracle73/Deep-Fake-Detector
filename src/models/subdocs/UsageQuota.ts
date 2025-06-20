@@ -1,27 +1,36 @@
 import { Schema } from 'mongoose';
 
+import { getMonthlyResetDate } from '../../utils/dateUtils.js';
+
 export const UsageQuotaSchema = new Schema(
   {
     monthlyAnalysis: {
       type: Number,
       required: true,
-      default: 3,
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      default: function (this: any) {
+        return this.parent().plan === 'pro' ? 100 : 3;
+      },
     },
     remainingAnalysis: {
       type: Number,
+      min: 0,
       required: true,
-      default: 3,
-    },
-    lastReset: {
-      type: Date,
-      default: Date.now,
-    },
-    lastUsedAt: {
-      type: Date,
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      default: function (this: any) {
+        return this.monthlyAnalysis;
+      },
     },
     lastResetAt: {
       type: Date,
-      default: Date.now,
+      default: () => {
+        return getMonthlyResetDate();
+      },
+    },
+    lastUsedAt: Date,
+    carryOver: {
+      type: Boolean,
+      default: false,
     },
   },
   { _id: false }

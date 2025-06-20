@@ -60,6 +60,7 @@ export interface BaseUserFields {
     lastReset: Date;
     lastResetAt: Date;
     lastUsedAt: Date;
+    carryOver: boolean;
   };
 }
 
