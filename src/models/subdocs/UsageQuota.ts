@@ -9,9 +9,17 @@ export const UsageQuotaSchema = new Schema(
     },
     remainingAnalysis: {
       type: Number,
-      default: 0,
+      required: true,
+      default: 3,
     },
     lastReset: {
+      type: Date,
+      default: Date.now,
+    },
+    lastUsedAt: {
+      type: Date,
+    },
+    lastResetAt: {
       type: Date,
       default: Date.now,
     },

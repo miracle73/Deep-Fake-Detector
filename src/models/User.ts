@@ -112,13 +112,13 @@ const UserSchema: Schema = new Schema(
     usageQuota: {
       type: UsageQuotaSchema,
       required: true,
-      default: {
+      default: () => ({
         monthlyAnalysis: 3,
         remainingAnalysis: 3,
-        lastReset: Date.now(),
-        lastResetAt: { type: Date, default: Date.now },
-        lastUsedAt: Date,
-      },
+        lastReset: new Date(),
+        lastResetAt: new Date(),
+        lastUsedAt: undefined,
+      }),
     },
     company: {
       type: CompanySchema,
