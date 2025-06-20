@@ -20,3 +20,30 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+.phone-input-error .PhoneInputInput {
+  border-color: #fca5a5 !important;
+}
+
+.PhoneInputCountrySelect {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  gap: 5px !important;
+  border: #3b82f6 1px solid !important;
+}
+
+.PhoneInputInput {
+  margin-left: 8px !important;
+}
+
+.PhoneInputInput:focus {
+  outline: none !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}
+
+.PhoneInputCountrySelect:focus {
+  outline: none !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}

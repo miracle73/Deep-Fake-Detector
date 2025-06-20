@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Upload, CheckCircle, Check, Plus, X } from "lucide-react";
@@ -5,8 +6,13 @@ import { Upload, CheckCircle, Check, Plus, X } from "lucide-react";
 // import { DownwardArrow } from "../assets/svg";
 import { FaArrowDownLong } from "react-icons/fa6";
 import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
+import { useNavigate } from "react-router-dom";
 
 export default function DeepfakeDetector() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("individual");
+  const [selectedPlan, setSelectedPlan] = useState("pro");
+
   return (
     <div className="min-h-screen bg-white ">
       {/* Header */}
@@ -14,22 +20,29 @@ export default function DeepfakeDetector() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-gray-900">DF</span>
+              <span className="text-xl font-bold text-gray-900">Safeguard</span>
               <span className="text-xl font-normal text-gray-600 ml-1">
-                Detector
+                Media
               </span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#" className="text-gray-600 hover:text-gray-900">
                 Products
               </a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-gray-900"
+                onClick={() => navigate("/plans")}
+              >
                 Pricing
               </a>
               <a href="#" className="text-gray-600 hover:text-gray-900">
                 News
               </a>
-              <Button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[50px]">
+              <Button
+                className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[50px]"
+                onClick={() => navigate("/signin")}
+              >
                 Get Started
               </Button>
             </nav>
@@ -52,12 +65,21 @@ export default function DeepfakeDetector() {
             integration, get the clarity you need.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-8 py-7 rounded-[50px] text-lg">
+            <Button
+              className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-8 py-7 rounded-[50px] text-lg"
+              onClick={() => navigate("/signup")}
+            >
               Continue with Email
             </Button>
             <Button
               variant="outline"
               className="!px-10 !py-7 rounded-[50px] text-lg border-gray-300"
+              onClick={() => {
+                const faqSection = document.getElementById("faq-section");
+                if (faqSection) {
+                  faqSection.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
             >
               Learn More
               <FaArrowDownLong />
@@ -69,7 +91,10 @@ export default function DeepfakeDetector() {
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-6">
             {/* Upload Area */}
-            <Card className="p-8 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
+            <Card
+              className="p-8 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
+              onClick={() => navigate("/signin")}
+            >
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                   <Upload className="w-8 h-8 text-gray-400" />
@@ -362,121 +387,177 @@ export default function DeepfakeDetector() {
             {/* Toggle Buttons */}
             <div className="flex justify-center mb-12">
               <div className="bg-gray-100 rounded-full p-1 flex">
-                <button className="bg-[#0F2FA3] text-white px-6 py-2 rounded-full text-sm font-medium">
+                <button
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                    activeTab === "individual"
+                      ? "bg-[#0F2FA3] text-white"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                  onClick={() => setActiveTab("individual")}
+                >
                   Individual
                 </button>
-                <button className="text-gray-600 px-6 py-2 rounded-full text-sm font-medium hover:text-gray-900">
+                <button
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
+                    activeTab === "teams"
+                      ? "bg-[#0F2FA3] text-white"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                  onClick={() => setActiveTab("teams")}
+                >
                   Teams & Enterprises
                 </button>
               </div>
             </div>
-
-            {/* Pricing Cards */}
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {/* Free Plan */}
-              <Card className="p-6 border border-gray-200 rounded-2xl">
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Free
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-900">$0</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Try DF detector for free
-                  </p>
-
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">
-                        Analyze media for up to 4,000 seconds each month.
+            {activeTab === "individual" && (
+              // Pricing Cards
+              <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                {/* Free Plan */}
+                <Card
+                  className={`p-6 rounded-2xl flex flex-col h-full cursor-pointer transition-all ${
+                    selectedPlan === "free"
+                      ? "border-2 border-yellow-400 shadow-lg"
+                      : "border border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => setSelectedPlan("free")}
+                >
+                  <div className="text-left flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Free
+                    </h3>
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold text-gray-900">
+                        $0
                       </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Try DF detector for free
+                    </p>
+
+                    <div className="space-y-3 mb-8 flex-grow">
+                      <div className="flex items-start space-x-3">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-600">
+                          Analyze media for up to 4,000 seconds each month.
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full">
+                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto">
                     Subscribe
                   </Button>
-                </div>
-              </Card>
+                </Card>
 
-              {/* Pro Plan */}
-              <Card className="p-6 border-2 border-yellow-400 rounded-2xl relative shadow-lg">
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Pro
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-900">
-                      $19
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    per month, billed annually
-                  </p>
-
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">
-                        All features in Free mode.
+                {/* Pro Plan */}
+                <Card
+                  className={`p-6 rounded-2xl relative flex flex-col h-full cursor-pointer transition-all ${
+                    selectedPlan === "pro"
+                      ? "border-2 border-yellow-400 shadow-lg"
+                      : "border border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => setSelectedPlan("pro")}
+                >
+                  <div className="text-left flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Pro
+                    </h3>
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold text-gray-900">
+                        $19
                       </span>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">
-                        Analyze media for 15,000 seconds each month.
-                      </span>
+                    <p className="text-sm text-gray-600 mb-6">
+                      per month, billed annually
+                    </p>
+
+                    <div className="space-y-3 mb-8 flex-grow">
+                      <div className="flex items-start space-x-3">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-600">
+                          All features in Free mode.
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-600">
+                          Analyze media for 15,000 seconds each month.
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full">
+                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto">
                     Subscribe
                   </Button>
-                </div>
-              </Card>
+                </Card>
 
-              {/* Max Plan */}
-              <Card className="p-6 border border-gray-200 rounded-2xl">
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Max
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-900">
-                      $49
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    per month, billed annually
-                  </p>
-
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">
-                        All features in Pro mode.
+                {/* Max Plan */}
+                <Card
+                  className={`p-6 rounded-2xl flex flex-col h-full cursor-pointer transition-all ${
+                    selectedPlan === "max"
+                      ? "border-2 border-yellow-400 shadow-lg"
+                      : "border border-gray-200 hover:border-gray-300"
+                  }`}
+                  onClick={() => setSelectedPlan("max")}
+                >
+                  <div className="text-left flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Max
+                    </h3>
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold text-gray-900">
+                        $49
                       </span>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">
-                        Analyze media for 45,000 seconds each month.
-                      </span>
+                    <p className="text-sm text-gray-600 mb-6">
+                      per month, billed annually
+                    </p>
+
+                    <div className="space-y-3 mb-8 flex-grow">
+                      <div className="flex items-start space-x-3">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-600">
+                          All features in Pro mode.
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-600">
+                          Analyze media for 45,000 seconds each month.
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full">
+                  <Button className="w-full bg-[#0F2FA3] hover:bg-blue-700 text-white py-3 rounded-full mt-auto">
                     Subscribe
                   </Button>
+                </Card>
+              </div>
+            )}
+            {/* Teams & Enterprises Coming Soon */}
+            {activeTab === "teams" && (
+              <div className="max-w-2xl mx-auto text-center py-6">
+                <div className=" rounded-2xl p-12">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    Coming Soon
+                  </h3>
+                  <p className="text-gray-600 text-lg">
+                    We're working on enterprise solutions tailored for teams and
+                    large organizations. Stay tuned for advanced features, bulk
+                    processing, and custom integrations.
+                  </p>
                 </div>
-              </Card>
-            </div>
+              </div>
+            )}
           </div>
 
           {/* FAQ Section */}
-          <div className="max-w-3xl mx-auto mb-20 mt-40 max-md:mt-20">
+          <div
+            id="faq-section"
+            className="max-w-3xl mx-auto mb-20 mt-40 max-md:mt-20"
+          >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
               Frequently Asked Questions
             </h2>
@@ -631,7 +712,19 @@ export default function DeepfakeDetector() {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="#"
+                    href="https://www.instagram.com/safe_guard_media/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://x.com/safeguardmedia1"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     X
@@ -639,18 +732,20 @@ export default function DeepfakeDetector() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="https://www.linkedin.com/company/safeguardmedia/about/?viewAsMember=true"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Facebook
+                    LinkedIn
                   </a>
                 </li>
                 <li>
                   <a
-                    href="mailto:info@DFdetector.com"
+                    href="mailto:info@safeguardmedia.io"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Mail: info@DFdetector.com
+                    Contact Us: info@safeguardmedia.io
                   </a>
                 </li>
               </ul>
