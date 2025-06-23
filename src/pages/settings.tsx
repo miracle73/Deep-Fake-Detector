@@ -54,8 +54,8 @@ const Settings = () => {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Df</span>{" "}
-              <span className="font-normal">Detector</span>
+              <span className="font-bold">Safeguard</span>{" "}
+              <span className="font-normal">Media</span>
             </h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">

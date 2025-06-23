@@ -201,8 +201,8 @@ function SignUp() {
       <div className="lg:hidden p-6 bg-white">
         <div className="text-center max-md:text-left">
           <h1 className="text-xl font-bold text-gray-900">
-            <span className="font-bold">Df</span>{" "}
-            <span className="font-normal">Detector</span>
+            <span className="font-bold">Safeguard</span>{" "}
+            <span className="font-normal">Media</span>
           </h1>
         </div>
       </div>
@@ -505,7 +505,7 @@ function SignUp() {
                     </button>
 
                     {/* Sign In Link */}
-                    <div className="text-center text-sm text-gray-600">
+                    <div className="text-center text-sm text-gray-600 cursor-pointer">
                       {"Already have an account? "}
                       <button
                         type="button"
@@ -532,8 +532,8 @@ function SignUp() {
         />
         <div className="absolute top-8 right-8 ">
           <div className="text-black font-semibold text-xl">
-            <span className="font-bold">Df</span>{" "}
-            <span className="font-normal">Detector</span>
+            <span className="font-bold">Safeguard</span>{" "}
+            <span className="font-normal">Media</span>
           </div>
         </div>
       </div>

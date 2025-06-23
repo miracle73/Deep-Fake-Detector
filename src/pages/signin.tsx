@@ -1,11 +1,184 @@
+import type React from "react";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Loader } from "lucide-react";
 import BackgroundImage from "../assets/images/signin-page.png";
+import { useLoginMutation } from "../services/apiService";
+import { useNavigate } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
+import { useGoogleLoginMutation } from "../services/apiService";
+
+interface FormData {
+  email: string;
+  password: string;
+}
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  general?: string;
+}
 
 function Signin() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googleLogin] = useGoogleLoginMutation();
+
+  const [login] = useLoginMutation();
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (token) => {
+      console.log("Google token received:", token);
+      try {
+        const response = await googleLogin({
+          idToken: token,
+          agreedToTerms: true,
+          userType: "individual",
+        }).unwrap();
+
+        // Handle successful Google login
+        console.log("Google login successful:", response);
+
+        if (response.success) {
+          // Navigate to dashboard (same as regular login)
+          navigate("/dashboard");
+          // You might also want to store the token/user data in your auth state here
+        } else {
+          setErrors({ general: "Google sign-in failed. Please try again." });
+        }
+      } catch (error: unknown) {
+        console.error("Google login failed:", error);
+
+        if (error && typeof error === "object" && "data" in error) {
+          const apiError = error as {
+            data?: { message?: string; errors?: FormErrors };
+          };
+          if (apiError.data?.message) {
+            setErrors({ general: apiError.data.message });
+          } else if (apiError.data?.errors) {
+            setErrors(apiError.data.errors);
+          } else {
+            setErrors({ general: "Google sign-in failed. Please try again." });
+          }
+        } else if (error && typeof error === "object" && "message" in error) {
+          const messageError = error as { message: string };
+          setErrors({ general: messageError.message });
+        } else {
+          setErrors({ general: "Google sign-in failed. Please try again." });
+        }
+      }
+    },
+    onError: (error) => {
+      console.error("Google OAuth error:", error);
+      setErrors({ general: "Google authentication failed. Please try again." });
+    },
+  });
+
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = (): FormErrors => {
+    const newErrors: FormErrors = {};
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = "Email address is required";
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    return newErrors;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors({
+        ...errors,
+        [name]: undefined,
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Clear previous errors
+    setErrors({});
+
+    // Validate form
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Prepare data for API
+      const loginData = {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      };
+
+      const result = await login(loginData).unwrap();
+
+      // Handle successful login
+      console.log("Login successful:", result);
+
+      // You can redirect to dashboard or wherever needed
+      navigate("/dashboard");
+      // Or handle token storage, user context, etc.
+    } catch (error: unknown) {
+      console.error("Login failed:", error);
+
+      if (error && typeof error === "object" && "data" in error) {
+        const apiError = error as {
+          data?: { message?: string; errors?: FormErrors };
+        };
+        if (apiError.data?.message) {
+          setErrors({ general: apiError.data.message });
+        } else if (apiError.data?.errors) {
+          // Handle field-specific errors from backend
+          setErrors(apiError.data.errors);
+        } else {
+          setErrors({
+            general: "Login failed. Please check your credentials.",
+          });
+        }
+      } else if (error && typeof error === "object" && "message" in error) {
+        const messageError = error as { message: string };
+        setErrors({ general: messageError.message });
+      } else {
+        setErrors({ general: "Login failed. Please try again." });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -13,8 +186,8 @@ function Signin() {
       <div className="lg:hidden p-6 bg-white">
         <div className="text-center max-md:text-left">
           <h1 className="text-xl font-bold text-gray-900">
-            <span className="font-bold">Df</span>{" "}
-            <span className="font-normal">Detector</span>
+            <span className="font-bold">Safeguard</span>{" "}
+            <span className="font-normal">Media</span>
           </h1>
         </div>
       </div>
@@ -27,11 +200,20 @@ function Signin() {
           </div>
           <div className="border border-gray-200 shadow-sm rounded-2xl mt-5">
             <div className="p-8 space-y-6">
-              <div className="space-y-4">
+              {/* General Error Message */}
+              {errors.general && (
+                <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span>{errors.general}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Google Sign In Button */}
                 <button
                   className="w-full h-12 flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 rounded-xl font-normal text-sm"
                   type="button"
+                  onClick={() => handleGoogleLogin()}
                 >
                   <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                     <path
@@ -76,12 +258,18 @@ function Signin() {
                   </label>
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="Enter your work or personal email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full h-12 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`w-full h-12 px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.email ? "border-red-300" : "border-gray-300"
+                    }`}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email}</p>
+                  )}
                 </div>
 
                 {/* Password Input */}
@@ -95,30 +283,36 @@ function Signin() {
                   <div className="relative">
                     <input
                       id="password"
+                      name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="XXXX XXXX"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-12 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
+                      placeholder="Enter your password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`w-full h-12 px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10 ${
+                        errors.password ? "border-red-300" : "border-gray-300"
+                      }`}
                     />
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? (
+                      {!showPassword ? (
                         <EyeOff className="h-4 w-4 text-gray-400" />
                       ) : (
                         <Eye className="h-4 w-4 text-gray-400" />
                       )}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-600">{errors.password}</p>
+                  )}
                 </div>
 
                 {/* Forgot Password Link */}
-                <div className="text-right">
+                <div className="text-right cursor-pointer">
                   <a
-                    href="#"
+                    onClick={() => navigate("/forgot-password")}
                     className="text-sm text-blue-600 hover:text-blue-500 hover:underline"
                   >
                     Forgot Password?
@@ -128,22 +322,31 @@ function Signin() {
                 {/* Sign In Button */}
                 <button
                   type="submit"
-                  className="w-full h-12 bg-[#0F2FA3] hover:bg-blue-700 text-white font-medium rounded-[50px]"
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-[#0F2FA3] hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-[50px] flex items-center justify-center"
                 >
-                  Sign In
+                  {isSubmitting ? (
+                    <>
+                      <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                      Signing In...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
                 </button>
 
                 {/* Sign Up Link */}
-                <div className="text-center text-sm text-gray-600">
+                <div className="text-center text-sm text-gray-600 cursor-pointer">
                   {"Don't have an account? "}
-                  <a
-                    href="#"
+                  <button
+                    type="button"
                     className="text-blue-600 hover:text-blue-500 hover:underline font-medium"
+                    onClick={() => navigate("/signup")}
                   >
                     Sign Up
-                  </a>
+                  </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>
@@ -158,8 +361,8 @@ function Signin() {
         />
         <div className="absolute top-8 right-8 ">
           <div className="text-black font-semibold text-xl">
-            <span className="font-bold">Df</span>{" "}
-            <span className="font-normal">Detector</span>
+            <span className="font-bold">Safeguard</span>{" "}
+            <span className="font-normal">Media</span>
           </div>
         </div>
       </div>

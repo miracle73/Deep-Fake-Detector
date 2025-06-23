@@ -12,8 +12,8 @@ const SubscriptionPlans = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900">
-                <span className="font-bold">Df</span>{" "}
-                <span className="font-normal">Detector</span>
+                <span className="font-bold">Safeguard</span>{" "}
+                <span className="font-normal">Media</span>
               </h1>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
@@ -91,7 +91,7 @@ const SubscriptionPlans = () => {
                   <span className="text-4xl font-bold text-gray-900">$0</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-6">
-                  Try DF detector for free
+                  Try Safeguard Media for free
                 </p>
 
                 <div className="space-y-3 mb-8 flex-1">
@@ -242,8 +242,8 @@ const SubscriptionPlans = () => {
             <div className="border-b border-gray-200 pb-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  How does DF detector ensure it remains effective against new
-                  deepfake techniques?
+                  How does Safeguard Media ensure it remains effective against
+                  new deepfake techniques?
                 </h3>
                 <button className="text-gray-400 hover:text-gray-600">
                   <Plus className="w-5 h-5" />
@@ -355,10 +355,10 @@ const SubscriptionPlans = () => {
                 </li>
                 <li>
                   <a
-                    href="mailto:info@DFdetector.com"
+                    href="mailto:iinfo@safeguardmedia.io"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Mail: info@DFdetector.com
+                    Mail: info@safeguardmedia.io
                   </a>
                 </li>
               </ul>

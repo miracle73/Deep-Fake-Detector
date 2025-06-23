@@ -431,7 +431,7 @@ export default function DeepfakeDetector() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-6">
-                      Try DF detector for free
+                      Try Safeguard Media for free
                     </p>
 
                     <div className="space-y-3 mb-8 flex-grow">
@@ -622,8 +622,8 @@ export default function DeepfakeDetector() {
               <div className="border-b border-gray-200 pb-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    How does DF detector ensure it remains effective against new
-                    deepfake techniques?
+                    How does Safeguard Media ensure it remains effective against
+                    new deepfake techniques?
                   </h3>
                   <button className="text-gray-400 hover:text-gray-600">
                     <Plus className="w-5 h-5" />
