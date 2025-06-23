@@ -1,5 +1,4 @@
 import Subscription from '../models/Subscription.js';
-import User from '../models/User.js';
 import {
   handleCheckoutSessionCompleted,
   handleFailedPayment,

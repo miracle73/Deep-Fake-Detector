@@ -51,8 +51,16 @@ export interface BaseUserFields {
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
   passwordChangedAt?: Date;
+  unlimitedQuota: boolean;
   lastLogin?: Date;
   role: string;
+  usageQuota: {
+    monthlyAnalysis: number;
+    remainingAnalysis: number;
+    lastResetAt: Date;
+    lastUsedAt: Date;
+    carryOver: boolean;
+  };
 }
 
 export interface IndividualUser extends BaseUserFields {
@@ -60,11 +68,6 @@ export interface IndividualUser extends BaseUserFields {
   lastName: string;
   userType: 'individual';
   paymentMethods?: PaymentMethod[];
-  usageQuota: {
-    monthlyAnalysis: number;
-    remainingAnalysis: number;
-    lastReset: Date;
-  };
 }
 
 export interface EnterpriseUser extends BaseUserFields {

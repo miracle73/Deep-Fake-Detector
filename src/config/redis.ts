@@ -1,6 +1,7 @@
-import type { RedisOptions } from 'bullmq';
-import IORedis from 'ioredis';
 import { config } from 'dotenv';
+import IORedis from 'ioredis';
+
+import type { RedisOptions } from 'bullmq';
 
 config();
 

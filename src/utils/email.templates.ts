@@ -2,63 +2,112 @@ export const generatePaymentReceipt = ({
   amount,
   date,
   invoiceUrl,
+  invoicePdf,
+  planName,
 }: {
   amount: string;
   date: string;
   invoiceUrl: string;
+  invoicePdf: string;
+  planName: string;
 }) => {
-  return `<html lang="en">
+  return `
+  <!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Payment Receipt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
-        font-family: 'Helvetica Neue', sans-serif;
-        background: #f9f9f9;
-        padding: 2rem;
-        color: #333;
+        font-family: Arial, sans-serif;
+        background-color: #f7f9fc;
+        margin: 0;
+        padding: 0;
       }
+
       .container {
         max-width: 600px;
-        margin: auto;
-        background: white;
-        padding: 2rem;
+        margin: 30px auto;
+        background-color: #ffffff;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       }
+
       .header {
+        background-color: #0d47a1;
+        color: #ffffff;
+        padding: 20px;
         text-align: center;
-        margin-bottom: 2rem;
       }
-      .button {
+
+      .content {
+        padding: 30px;
+      }
+
+      .content h2 {
+        color: #333333;
+        margin-bottom: 10px;
+      }
+
+      .content p {
+        color: #555555;
+        line-height: 1.5;
+      }
+
+      .details {
+        background-color: #f1f3f6;
+        padding: 20px;
+        border-radius: 6px;
+        margin-top: 20px;
+      }
+
+      .details p {
+        margin: 5px 0;
+        font-weight: 500;
+      }
+
+      .links a {
         display: inline-block;
-        padding: 10px 20px;
-        margin-top: 1.5rem;
-        background-color: #635bff;
-        color: white;
+        margin-right: 10px;
         text-decoration: none;
-        border-radius: 5px;
+        color: #0d47a1;
+        font-weight: bold;
       }
+
       .footer {
-        font-size: 0.8rem;
-        color: #888;
         text-align: center;
-        margin-top: 2rem;
+        padding: 20px;
+        font-size: 12px;
+        color: #999999;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <h2>Thank you for your payment!</h2>
+        <h1>Payment Receipt</h1>
       </div>
-      <p>Hi {{userName}},</p>
-      <p>Your payment of <strong>${{
-        amount,
-      }}</strong> was successful on ${date}.</p>
-      <p>You can view or download your receipt below:</p>
-      <a class="button" href="${invoiceUrl}" target="_blank">View Receipt</a>
+
+      <div class="content">
+        <h2>Hello,</h2>
+        <p>
+          Thank you for your payment. Here are the details of your transaction:
+        </p>
+
+        <div class="details">
+          <p><strong>Plan:</strong> ${planName}</p>
+          <p><strong>Amount Paid:</strong> ${amount}</p>
+          <p><strong>Date:</strong> ${date}</p>
+        </div>
+
+        <div class="links" style="margin-top: 20px;">
+          <a href="${invoiceUrl}" target="_blank">View Invoice Online</a>
+          <a href="${invoicePdf}" target="_blank">Download PDF</a>
+        </div>
+      </div>
+
       <div class="footer">
         &copy; ${new Date().getFullYear()} Your Company. All rights reserved.
       </div>

@@ -2,6 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
+import mongoose from 'mongoose';
 import morgan from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -11,13 +12,13 @@ import { startQueues } from './config/queues.js';
 import { swaggerOptions } from './config/swagger.js';
 import { errorHandler } from './middlewares/error.js';
 import { limiter } from './middlewares/rateLimit.js';
-import emailQueue from './queues/emailQueue.js';
 import detectRoutes from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import waitlistRoutes from './routes/waitlistRoutes.js';
+import { startQuotaResetSchedule } from './services/quotaReset.service.js';
 import logger from './utils/logger.js';
 
 import type { Request, Response } from 'express';
@@ -71,7 +72,11 @@ app.listen(port, async () => {
   try {
     await connectDB();
 
+    startQuotaResetSchedule();
+
     startQueues();
+
+    logger.info('Background queues and jobs initialized');
 
     logger.info(`Server running🏃 on port ${port}...betta go catch it!🚀`);
     logger.info(

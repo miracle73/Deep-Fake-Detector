@@ -1,13 +1,21 @@
-import Stripe from 'stripe';
 import { config } from 'dotenv';
-import User from '../models/User.js';
+import Stripe from 'stripe';
+import { generatePaymentReceipt } from '../utils/email.templates.js';
+
 import Subscription from '../models/Subscription.js';
-import type { IUser } from '../types/user.js';
-import PaymentHistory from '../models/PaymentHistory.js';
+import User from '../models/User.js';
 import logger from '../utils/logger.js';
+import { getPlanConfig, isHigherPlan } from '../utils/payment.js';
 import { sendEmail } from './emailService.js';
 
+import type { IUser } from '../types/user.js';
 config();
+
+const PLAN_QUOTA = {
+  Free: 3,
+  Pro: 30,
+  Max: Number.POSITIVE_INFINITY,
+};
 
 const stripeApiKey =
   process.env.STRIPE_SECRET_KEY ||
@@ -160,9 +168,8 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
   );
 
   const price = subscription.items.data[0].price;
-  const productId = price.product as string;
+  const product = await stripe.products.retrieve(price.product as string);
 
-  const product = await stripe.products.retrieve(productId);
   const productName = product.name;
 
   const user = await User.findOne({
@@ -171,30 +178,77 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
 
   if (!user) return;
 
-  await User.updateOne(
-    { _id: user._id },
-    {
-      $push: {
-        billingHistory: {
-          invoiceId: invoice.id,
-          amount: invoice.amount_paid / 100,
-          plan: productName,
-          status: 'paid',
-          date: new Date(),
-        },
-      },
-    }
-  );
+  const planConfig = getPlanConfig(product.name);
+  const isUpgrade = isHigherPlan(user.plan, product.name);
 
-  // await sendEmail({
-  //   to: user.email,
-  //   subject: 'Payment Receipt',
-  //   text: `payment-receipt - amount:  ${
-  //     invoice.amount_paid / 100
-  //   } date - ${new Date(
-  //     invoice.created * 1000
-  //   ).toLocaleDateString()} invoiceUrl- ${invoice.hosted_invoice_url}`,
-  // });
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  const update: Record<string, any> = {
+    plan: product.name,
+    $push: {
+      billingHistory: {
+        invoiceId: invoice.id,
+        amount: invoice.amount_paid / 100,
+        plan: product.name,
+        status: 'paid',
+        date: new Date(),
+      },
+    },
+  };
+
+  if (isUpgrade) {
+    update.$set = {
+      'usageQuota.monthlyAnalysis': planConfig.monthlyQuota,
+      'usageQuota.remainingAnalysis': planConfig.carryOver
+        ? Math.min(
+            user.usageQuota.remainingAnalysis + planConfig.monthlyQuota,
+            planConfig.monthlyQuota * 2 // Cap carryover
+          )
+        : planConfig.monthlyQuota,
+      'usageQuota.carryOver': planConfig.carryOver,
+      'usageQuota.lastResetAt': new Date(),
+    };
+  }
+
+  // await User.updateOne(
+  //   { _id: user._id },
+  //   {
+  //     $set: {
+  //       usageQuota: {
+  //         monthlyAnalysis: 30,
+  //         remainingAnalysis: user.usageQuota.remainingAnalysis + 30,
+  //         lastResetAt: new Date(),
+  //         carryOver: true,
+  //       },
+  //     },
+  //     $push: {
+  //       billingHistory: {
+  //         invoiceId: invoice.id,
+  //         amount: invoice.amount_paid / 100,
+  //         plan: productName,
+  //         status: 'paid',
+  //         date: new Date(),
+  //       },
+  //     },
+  //   }
+  // );
+
+  const emailData = {
+    amount: String(invoice.amount_paid / 100),
+    date: new Date(invoice.created * 1000).toLocaleDateString(),
+    invoiceUrl: invoice.hosted_invoice_url ? invoice.hosted_invoice_url : '',
+    invoicePdf: invoice.invoice_pdf ? invoice.invoice_pdf : '',
+    planName: productName,
+  };
+
+  const PaymentReceipt = generatePaymentReceipt(emailData);
+
+  await User.updateOne({ _id: user._id }, update);
+
+  await sendEmail({
+    to: user.email,
+    subject: 'Payment Receipt',
+    html: PaymentReceipt,
+  });
 
   logger.info(`Payment succeeded for invoice ${invoice.id}`);
 };

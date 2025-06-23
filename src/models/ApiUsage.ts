@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+
 import type { Document } from 'mongoose';
 
 export interface IApiUsage extends Document {

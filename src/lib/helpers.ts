@@ -1,3 +1,5 @@
+import { sendEmail } from '../services/emailService.js';
+
 import type {
   BaseUserResponse,
   EnterpriseUser,
@@ -5,8 +7,6 @@ import type {
   IUser,
   UserResponse,
 } from '../types/user.js';
-import { sendEmail } from '../services/emailService.js';
-
 export function calculateEstimatedWaitTime(position: number): string {
   // assuming 10 users invited per week
   const usersPerWeek = 10;
