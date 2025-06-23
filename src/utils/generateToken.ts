@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+
 import type { Secret, SignOptions } from 'jsonwebtoken';
 import type { ObjectId } from 'mongoose';
 

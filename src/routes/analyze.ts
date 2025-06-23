@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { protect } from '../middlewares/auth';
+import { protect } from '../middlewares/auth.js';
 
 import * as DetectController from '../controllers/detect.controller.js';
 import upload, {

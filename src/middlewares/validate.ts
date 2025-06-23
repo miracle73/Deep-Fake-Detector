@@ -1,5 +1,6 @@
-import type { Request, Response, NextFunction } from 'express';
 import { ValidationError } from '../utils/error.js';
+
+import type { Request, Response, NextFunction } from 'express';
 import type { AnyZodObject, ZodSchema, ZodTypeAny } from 'zod';
 
 export function validateInput<T extends ZodTypeAny>(schema: T) {

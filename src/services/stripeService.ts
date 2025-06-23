@@ -1,14 +1,14 @@
-import Stripe from 'stripe';
 import { config } from 'dotenv';
-import User from '../models/User.js';
-import Subscription from '../models/Subscription.js';
-import type { IUser } from '../types/user.js';
-import PaymentHistory from '../models/PaymentHistory.js';
-import logger from '../utils/logger.js';
-import { sendEmail } from './emailService.js';
-import { getPlanConfig, isHigherPlan } from '../utils/payment.js';
-import { generatePaymentReceipt } from 'utils/email.templates.js';
+import Stripe from 'stripe';
+import { generatePaymentReceipt } from '../utils/email.templates.js';
 
+import Subscription from '../models/Subscription.js';
+import User from '../models/User.js';
+import logger from '../utils/logger.js';
+import { getPlanConfig, isHigherPlan } from '../utils/payment.js';
+import { sendEmail } from './emailService.js';
+
+import type { IUser } from '../types/user.js';
 config();
 
 const PLAN_QUOTA = {
