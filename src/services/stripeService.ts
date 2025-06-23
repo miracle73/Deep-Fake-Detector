@@ -9,6 +9,12 @@ import { sendEmail } from './emailService.js';
 
 config();
 
+const PLAN_QUOTA = {
+  Free: 3,
+  Pro: 30,
+  Max: Number.POSITIVE_INFINITY,
+};
+
 const stripeApiKey =
   process.env.STRIPE_SECRET_KEY ||
   'sk_test_placeholder sympathiqueBuildProcess';
@@ -155,6 +161,9 @@ export const handleSubscriptionCancelled = async (
 };
 
 export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
+  const subscriptions = await stripe.subscriptions.list({
+    limit: 3,
+  });
   const subscription = await stripe.subscriptions.retrieve(
     invoice.parent?.subscription_details?.subscription as string
   );
@@ -163,6 +172,7 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
   const productId = price.product as string;
 
   const product = await stripe.products.retrieve(productId);
+
   const productName = product.name;
 
   const user = await User.findOne({
@@ -174,6 +184,14 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
   await User.updateOne(
     { _id: user._id },
     {
+      $set: {
+        usageQuota: {
+          monthlyAnalysis: 30,
+          remainingAnalysis: user.usageQuota.remainingAnalysis + 30,
+          lastResetAt: new Date(),
+          carryOver: true,
+        },
+      },
       $push: {
         billingHistory: {
           invoiceId: invoice.id,

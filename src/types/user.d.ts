@@ -57,7 +57,6 @@ export interface BaseUserFields {
   usageQuota: {
     monthlyAnalysis: number;
     remainingAnalysis: number;
-    lastReset: Date;
     lastResetAt: Date;
     lastUsedAt: Date;
     carryOver: boolean;

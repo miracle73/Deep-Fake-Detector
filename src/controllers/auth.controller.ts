@@ -427,7 +427,13 @@ export const verifyEmail = async (
 
     const { userId } = verifyEmailVerificationToken(token);
 
+    if (!userId) {
+      throw new AppError(400, 'Invalid or expired verification token', null);
+    }
+
     const user = await User.findById(userId);
+
+    console.log(user);
     if (!user) throw new AppError(404, 'User not found', null);
 
     if (user.isEmailVerified) {
@@ -439,8 +445,25 @@ export const verifyEmail = async (
     user.isEmailVerified = true;
     await user.save();
 
+    let displayName = 'there';
+    if (
+      'firstName' in user &&
+      typeof user.firstName === 'string' &&
+      user.firstName
+    ) {
+      displayName = user.firstName;
+    } else if (
+      'company' in user &&
+      user.company &&
+      typeof user.company === 'object' &&
+      'name' in user.company &&
+      typeof user.company.name === 'string'
+    ) {
+      displayName = user.company.name;
+    }
+
     const welcomeEmail = generateWelcomeEmail({
-      name: req.body.firstName || req.body.company.name,
+      name: displayName,
     });
 
     await emailQueue.add('verification-email', {

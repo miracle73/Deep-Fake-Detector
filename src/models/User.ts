@@ -115,13 +115,9 @@ const UserSchema: Schema = new Schema(
       default: () => ({
         monthlyAnalysis: 3,
         remainingAnalysis: 3,
-        lastReset: new Date(),
         lastResetAt: new Date(),
         lastUsedAt: undefined,
-        carryOver: {
-          type: Boolean,
-          default: false,
-        },
+        carryOver: false,
       }),
     },
     company: {
