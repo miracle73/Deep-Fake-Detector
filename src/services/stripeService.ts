@@ -6,6 +6,8 @@ import type { IUser } from '../types/user.js';
 import PaymentHistory from '../models/PaymentHistory.js';
 import logger from '../utils/logger.js';
 import { sendEmail } from './emailService.js';
+import { getPlanConfig, isHigherPlan } from '../utils/payment.js';
+import { generatePaymentReceipt } from 'utils/email.templates.js';
 
 config();
 
@@ -161,17 +163,12 @@ export const handleSubscriptionCancelled = async (
 };
 
 export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
-  const subscriptions = await stripe.subscriptions.list({
-    limit: 3,
-  });
   const subscription = await stripe.subscriptions.retrieve(
     invoice.parent?.subscription_details?.subscription as string
   );
 
   const price = subscription.items.data[0].price;
-  const productId = price.product as string;
-
-  const product = await stripe.products.retrieve(productId);
+  const product = await stripe.products.retrieve(price.product as string);
 
   const productName = product.name;
 
@@ -181,38 +178,77 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
 
   if (!user) return;
 
-  await User.updateOne(
-    { _id: user._id },
-    {
-      $set: {
-        usageQuota: {
-          monthlyAnalysis: 30,
-          remainingAnalysis: user.usageQuota.remainingAnalysis + 30,
-          lastResetAt: new Date(),
-          carryOver: true,
-        },
-      },
-      $push: {
-        billingHistory: {
-          invoiceId: invoice.id,
-          amount: invoice.amount_paid / 100,
-          plan: productName,
-          status: 'paid',
-          date: new Date(),
-        },
-      },
-    }
-  );
+  const planConfig = getPlanConfig(product.name);
+  const isUpgrade = isHigherPlan(user.plan, product.name);
 
-  // await sendEmail({
-  //   to: user.email,
-  //   subject: 'Payment Receipt',
-  //   text: `payment-receipt - amount:  ${
-  //     invoice.amount_paid / 100
-  //   } date - ${new Date(
-  //     invoice.created * 1000
-  //   ).toLocaleDateString()} invoiceUrl- ${invoice.hosted_invoice_url}`,
-  // });
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  const update: Record<string, any> = {
+    plan: product.name,
+    $push: {
+      billingHistory: {
+        invoiceId: invoice.id,
+        amount: invoice.amount_paid / 100,
+        plan: product.name,
+        status: 'paid',
+        date: new Date(),
+      },
+    },
+  };
+
+  if (isUpgrade) {
+    update.$set = {
+      'usageQuota.monthlyAnalysis': planConfig.monthlyQuota,
+      'usageQuota.remainingAnalysis': planConfig.carryOver
+        ? Math.min(
+            user.usageQuota.remainingAnalysis + planConfig.monthlyQuota,
+            planConfig.monthlyQuota * 2 // Cap carryover
+          )
+        : planConfig.monthlyQuota,
+      'usageQuota.carryOver': planConfig.carryOver,
+      'usageQuota.lastResetAt': new Date(),
+    };
+  }
+
+  // await User.updateOne(
+  //   { _id: user._id },
+  //   {
+  //     $set: {
+  //       usageQuota: {
+  //         monthlyAnalysis: 30,
+  //         remainingAnalysis: user.usageQuota.remainingAnalysis + 30,
+  //         lastResetAt: new Date(),
+  //         carryOver: true,
+  //       },
+  //     },
+  //     $push: {
+  //       billingHistory: {
+  //         invoiceId: invoice.id,
+  //         amount: invoice.amount_paid / 100,
+  //         plan: productName,
+  //         status: 'paid',
+  //         date: new Date(),
+  //       },
+  //     },
+  //   }
+  // );
+
+  const emailData = {
+    amount: String(invoice.amount_paid / 100),
+    date: new Date(invoice.created * 1000).toLocaleDateString(),
+    invoiceUrl: invoice.hosted_invoice_url ? invoice.hosted_invoice_url : '',
+    invoicePdf: invoice.invoice_pdf ? invoice.invoice_pdf : '',
+    planName: productName,
+  };
+
+  const PaymentReceipt = generatePaymentReceipt(emailData);
+
+  await User.updateOne({ _id: user._id }, update);
+
+  await sendEmail({
+    to: user.email,
+    subject: 'Payment Receipt',
+    html: PaymentReceipt,
+  });
 
   logger.info(`Payment succeeded for invoice ${invoice.id}`);
 };
