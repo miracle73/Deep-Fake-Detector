@@ -5,7 +5,7 @@ export const pushDetectionMetric = async () => {
   const projectId = await metricClient.getProjectId();
 
   const dataPoint = {
-    interval: { endTime: { seconds: Date.now() / 1000 } },
+    interval: { endTime: { seconds: Math.floor(Date.now() / 1000) } },
     value: { int64Value: 1 },
   };
 
