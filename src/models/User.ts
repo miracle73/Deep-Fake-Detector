@@ -59,8 +59,9 @@ const UserSchema: Schema = new Schema(
     },
     plan: {
       type: String,
-      enum: ['free', 'pro', 'max'],
-      default: 'free',
+      enum: ['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'],
+      required: true,
+      default: 'SafeGuard Free',
     },
     analysisHistory: [AnalysisHistorySchema],
     billingHistory: [BillingHistorySchema],

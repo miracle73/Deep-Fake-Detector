@@ -409,7 +409,7 @@ export const generatePasswordResetEmail = (resetLink: string) => {
               </p>
               <p style="word-break: break-all; color: #4f46e5; font-size: 13px;">${resetLink}</p>
               <br><br>
-              <p style="color: #999999; font-size: 12px;">&copy; {{year}} SafeGuard Media. All rights reserved.</p>
+              <p style="color: #999999; font-size: 12px;">&copy; ${new Date().getFullYear()} SafeGuard Media. All rights reserved.</p>
             </td>
           </tr>
         </table>
