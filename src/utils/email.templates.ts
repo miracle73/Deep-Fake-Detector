@@ -1,3 +1,11 @@
+interface WelcomeEmail {
+  name: string;
+  appUrl?: string;
+  supportUrl?: string;
+  termsUrl?: string;
+  privacyUrl?: string;
+}
+
 export const generatePaymentReceipt = ({
   amount,
   date,
@@ -269,14 +277,6 @@ export const upcomingInvoiceTemplate = ({
   </div>
 `;
 
-interface WelcomeEmail {
-  name: string;
-  appUrl?: string;
-  supportUrl?: string;
-  termsUrl?: string;
-  privacyUrl?: string;
-}
-
 export const generateWelcomeEmail = ({
   name,
   appUrl = 'https://google.com',
@@ -361,5 +361,63 @@ export const generateVerificationEmail = ({
         </p>
       </div>
     </div>
+  `;
+};
+
+export const generatePasswordResetEmail = (resetLink: string) => {
+  return `
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Your Password</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    a.button {
+      background-color: #4f46e5;
+      color: white !important;
+      padding: 12px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .container {
+        width: 100% !important;
+        padding: 20px !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f7; font-family: Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f7; padding: 30px 0;">
+    <tr>
+      <td align="center">
+        <table class="container" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; padding: 40px;">
+          <tr>
+            <td style="text-align: center;">
+              <h2 style="color: #333333;">Reset Your Password</h2>
+              <p style="color: #555555;">We received a request to reset your password. Click the button below to proceed. If you didn’t request this, you can safely ignore this email.</p>
+              <br>
+              <a href="${resetLink}" class="button">Reset Password</a>
+              <br><br>
+              <p style="color: #999999; font-size: 12px;">
+                This link will expire in 60 minutes.<br>
+                If you're having trouble, copy and paste this URL into your browser:
+              </p>
+              <p style="word-break: break-all; color: #4f46e5; font-size: 13px;">${resetLink}</p>
+              <br><br>
+              <p style="color: #999999; font-size: 12px;">&copy; {{year}} SafeGuard Media. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
   `;
 };

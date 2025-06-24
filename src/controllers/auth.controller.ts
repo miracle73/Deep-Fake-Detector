@@ -3,10 +3,20 @@ import crypto from 'node:crypto';
 
 import { formatUserResponse } from '../lib/helpers.js';
 import User from '../models/User.js';
+import emailQueue from '../queues/emailQueue.js';
 import { stripe } from '../services/stripeService.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
+import {
+  generateVerificationEmail,
+  generateWelcomeEmail,
+} from '../utils/email.templates.js';
 import { AppError } from '../utils/error.js';
 import { generateToken } from '../utils/generateToken.js';
 import logger from '../utils/logger.js';
+import {
+  generateEmailVerificationToken,
+  verifyEmailVerificationToken,
+} from '../utils/token.js';
 
 import type { z } from 'zod';
 
@@ -23,15 +33,6 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
-import emailQueue from '../queues/emailQueue.js';
-import {
-  generateVerificationEmail,
-  generateWelcomeEmail,
-} from '../utils/email.templates.js';
-import {
-  generateEmailVerificationToken,
-  verifyEmailVerificationToken,
-} from '../utils/token.js';
 
 type UserData = {
   email: string;
@@ -335,14 +336,15 @@ export const forgotPassword = async (
 
     await user.save();
 
-    const resetUrl = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/auth/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    // const resetUrl = `${req.protocol}://${req.get(
+    //   'host'
+    // )}/api/v1/auth/reset-password/${resetToken}`;
 
     logger.info(resetUrl);
 
-    // send mail
-    // await sendPasswordResetEmail(user.email, resetUrl);
+    await sendPasswordResetEmail(user.email, resetUrl);
 
     res.status(200).json({
       success: true,

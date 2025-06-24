@@ -89,7 +89,7 @@ export const createCheckoutSession = async (
         planIntent: priceId,
       },
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.FRONTEND_URL}`, // /billing/success/`,
+      success_url: `${process.env.FRONTEND_URL}/billing/success/`,
       cancel_url: `${process.env.FRONTEND_URL}/billing/cancelled`,
     });
 
