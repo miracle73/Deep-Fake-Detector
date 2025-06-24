@@ -19,7 +19,7 @@ export const validateAndDecrementQuota = async (
       throw new AuthenticationError('Invalid user identifier');
     }
 
-    if (req.user?.plan === 'max' && req.user?.unlimitedQuota) {
+    if (req.user?.plan === 'SafeGuard Max' && req.user?.unlimitedQuota) {
       return next();
     }
 
@@ -50,7 +50,7 @@ export const validateAndDecrementQuota = async (
 
       throw new AppError(
         429,
-        currentUser.plan === 'free'
+        currentUser.plan === 'SafeGuard Free'
           ? 'Free tier quota exhausted. Upgrade to PRO for more analyses.'
           : 'Monthly quota exceeded. Reset occurs on 1st of each month.',
         {

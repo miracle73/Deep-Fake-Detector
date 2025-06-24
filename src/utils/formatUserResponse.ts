@@ -4,7 +4,7 @@ interface BaseUserResponse {
   id: string;
   email: string;
   userType: 'individual' | 'enterprise';
-  plan: 'free' | 'pro' | 'max';
+  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
 }
 
 interface IndividualUserResponse extends BaseUserResponse {

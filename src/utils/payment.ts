@@ -15,7 +15,7 @@ export function getPlanConfig(planName: string) {
 }
 
 export function isHigherPlan(currentPlan: string, newPlan: string) {
-  const planOrder = ['free', 'pro', 'max'];
+  const planOrder = ['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'];
   return (
     planOrder.indexOf(newPlan.toLowerCase()) >
     planOrder.indexOf(currentPlan.toLowerCase())

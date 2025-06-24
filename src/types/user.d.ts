@@ -42,7 +42,7 @@ export interface BaseUserFields {
   googleId: string;
   phoneNumber?: string;
   avatar?: string;
-  plan: 'free' | 'pro' | 'max';
+  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
   createdAt: Date;
   updatedAt: Date;
   agreedToTerms: boolean;
@@ -104,7 +104,7 @@ export interface BaseUserResponse {
   id: string;
   email: string;
   userType: 'individual' | 'enterprise';
-  plan: 'free' | 'pro' | 'max';
+  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
 }
 
 export interface IndividualUserResponse extends BaseUserResponse {

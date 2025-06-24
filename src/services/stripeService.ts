@@ -146,7 +146,7 @@ export const handleSubscriptionCancelled = async (
     await User.updateOne(
       { _id: user._id },
       {
-        plan: 'free',
+        plan: 'SafeGuard Free',
         isActive: false,
         $push: {
           billingHistory: {

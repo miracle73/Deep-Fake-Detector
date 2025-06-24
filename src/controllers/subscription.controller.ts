@@ -165,7 +165,7 @@ export const getCurrentSubscription = async (
         success: true,
         message: 'Current subscription fetched successfully',
         data: {
-          plan: 'free',
+          plan: 'SafeGuard Free',
         },
       });
     }
