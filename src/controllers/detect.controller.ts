@@ -1,4 +1,6 @@
 import { PubSub } from '@google-cloud/pubsub';
+import { logInfo } from '../utils/google-cloud/logger.js';
+import { pushDetectionMetric } from '../utils/google-cloud/metrics.js';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -13,11 +15,12 @@ import logger from '../utils/logger.js';
 import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
+import type { AuthRequest } from '../middlewares/auth.js';
 
 const pubsub = new PubSub();
 
 export const analyze = async (
-  req: Request,
+  req: AuthRequest,
   res: ExpressResponse,
   next: NextFunction
 ): Promise<void> => {
@@ -81,6 +84,10 @@ export const analyze = async (
       });
       return;
     }
+
+    await pushDetectionMetric();
+
+    await logInfo(`User ${req.user._id} performed detection`); // { detectionId });
 
     res.status(200).json({
       statusCode: 200,

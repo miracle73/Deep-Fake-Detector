@@ -21,14 +21,14 @@ import waitlistRoutes from './routes/waitlistRoutes.js';
 import { startQuotaResetSchedule } from './services/quotaReset.service.js';
 import logger from './utils/logger.js';
 
+import { requestLogger } from './middlewares/requestLogger.js';
+
 import type { Request, Response } from 'express';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8080;
-
-// connectDB();
 
 app.use(helmet());
 app.use(
@@ -40,6 +40,7 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(limiter);
+app.use(requestLogger);
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
