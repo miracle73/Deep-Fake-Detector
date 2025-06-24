@@ -1,3 +1,4 @@
+import logger from '../utils/logger.js';
 import { logError, logInfo } from '../utils/google-cloud/logger.js';
 
 import type { NextFunction, Request, Response } from 'express';
@@ -18,7 +19,8 @@ export const requestLogger = async (
       ip: req.ip,
       timestamp: new Date().toISOString(),
     });
-    console.error('Failed to log request:', error);
+
+    logger.error('Failed to log request:', error);
   }
 
   next();
