@@ -8,7 +8,10 @@ const baseUserSchema = z.object({
   agreedToTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms and conditions',
   }),
-  plan: z.enum(['free', 'pro', 'max']).optional().default('free'),
+  plan: z
+    .enum(['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'])
+    .optional()
+    .default('SafeGuard Free'),
 });
 
 export const individualUserSchema = baseUserSchema.extend({

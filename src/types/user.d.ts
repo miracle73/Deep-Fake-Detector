@@ -13,7 +13,7 @@ export interface BillingHistoryItem {
   invoiceId: string;
   date: Date;
   amount: number;
-  plan: 'free' | 'pro' | 'max';
+  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
   status: 'paid' | 'pending' | 'failed';
   paymentMethod?: string;
 }
