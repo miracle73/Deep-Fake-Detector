@@ -61,4 +61,9 @@ export const pushMetric = async ({
 //   type: 'processing_time',
 //   value: 2.3,
 //   labels: { media_type: 'video' }
+// labels: {
+//   media_type: 'video',
+//   model_version: '2.1',
+//   user_plan: 'pro'
+// }
 // });

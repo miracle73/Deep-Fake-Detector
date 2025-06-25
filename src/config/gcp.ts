@@ -5,6 +5,8 @@ import path from 'node:path';
 
 config();
 
+config({ path: path.resolve(process.cwd(), '.env') });
+
 const __dirname = path.resolve();
 process.env.GOOGLE_APPLICATION_CREDENTIALS = path.resolve(
   __dirname,

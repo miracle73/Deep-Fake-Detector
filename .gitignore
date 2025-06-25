@@ -7,3 +7,5 @@ dist
 *.log*
 
 gcp-key.json
+
+alert-policy.json
