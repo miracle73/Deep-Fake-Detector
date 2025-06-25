@@ -19,7 +19,7 @@ import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import waitlistRoutes from './routes/waitlistRoutes.js';
 import { startQuotaResetSchedule } from './services/quotaReset.service.js';
-import { logInfo } from './utils/google-cloud/logger.js';
+import { cloudLogger } from './utils/google-cloud/logger.js';
 import logger from './utils/logger.js';
 
 import type { Request, Response } from 'express';
@@ -83,7 +83,11 @@ app.listen(port, async () => {
       `API Documentation available at http://localhost:${port}/api-docs`
     );
 
-    logInfo('This is a test log from the deepfake detector backend');
+    cloudLogger.info({
+      message: 'This is a test log from the deepfake detector backend',
+      context: { endpoint: '/health' },
+      userId: 'system',
+    });
   } catch (error) {
     logger.error('Failed to start server:', error);
     process.exit(1);
