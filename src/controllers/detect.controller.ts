@@ -1,6 +1,6 @@
 import { PubSub } from '@google-cloud/pubsub';
 import { cloudLogger } from '../utils/google-cloud/logger.js';
-import { pushDetectionMetric } from '../utils/google-cloud/metrics.js';
+import { pushMetric } from '../utils/google-cloud/metrics.js';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -85,7 +85,7 @@ export const analyze = async (
       return;
     }
 
-    await pushDetectionMetric();
+    await pushMetric({ type: 'detection_count', value: 1 });
 
     await cloudLogger.info({
       message: `User ${req.user._id} performed detection`,
