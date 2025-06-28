@@ -9,8 +9,8 @@ import { getPlanConfig, isHigherPlan } from '../utils/payment.js';
 import { sendEmail } from './emailService.js';
 
 import type { IUser } from '../types/user.js';
-import emailQueue from 'queues/emailQueue.js';
-import WebhookEvent from 'models/WebhookEvent.js';
+import emailQueue from '../queues/emailQueue.js';
+import WebhookEvent from '../models/WebhookEvent.js';
 
 config();
 
