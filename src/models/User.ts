@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { Schema } from 'mongoose';
 
+import logger from '../utils/logger.js';
 import { AnalysisHistorySchema } from './subdocs/AnalysisHistory.js';
 import { ApiAccessSchema } from './subdocs/ApiAccess.js';
 import { BillingContactSchema } from './subdocs/BillingContact.js';
@@ -11,7 +12,6 @@ import { TeamMemberSchema } from './subdocs/TeamMember.js';
 import { UsageQuotaSchema } from './subdocs/UsageQuota.js';
 
 import type { IUser } from '../types/user.js';
-import logger from '../utils/logger.js';
 
 const UserSchema: Schema = new Schema(
   {

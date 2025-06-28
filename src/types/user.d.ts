@@ -9,6 +9,16 @@ export interface AnalysisHistoryItem {
   mediaUrl?: string;
 }
 
+export interface Analysis extends Document {
+  id: string;
+  userId: string;
+  fileName: string;
+  thumbnailUrl: string;
+  uploadDate: Date;
+  status: 'authentic' | 'uncertain' | 'deepfake';
+  confidenceScore: number;
+}
+
 export interface BillingHistoryItem {
   invoiceId: string;
   date: Date;
