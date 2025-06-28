@@ -13,7 +13,7 @@ export interface BillingHistoryItem {
   invoiceId: string;
   date: Date;
   amount: number;
-  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
+  plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
   status: 'paid' | 'pending' | 'failed';
   paymentMethod?: string;
 }
@@ -41,12 +41,16 @@ export interface BaseUserFields {
   stripeCustomerId?: string;
   googleId: string;
   phoneNumber?: string;
+  currentPeriodEnd?: Date;
   avatar?: string;
-  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
+  plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
   createdAt: Date;
   updatedAt: Date;
   agreedToTerms: boolean;
   isActive: boolean;
+  cancelAtPeriodEnd?: boolean;
+  lastPaymentDate?: Date;
+  nextBillingDate?: Date;
   termsAgreedAt: Date;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
@@ -104,7 +108,7 @@ export interface BaseUserResponse {
   id: string;
   email: string;
   userType: 'individual' | 'enterprise';
-  plan: 'SafeGuard Free' | 'SafeGuard Pro' | 'SafeGuard Max';
+  plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
 }
 
 export interface IndividualUserResponse extends BaseUserResponse {

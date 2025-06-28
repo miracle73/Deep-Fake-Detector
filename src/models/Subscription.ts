@@ -32,7 +32,7 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>(
     planId: {
       type: String,
       required: true,
-      enum: ['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'],
+      enum: ['SafeGuard_Free', 'SafeGuard_Pro', 'SafeGuard_Max'],
     },
     priceId: {
       type: String,

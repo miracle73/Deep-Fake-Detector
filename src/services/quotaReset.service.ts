@@ -13,16 +13,16 @@ interface QuotaResetConfig {
 
 const QUOTA_CONFIG: Record<string, QuotaResetConfig> = {
   free: {
-    plan: 'SafeGuard Free',
+    plan: 'SafeGuard_Free',
     monthlyAllocation: 3,
   },
   pro: {
-    plan: 'SafeGuard Pro',
+    plan: 'SafeGuard_Pro',
     monthlyAllocation: 30,
     carryOver: true,
   },
   max: {
-    plan: 'SafeGuard Max',
+    plan: 'SafeGuard_Max',
     monthlyAllocation: 500,
     carryOver: true,
   },

@@ -9,9 +9,9 @@ const baseUserSchema = z.object({
     message: 'You must agree to the terms and conditions',
   }),
   plan: z
-    .enum(['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'])
+    .enum(['SafeGuard_Free', 'SafeGuard_Pro', 'SafeGuard_Max'])
     .optional()
-    .default('SafeGuard Free'),
+    .default('SafeGuard_Free'),
 });
 
 export const individualUserSchema = baseUserSchema.extend({

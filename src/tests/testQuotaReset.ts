@@ -22,7 +22,7 @@ async function test() {
   await mongoose.connection.db
     .collection('users')
     .updateMany(
-      { plan: 'SafeGuard Free' },
+      { plan: 'SafeGuard_Free' },
       { $set: { 'usageQuota.remainingAnalysis': 0 } }
     );
 
@@ -30,7 +30,7 @@ async function test() {
 
   const users = await mongoose.connection.db
     .collection('users')
-    .find({ plan: 'SafeGuard Free' })
+    .find({ plan: 'SafeGuard_Free' })
     .toArray();
 
   console.log(

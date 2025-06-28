@@ -9,6 +9,9 @@ import { getPlanConfig, isHigherPlan } from '../utils/payment.js';
 import { sendEmail } from './emailService.js';
 
 import type { IUser } from '../types/user.js';
+import emailQueue from 'queues/emailQueue.js';
+import WebhookEvent from 'models/WebhookEvent.js';
+
 config();
 
 const PLAN_QUOTA = {
@@ -48,7 +51,7 @@ export const handleCheckoutSessionCompleted = async (
     const user = await User.findOneAndUpdate(
       { stripeCustomerId: session.customer },
       {
-        plan: productName || 'SAFEGUARD_PRO',
+        // plan: productName || 'SAFEGUARD_PRO',
         isActive: true,
         // $push: {
         //   billingHistory: {
@@ -146,7 +149,7 @@ export const handleSubscriptionCancelled = async (
     await User.updateOne(
       { _id: user._id },
       {
-        plan: 'SafeGuard Free',
+        plan: 'SafeGuard_Free',
         isActive: false,
         $push: {
           billingHistory: {
@@ -162,7 +165,10 @@ export const handleSubscriptionCancelled = async (
   logger.info(`Subscription ${subscription.id} canceled`);
 };
 
-export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
+export const handleSuccessfulPayment = async (
+  invoice: Stripe.Invoice,
+  event: Stripe.Event
+) => {
   const subscription = await stripe.subscriptions.retrieve(
     invoice.parent?.subscription_details?.subscription as string
   );
@@ -179,7 +185,15 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
   if (!user) return;
 
   const planConfig = getPlanConfig(product.name);
-  const isUpgrade = isHigherPlan(user.plan, product.name);
+  if (!planConfig) {
+    logger.error(`No plan config found for product: ${product.name}`);
+    return;
+  }
+
+  const isUpgrade = isHigherPlan(
+    user.plan.toLowerCase(),
+    productName.toLowerCase()
+  );
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const update: Record<string, any> = {
@@ -195,6 +209,9 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
     },
   };
 
+  const createdAt = new Date(invoice.created * 1000);
+  const next30Days = new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
   if (isUpgrade) {
     update.$set = {
       'usageQuota.monthlyAnalysis': planConfig.monthlyQuota,
@@ -206,31 +223,12 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
         : planConfig.monthlyQuota,
       'usageQuota.carryOver': planConfig.carryOver,
       'usageQuota.lastResetAt': new Date(),
+      // currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      isActive: !subscription.cancel_at_period_end,
+      lastPaymentDate: createdAt,
+      nextBillingDate: next30Days,
     };
   }
-
-  // await User.updateOne(
-  //   { _id: user._id },
-  //   {
-  //     $set: {
-  //       usageQuota: {
-  //         monthlyAnalysis: 30,
-  //         remainingAnalysis: user.usageQuota.remainingAnalysis + 30,
-  //         lastResetAt: new Date(),
-  //         carryOver: true,
-  //       },
-  //     },
-  //     $push: {
-  //       billingHistory: {
-  //         invoiceId: invoice.id,
-  //         amount: invoice.amount_paid / 100,
-  //         plan: productName,
-  //         status: 'paid',
-  //         date: new Date(),
-  //       },
-  //     },
-  //   }
-  // );
 
   const emailData = {
     amount: String(invoice.amount_paid / 100),
@@ -244,7 +242,16 @@ export const handleSuccessfulPayment = async (invoice: Stripe.Invoice) => {
 
   await User.updateOne({ _id: user._id }, update);
 
-  await sendEmail({
+  await WebhookEvent.create([
+    {
+      eventId: event.id,
+      type: event.type,
+      processedAt: new Date(),
+      userId: user._id,
+    },
+  ]);
+
+  await emailQueue.add('payment-receipt-email', {
     to: user.email,
     subject: 'Payment Receipt',
     html: PaymentReceipt,
@@ -271,6 +278,9 @@ export const handleFailedPayment = async (invoice: Stripe.Invoice) => {
           date: new Date(),
         },
       },
+      $set: {
+        isActive: false,
+      },
     }
   );
 
@@ -294,17 +304,16 @@ export const handleUpcomingInvoice = async (invoice: Stripe.Invoice) => {
     ? new Date(invoice.next_payment_attempt * 1000)
     : null;
 
-  // Add to queue
-  // await queueEmailNotification.add('upcoming-invoice-email', {
-  //   to: user.email,
-  //   subject: 'Upcoming Subscription Payment',
-  //   template: 'upcoming-invoice',
-  //   data: {
-  //     amount,
-  //     plan,
-  //     chargeDate: chargeDate.toDateString(),
-  //   },
-  // });
+  await emailQueue.add('upcoming-invoice-email', {
+    to: user.email,
+    subject: 'Upcoming Subscription Payment',
+    html: 'upcoming-invoice',
+    // data: {
+    //   amount,
+    //   plan,
+    //   chargeDate: chargeDate.toDateString(),
+    // },
+  });
 
   logger.info(`Queued upcoming invoice email for ${user.email}`);
 };
