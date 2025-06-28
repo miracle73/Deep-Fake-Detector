@@ -1,11 +1,19 @@
 import { Logging } from '@google-cloud/logging';
 import { MetricServiceClient } from '@google-cloud/monitoring';
+import { config } from 'dotenv';
+import path from 'node:path';
+
+config();
+
+config({ path: path.resolve(process.cwd(), '.env') });
+
+const __dirname = path.resolve();
+process.env.GOOGLE_APPLICATION_CREDENTIALS = path.resolve(
+  __dirname,
+  './src/config/gcp-key.json'
+);
 
 const logging = new Logging();
 const metricClient = new MetricServiceClient();
 
 export { logging, metricClient };
-// This module initializes Google Cloud Logging and Monitoring clients.
-// It exports the logging and metricClient instances for use in other parts of the application.
-// This allows the application to log messages and metrics to Google Cloud services.
-// The Logging client is used for structured logging, while the MetricServiceClient is used for custom metrics.

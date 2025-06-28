@@ -16,6 +16,7 @@ import type Stripe from 'stripe';
 import type { AuthRequest } from '../middlewares/auth.js';
 import type { checkoutSchema } from '../lib/schemas/billing.schema.js';
 import type { NextFunction, Request, Response } from 'express';
+import WebhookEvent from '../models/WebhookEvent.js';
 
 export const getSubscriptionsPlan = async (
   req: Request,
@@ -165,7 +166,7 @@ export const getCurrentSubscription = async (
         success: true,
         message: 'Current subscription fetched successfully',
         data: {
-          plan: 'free',
+          plan: 'SafeGuard_Free',
         },
       });
     }
@@ -200,6 +201,12 @@ export const handleStripeWebhook = async (
         sig,
         process.env.STRIPE_WEBHOOK_SECRET || ''
       );
+
+      const existingEvent = await WebhookEvent.findOne({ eventId: event.id });
+      if (existingEvent) {
+        logger.warn(`Duplicate webhook event ${event.id}`);
+        return; // { processed: false, reason: 'duplicate' };
+      }
     } catch (error) {
       logger.error(
         'Webhook Error',
@@ -239,7 +246,10 @@ export const handleStripeWebhook = async (
         break;
 
       case 'invoice.payment_succeeded':
-        await handleSuccessfulPayment(event.data.object as Stripe.Invoice);
+        await handleSuccessfulPayment(
+          event.data.object as Stripe.Invoice,
+          event
+        );
         break;
 
       case 'invoice.payment_failed':

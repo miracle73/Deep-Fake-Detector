@@ -16,7 +16,7 @@ export const BillingHistorySchema = new Schema(
     },
     plan: {
       type: String,
-      enum: ['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'],
+      enum: ['SafeGuard_Free', 'SafeGuard_Pro', 'SafeGuard_Max'],
       required: true,
     },
     status: {

@@ -2,7 +2,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
-import mongoose from 'mongoose';
 import morgan from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -12,6 +11,7 @@ import { startQueues } from './config/queues.js';
 import { swaggerOptions } from './config/swagger.js';
 import { errorHandler } from './middlewares/error.js';
 import { limiter } from './middlewares/rateLimit.js';
+import { requestLogger } from './middlewares/requestLogger.js';
 import detectRoutes from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
 import { detectHandler } from './routes/detect.js';
@@ -19,9 +19,8 @@ import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import waitlistRoutes from './routes/waitlistRoutes.js';
 import { startQuotaResetSchedule } from './services/quotaReset.service.js';
+import { cloudLogger } from './utils/google-cloud/logger.js';
 import logger from './utils/logger.js';
-
-import { requestLogger } from './middlewares/requestLogger.js';
 
 import type { Request, Response } from 'express';
 
@@ -83,6 +82,12 @@ app.listen(port, async () => {
     logger.info(
       `API Documentation available at http://localhost:${port}/api-docs`
     );
+
+    cloudLogger.info({
+      message: 'This is a test log from the deepfake detector backend',
+      context: { endpoint: '/health' },
+      userId: 'system',
+    });
   } catch (error) {
     logger.error('Failed to start server:', error);
     process.exit(1);

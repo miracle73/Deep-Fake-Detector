@@ -11,6 +11,7 @@ import { TeamMemberSchema } from './subdocs/TeamMember.js';
 import { UsageQuotaSchema } from './subdocs/UsageQuota.js';
 
 import type { IUser } from '../types/user.js';
+import logger from '../utils/logger.js';
 
 const UserSchema: Schema = new Schema(
   {
@@ -59,9 +60,9 @@ const UserSchema: Schema = new Schema(
     },
     plan: {
       type: String,
-      enum: ['SafeGuard Free', 'SafeGuard Pro', 'SafeGuard Max'],
+      enum: ['SafeGuard_Free', 'SafeGuard_Pro', 'SafeGuard_Max'],
       required: true,
-      default: 'SafeGuard Free',
+      default: 'SafeGuard_Free',
     },
     analysisHistory: [AnalysisHistorySchema],
     billingHistory: [BillingHistorySchema],
@@ -121,6 +122,22 @@ const UserSchema: Schema = new Schema(
         carryOver: false,
       }),
     },
+    currentPeriodEnd: {
+      type: Date,
+      index: true,
+      validate: {
+        validator: function (this: IUser, value: Date) {
+          return !this.isActive || value > new Date();
+        },
+        message: 'Active subscriptions must have future end dates',
+      },
+    },
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false,
+    },
+    lastPaymentDate: Date,
+    nextBillingDate: Date,
     company: {
       type: CompanySchema,
       required: function (this: IUser) {
@@ -150,8 +167,28 @@ UserSchema.pre<IUser>('save', async function (next) {
   next();
 });
 
+UserSchema.pre('save', function (next) {
+  if (this.isModified('currentPeriodEnd') && this.isActive) {
+    if (this.currentPeriodEnd && this.currentPeriodEnd <= new Date()) {
+      this.isActive = false;
+      logger.warn(`Auto-deactivated expired subscription for user ${this._id}`);
+    }
+  }
+  next();
+});
+
 UserSchema.methods.matchPassword = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+UserSchema.index({
+  isActive: 1,
+  currentPeriodEnd: 1,
+});
+
+UserSchema.index({
+  cancelAtPeriodEnd: 1,
+  currentPeriodEnd: 1,
+});
 
 export default mongoose.model<IUser>('User', UserSchema);

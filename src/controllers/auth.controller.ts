@@ -40,7 +40,7 @@ type UserData = {
   userType: 'individual' | 'enterprise';
   agreedToTerms: boolean;
   termsAgreedAt: Date;
-  plan: 'free' | 'pro' | 'max';
+  plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
   isEmailVerified: boolean;
   stripeCustomerId?: string;
 } & (
@@ -76,7 +76,7 @@ export const register = async (
       password,
       agreedToTerms,
       userType,
-      plan = 'free',
+      plan = 'SafeGuard_Free',
     } = req.body as RegisterInput;
 
     if (!agreedToTerms) {
