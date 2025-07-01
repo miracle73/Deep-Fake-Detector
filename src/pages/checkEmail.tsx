@@ -6,6 +6,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import BackgroundImage from "../assets/images/check-email.png";
 
 function CheckEmail() {
   const navigate = useNavigate();
@@ -50,71 +51,74 @@ function CheckEmail() {
       </div>
 
       {/* Left side - Check email content */}
-      <div className="flex-1 flex items-center justify-center p-4 lg:p-8 bg-white">
-        <div className="w-full max-w-sm">
-          {/* Back button */}
+      <div className="flex-1  p-4 lg:p-8 bg-white">
+        <div className="w-full flex justify-start max-lg:hidden">
           <button
             type="button"
-            className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
+            className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6 self-start"
             onClick={() => navigate("/signup")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Sign Up
           </button>
+        </div>
+        <div className="flex items-center justify-center">
+          <div className="w-full max-w-sm ">
+            {/* Back button */}
 
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Check Your Email
-            </h2>
-            <p className="text-gray-600 mt-2 text-sm">
-              We've sent a verification link to{" "}
-              <span className="font-medium">{email}</span>
-            </p>
-          </div>
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Check Your Email
+              </h2>
+              <p className="text-gray-600 mt-2 text-sm">
+                We've sent a verification link to{" "}
+                <span className="font-medium">{email}</span>
+              </p>
+            </div>
 
-          <div className="border border-gray-200 shadow-sm rounded-2xl mt-5">
-            <div className="p-8 space-y-6">
-              {/* Email icon */}
-              <div className="flex justify-center">
-                <div className="bg-blue-100 p-4 rounded-full">
-                  <Mail className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-
-              {/* Instructions */}
-              <div className="space-y-4 text-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Verify your email address
-                </h3>
-
-                <div className="space-y-3 text-sm text-gray-600">
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-left">
-                      Check your email inbox for a verification link
-                    </p>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-left">
-                      Click the verification link to activate your account
-                    </p>
-                  </div>
-
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-left">
-                      Check your spam folder if you don't see the email
-                    </p>
+            <div className="border border-gray-200 shadow-sm rounded-2xl mt-5">
+              <div className="p-8 space-y-6">
+                {/* Email icon */}
+                <div className="flex justify-center">
+                  <div className="bg-blue-100 p-4 rounded-full">
+                    <Mail className="w-8 h-8 text-blue-600" />
                   </div>
                 </div>
-              </div>
 
-              {/* Action buttons */}
-              <div className="space-y-4">
-                {/* Resend email button */}
-                {/* <button
+                {/* Instructions */}
+                <div className="space-y-4 text-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Verify your email address
+                  </h3>
+
+                  <div className="space-y-3 text-sm text-gray-600">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-left">
+                        Check your email inbox for a verification link
+                      </p>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-left">
+                        Click the verification link to activate your account
+                      </p>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-left">
+                        Check your spam folder if you don't see the email
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="space-y-4">
+                  {/* Resend email button */}
+                  {/* <button
                   type="button"
                   disabled={resendCooldown > 0}
                   onClick={handleResendEmail}
@@ -130,34 +134,35 @@ function CheckEmail() {
                   )}
                 </button> */}
 
-                {/* Sign In Link */}
-                <div className="text-center text-sm text-gray-600">
-                  {"Already verified? "}
-                  <button
-                    type="button"
-                    className="text-blue-600 hover:text-blue-500 hover:underline font-medium"
-                    onClick={() => navigate("/signin")}
-                  >
-                    Sign In
-                  </button>
+                  {/* Sign In Link */}
+                  <div className="text-center text-sm text-gray-600">
+                    {"Already verified? "}
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:text-blue-500 hover:underline font-medium"
+                      onClick={() => navigate("/signin")}
+                    >
+                      Sign In
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Help text */}
-              <div className="text-center">
-                <p className="text-xs text-gray-500">
-                  If you continue to have problems, please{" "}
-                  <button
-                    type="button"
-                    className="text-blue-600 hover:text-blue-500 hover:underline"
-                    onClick={() => {
-                      // TODO: Add contact support functionality
-                      console.log("Contact support");
-                    }}
-                  >
-                    contact support
-                  </button>
-                </p>
+                {/* Help text */}
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">
+                    If you continue to have problems, please{" "}
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:text-blue-500 hover:underline"
+                      onClick={() => {
+                        // TODO: Add contact support functionality
+                        console.log("Contact support");
+                      }}
+                    >
+                      contact support
+                    </button>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -165,26 +170,17 @@ function CheckEmail() {
       </div>
 
       {/* Right side - Desktop only branding */}
-      <div className="hidden lg:block flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-100">
-        <div className="absolute top-8 right-8">
+      {/* Right side - Background image (desktop only) */}
+      <div className="hidden lg:block flex-1 relative">
+        <img
+          src={BackgroundImage}
+          alt="Person working on laptop"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute top-8 right-8 ">
           <div className="text-black font-semibold text-xl">
             <span className="font-bold">Safeguard</span>{" "}
             <span className="font-normal">Media</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center p-8">
-            <div className="bg-white p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-              <Mail className="w-12 h-12 text-blue-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              You're Almost There!
-            </h3>
-            <p className="text-gray-600 max-w-sm">
-              We've sent you a verification email. Click the link in the email
-              to activate your Safeguard Media account and start protecting your
-              content.
-            </p>
           </div>
         </div>
       </div>

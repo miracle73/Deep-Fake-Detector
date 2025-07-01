@@ -168,7 +168,7 @@ function SignUp() {
       // You might want to show a success message or redirect
       // navigate("/signin", { state: { message: "Registration successful! Please sign in." } });
       // Or redirect to email verification page
-      navigate("/verify-email", { state: { email: formData.email } });
+      navigate("/check-email", { state: { email: formData.email } });
     } catch (error: unknown) {
       console.error("Registration failed:", error);
 

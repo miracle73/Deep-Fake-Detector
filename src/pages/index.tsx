@@ -1,17 +1,81 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Upload, CheckCircle, Check, Plus, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 // import { Headphones, Play } from "lucide-react";
 // import { DownwardArrow } from "../assets/svg";
 import { FaArrowDownLong } from "react-icons/fa6";
 import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
+import TravelImage from "../assets/images/travel-image.png";
+import ScanImage from "../assets/images/scan-image.png";
+import MediaHouseImage from "../assets/images/mediahouse-image.png";
 
 export default function DeepfakeDetector() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("individual");
   const [selectedPlan, setSelectedPlan] = useState("pro");
+  const imageRef = useRef(null);
+  const textRef = useRef(null);
+  const containerRef = useRef(null);
+  const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
+  const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
+
+  const updateLinePosition = () => {
+    if (imageRef.current && textRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const imageRect = imageRef.current.getBoundingClientRect();
+      const textRect = textRef.current.getBoundingClientRect();
+
+      // Check if we're on large screens (lg breakpoint is 1024px)
+      const isLargeScreen = window.innerWidth >= 1024;
+
+      let imageX, imageY, textX, textY;
+
+      if (isLargeScreen) {
+        // Desktop: Point to top-center of image with padding
+        imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
+        imageY = imageRect.top + 16 - containerRect.top; // 16px padding from top
+
+        // Point to left edge of text
+        textX = textRect.left - containerRect.left;
+        textY = textRect.top + textRect.height / 2 - containerRect.top;
+      } else {
+        // Mobile/Tablet: Point to center of image
+        imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
+        imageY = imageRect.top + imageRect.height / 2 - containerRect.top;
+
+        // Point to center of text
+        textX = textRect.left + textRect.width / 2 - containerRect.left;
+        textY = textRect.top + textRect.height / 2 - containerRect.top;
+      }
+
+      setLineCoords({
+        x1: imageX,
+        y1: imageY,
+        x2: textX,
+        y2: textY,
+      });
+    }
+  };
+
+  useEffect(() => {
+    updateLinePosition();
+
+    const handleResize = () => {
+      updateLinePosition();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Update after images load
+    const timer = setTimeout(updateLinePosition, 100);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-white ">
@@ -86,35 +150,119 @@ export default function DeepfakeDetector() {
             </Button>
           </div>
         </div>
+        <div
+          ref={containerRef}
+          className="border border-[#8C8C8C] rounded-[50px] flex flex-col lg:flex-row items-start justify-between p-4 sm:p-6 mb-10 max-w-6xl w-full relative bg-white"
+        >
+          {/* SVG for connecting line */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+            style={{ overflow: "visible" }}
+          >
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="9"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444" />
+              </marker>
+            </defs>
+            <line
+              x1={lineCoords.x1}
+              y1={lineCoords.y1}
+              x2={lineCoords.x2}
+              y2={lineCoords.y2}
+              stroke="#ef4444"
+              strokeWidth="2"
+              markerEnd="url(#arrowhead)"
+              className="drop-shadow-sm"
+            />
+            <circle
+              cx={lineCoords.x1}
+              cy={lineCoords.y1}
+              r="4"
+              fill="#ef4444"
+              className="drop-shadow-sm"
+            />
+          </svg>
 
-        {/* Detection Interface */}
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Upload Area */}
-            <Card
-              className="p-8 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
-              onClick={() => navigate("/signin")}
+          {/* Image Section */}
+          <div className="relative w-full lg:w-1/2 mb-6 lg:mb-0 ">
+            <div
+              ref={imageRef}
+              className="rounded-2xl  overflow-hidden shadow-md  mx-auto lg:mx-0"
             >
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Upload className="w-8 h-8 text-gray-400" />
-                </div>
-                <p className="text-gray-500">Upload media to analyze</p>
-              </div>
-            </Card>
+              <img
+                src={TravelImage} // Replace with your TravelImage import
+                alt="Person with yellow suitcase at ancient ruins"
+                className="w-full h-auto object-cover mx-auto lg:mx-0"
+              />
+            </div>
+          </div>
 
-            {/* Results Area */}
-            <Card className="p-8 border border-gray-200">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-8 h-8 text-red-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {/* DF Results Card - Right Side */}
+          <div className="w-full lg:w-1/2 lg:pl-8">
+            {/* Header */}
+            <div className="relative mb-6 ">
+              <div className="flex flex-col items-center">
+                <h1
+                  ref={textRef}
+                  className="text-lg sm:text-xl font-semibold text-center lg:text-left text-gray-900 mb-1"
+                >
                   Deepfake Detected
-                </h3>
-                <p className="text-sm text-gray-500">Analysis complete</p>
+                </h1>
+                <p className="text-sm text-gray-600 text-center lg:text-left">
+                  Similar match: <span className="font-medium">98%</span>
+                </p>
               </div>
-            </Card>
+            </div>
+
+            {/* DF Results Card */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              {/* Header with DF Results and Deepfake badge */}
+              <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                <span className="text-sm sm:text-base font-medium">
+                  Safeguard Media Results
+                </span>
+                <span className="bg-white text-red-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                  Deepfake
+                </span>
+              </div>
+
+              {/* Results Content */}
+              <div className="flex flex-col">
+                {/* Confidence Score */}
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm sm:text-base text-gray-700 font-medium">
+                      Confidence Score
+                    </span>
+                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">
+                      98%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-gray-200"></div>
+
+                {/* Result Summary */}
+                <div className="p-4 sm:p-6">
+                  <h4 className="text-sm sm:text-base font-semibold text-[#020717] mb-3">
+                    Result Summary:
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#020717] font-[300] leading-relaxed">
+                    Our model analysis found significant indicators on this
+                    media file strongly suggesting this media has been
+                    manipulated using deepfake techniques.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -274,14 +422,26 @@ export default function DeepfakeDetector() {
             </div>
 
             <div className="md:col-span-1">
-              <div className="bg-gray-300 rounded-2xl h-[400px] w-full"></div>
+              <div className=" rounded-2xl h-[400px] w-full">
+                <img
+                  src={ScanImage}
+                  alt="Scan Image"
+                  className="w-full h-auto object-cover mx-auto lg:mx-0"
+                />
+              </div>
             </div>
           </div>
 
           {/* For Media Houses & Enterprise Section */}
           <div className="grid md:grid-cols-3 gap-10 items-start mb-20 mt-40 max-md:mt-20">
             <div className="md:col-span-1 order-1 md:order-2">
-              <div className="bg-gray-300 rounded-2xl h-[400px] w-full"></div>
+              <div className=" rounded-2xl h-[400px] w-full">
+                <img
+                  src={MediaHouseImage}
+                  alt="Media House"
+                  className="w-full h-auto object-cover mx-auto lg:mx-0"
+                />
+              </div>
             </div>
 
             <div className="md:col-span-2">
@@ -572,63 +732,197 @@ export default function DeepfakeDetector() {
             </h2>
 
             <div className="space-y-6">
-              {/* FAQ Item 1 - Expanded */}
+              {/* FAQ Item 2 - File formats supported */}
               <div className="border-b border-gray-200 pb-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    What is the "Robust Open-Source Deepfake Detector" project
+                    What file formats are supported?
                   </h3>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <X className="w-5 h-5" />
+                  <button
+                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => setExpandedFAQ(expandedFAQ === 1 ? null : 1)}
+                  >
+                    {expandedFAQ === 1 ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
-                <div className="text-gray-600">
-                  <p>
-                    This project aims to develop an AI-based system designed to
-                    detect deepfakes in video, audio, and image media. Its
-                    primary goal is to help combat manipulated media and
-                    misinformation, with a focus on providing a scalable,
-                    robust, and easy-to-use solution.
-                  </p>
-                </div>
+                {expandedFAQ === 1 && (
+                  <div className="text-gray-600">
+                    <p className="mb-3">
+                      Currently, SafeguardMedia supports the following formats:
+                    </p>
+                    <ul className="space-y-2 ml-4">
+                      <li>
+                        <strong>Videos:</strong> MP4, AVI, MOV
+                      </li>
+                      <li>
+                        <strong>Images:</strong> JPEG, PNG, WEBP
+                      </li>
+                      <li>
+                        <strong>Audio:</strong> MP3, WAV, AAC
+                      </li>
+                    </ul>
+                    <p className="mt-3">
+                      We are continuously expanding compatibility based on user
+                      feedback and technological needs.
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* FAQ Item 2 - Collapsed */}
+              {/* FAQ Item 3 - Content types detection */}
               <div className="border-b border-gray-200 pb-6">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Is this project open source, and can I contribute to its
-                    development?
+                    Does SafeguardMedia detect deepfakes in videos, audio, and
+                    images?
                   </h3>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <Plus className="w-5 h-5" />
+                  <button
+                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => setExpandedFAQ(expandedFAQ === 2 ? null : 2)}
+                  >
+                    {expandedFAQ === 2 ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
+                {expandedFAQ === 2 && (
+                  <div className="text-gray-600">
+                    <p className="mb-3">
+                      Yes. SafeguardMedia is built to detect manipulation across{" "}
+                      three primary content types:
+                    </p>
+                    <ul className="space-y-2 ml-4">
+                      <li>
+                        <strong>Videos</strong> (frame-by-frame and audio sync
+                        analysis)
+                      </li>
+                      <li>
+                        <strong>Audio</strong> (voice cloning and manipulation
+                        detection)
+                      </li>
+                      <li>
+                        <strong>Static images</strong> (facial and pixel-level
+                        inconsistencies)
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
 
-              {/* FAQ Item 3 - Collapsed */}
+              {/* FAQ Item 4 - Performance across content types */}
               <div className="border-b border-gray-200 pb-6">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    How does performance vary across different content types?
+                  </h3>
+                  <button
+                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => setExpandedFAQ(expandedFAQ === 3 ? null : 3)}
+                  >
+                    {expandedFAQ === 3 ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {expandedFAQ === 3 && (
+                  <div className="text-gray-600">
+                    <p className="mb-3">
+                      Performance may vary depending on content quality, length,
+                      and type:
+                    </p>
+                    <ul className="space-y-2 ml-4">
+                      <li>
+                        <strong>Images:</strong> Near real-time results with
+                        high accuracy for manipulated facial features.
+                      </li>
+                      <li>
+                        <strong>Videos:</strong> Slightly longer processing due
+                        to frame-by-frame analysis, with strong detection
+                        accuracy.
+                      </li>
+                      <li>
+                        <strong>Audio:</strong> Accuracy improves with longer
+                        samples (over 5 seconds) and clear speech patterns.
+                      </li>
+                    </ul>
+                    <p className="mt-3">
+                      Regardless of format, SafeguardMedia provides a confidence
+                      score and visual explanation to help users understand the
+                      results.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* FAQ Item 5 - Security of uploaded media */}
+              <div className="border-b border-gray-200 pb-6">
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
                     How is the security of my uploaded media handled?
                   </h3>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <Plus className="w-5 h-5" />
+                  <button
+                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => setExpandedFAQ(expandedFAQ === 4 ? null : 4)}
+                  >
+                    {expandedFAQ === 4 ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
+                {expandedFAQ === 4 && (
+                  <div className="text-gray-600">
+                    <p>
+                      SafeguardMedia prioritizes your privacy and data security.
+                      All uploaded content is processed through encrypted
+                      channels, and no media is stored without user consent. Our
+                      infrastructure complies with industry standards for
+                      cybersecurity and data protection to ensure your files
+                      remain confidential and secure.
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* FAQ Item 4 - Collapsed */}
+              {/* FAQ Item 6 - Staying effective against evolving techniques */}
               <div className="border-b border-gray-200 pb-6">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    How does Safeguard Media ensure it remains effective against
-                    new deepfake techniques?
+                    How does SafeguardMedia stay effective against evolving
+                    deepfake techniques?
                   </h3>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <Plus className="w-5 h-5" />
+                  <button
+                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => setExpandedFAQ(expandedFAQ === 5 ? null : 5)}
+                  >
+                    {expandedFAQ === 5 ? (
+                      <X className="w-5 h-5" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
+                {expandedFAQ === 5 && (
+                  <div className="text-gray-600">
+                    <p>
+                      We continuously update our detection algorithms using
+                      real-world datasets and the latest advancements in AI
+                      research. Our system is built on adaptive learning
+                      principles, allowing it to detect even the most recent and
+                      sophisticated forms of synthetic media, including
+                      adversarially crafted deepfakes.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

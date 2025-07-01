@@ -4,8 +4,8 @@ import { Eye, EyeOff, AlertCircle, Loader } from "lucide-react";
 import BackgroundImage from "../assets/images/signin-page.png";
 import { useLoginMutation } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
-import { useGoogleLoginMutation } from "../services/apiService";
+// import { useGoogleLogin } from "@react-oauth/google";
+// import { useGoogleLoginMutation } from "../services/apiService";
 
 interface FormData {
   email: string;
@@ -27,57 +27,57 @@ function Signin() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [googleLogin] = useGoogleLoginMutation();
+  // const [googleLogin] = useGoogleLoginMutation();
 
   const [login] = useLoginMutation();
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (token) => {
-      console.log("Google token received:", token);
-      try {
-        const response = await googleLogin({
-          idToken: token,
-          agreedToTerms: true,
-          userType: "individual",
-        }).unwrap();
+  // const handleGoogleLogin = useGoogleLogin({
+  //   onSuccess: async (token) => {
+  //     console.log("Google token received:", token);
+  //     try {
+  //       const response = await googleLogin({
+  //         idToken: token,
+  //         agreedToTerms: true,
+  //         userType: "individual",
+  //       }).unwrap();
 
-        // Handle successful Google login
-        console.log("Google login successful:", response);
+  //       // Handle successful Google login
+  //       console.log("Google login successful:", response);
 
-        if (response.success) {
-          // Navigate to dashboard (same as regular login)
-          navigate("/dashboard");
-          // You might also want to store the token/user data in your auth state here
-        } else {
-          setErrors({ general: "Google sign-in failed. Please try again." });
-        }
-      } catch (error: unknown) {
-        console.error("Google login failed:", error);
+  //       if (response.success) {
+  //         // Navigate to dashboard (same as regular login)
+  //         navigate("/dashboard");
+  //         // You might also want to store the token/user data in your auth state here
+  //       } else {
+  //         setErrors({ general: "Google sign-in failed. Please try again." });
+  //       }
+  //     } catch (error: unknown) {
+  //       console.error("Google login failed:", error);
 
-        if (error && typeof error === "object" && "data" in error) {
-          const apiError = error as {
-            data?: { message?: string; errors?: FormErrors };
-          };
-          if (apiError.data?.message) {
-            setErrors({ general: apiError.data.message });
-          } else if (apiError.data?.errors) {
-            setErrors(apiError.data.errors);
-          } else {
-            setErrors({ general: "Google sign-in failed. Please try again." });
-          }
-        } else if (error && typeof error === "object" && "message" in error) {
-          const messageError = error as { message: string };
-          setErrors({ general: messageError.message });
-        } else {
-          setErrors({ general: "Google sign-in failed. Please try again." });
-        }
-      }
-    },
-    onError: (error) => {
-      console.error("Google OAuth error:", error);
-      setErrors({ general: "Google authentication failed. Please try again." });
-    },
-  });
+  //       if (error && typeof error === "object" && "data" in error) {
+  //         const apiError = error as {
+  //           data?: { message?: string; errors?: FormErrors };
+  //         };
+  //         if (apiError.data?.message) {
+  //           setErrors({ general: apiError.data.message });
+  //         } else if (apiError.data?.errors) {
+  //           setErrors(apiError.data.errors);
+  //         } else {
+  //           setErrors({ general: "Google sign-in failed. Please try again." });
+  //         }
+  //       } else if (error && typeof error === "object" && "message" in error) {
+  //         const messageError = error as { message: string };
+  //         setErrors({ general: messageError.message });
+  //       } else {
+  //         setErrors({ general: "Google sign-in failed. Please try again." });
+  //       }
+  //     }
+  //   },
+  //   onError: (error) => {
+  //     console.error("Google OAuth error:", error);
+  //     setErrors({ general: "Google authentication failed. Please try again." });
+  //   },
+  // });
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -210,7 +210,7 @@ function Signin() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Google Sign In Button */}
-                <button
+                {/* <button
                   className="w-full h-12 flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 rounded-xl font-normal text-sm"
                   type="button"
                   onClick={() => handleGoogleLogin()}
@@ -234,7 +234,7 @@ function Signin() {
                     />
                   </svg>
                   Continue with Google
-                </button>
+                </button> */}
 
                 {/* Divider */}
                 <div className="relative">
