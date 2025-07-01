@@ -3,6 +3,9 @@ import { redisConnection } from '../config/redis.js';
 import User from '../models/User.js';
 import app from '../index.js';
 import supertest from 'supertest';
+import { config } from 'dotenv';
+
+config();
 
 const api = supertest(app);
 
@@ -15,6 +18,8 @@ const testUser = {
   userType: 'individual',
   termsAgreedAt: new Date(),
 };
+
+const JWT_SECRET: string = process.env.JWT_SECRET ? process.env.JWT_SECRET : '';
 
 async function initializeDB() {
   await mongoose.connection.dropDatabase();
@@ -33,4 +38,4 @@ async function cleanup() {
   }
 }
 
-export { api, testUser, initializeDB, cleanup };
+export { api, testUser, initializeDB, cleanup, JWT_SECRET };

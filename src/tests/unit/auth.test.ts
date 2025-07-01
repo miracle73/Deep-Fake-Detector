@@ -23,9 +23,9 @@ describe('Auth Tests', () => {
           .expect(400)
           .send(loginData);
 
-        logger.info(
-          `Login test response: ${JSON.stringify(response.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Login test response: ${JSON.stringify(response.body, null, 2)}`
+        // );
       });
     });
 
@@ -41,9 +41,9 @@ describe('Auth Tests', () => {
           .expect(404)
           .send(loginData);
 
-        logger.info(
-          `Login test result: ${JSON.stringify(result.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Login test result: ${JSON.stringify(result.body, null, 2)}`
+        // );
       });
     });
 
@@ -59,9 +59,9 @@ describe('Auth Tests', () => {
           .expect(401)
           .send(loginData);
 
-        logger.info(
-          `Login test result: ${JSON.stringify(result.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Login test result: ${JSON.stringify(result.body, null, 2)}`
+        // );
       });
     });
 
@@ -77,8 +77,8 @@ describe('Auth Tests', () => {
           .expect(200)
           .send(loginData);
 
-        logger.info(`
-          Login test result: ${JSON.stringify(response.body, null, 2)}`);
+        // logger.info(`
+        //   Login test result: ${JSON.stringify(response.body, null, 2)}`);
       });
     });
   });
@@ -101,9 +101,9 @@ describe('Auth Tests', () => {
           .expect(400)
           .send(registerData);
 
-        logger.info(
-          `Register test response: ${JSON.stringify(response.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Register test response: ${JSON.stringify(response.body, null, 2)}`
+        // );
       });
     });
 
@@ -124,9 +124,9 @@ describe('Auth Tests', () => {
           .expect(400)
           .send(registerData);
 
-        logger.info(
-          `Register test result: ${JSON.stringify(result.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Register test result: ${JSON.stringify(result.body, null, 2)}`
+        // );
       });
     });
 
@@ -147,9 +147,9 @@ describe('Auth Tests', () => {
           .expect(201)
           .send(registerData);
 
-        logger.info(
-          `Register test result: ${JSON.stringify(result.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Register test result: ${JSON.stringify(result.body, null, 2)}`
+        // );
       });
     });
   });
@@ -166,9 +166,9 @@ describe('Auth Tests', () => {
           .expect(404)
           .send(forgotPasswordData);
 
-        logger.info(
-          `Forgot Password test result: ${JSON.stringify(result.body, null, 2)}`
-        );
+        // logger.info(
+        //   `Forgot Password test result: ${JSON.stringify(result.body, null, 2)}`
+        // );
       });
     });
 
@@ -183,13 +183,13 @@ describe('Auth Tests', () => {
           .expect(200)
           .send(forgotPasswordData);
 
-        logger.info(
-          `Forgot Password test response: ${JSON.stringify(
-            response.body,
-            null,
-            2
-          )}`
-        );
+        // logger.info(
+        //   `Forgot Password test response: ${JSON.stringify(
+        //     response.body,
+        //     null,
+        //     2
+        //   )}`
+        // );
       });
     });
   });
