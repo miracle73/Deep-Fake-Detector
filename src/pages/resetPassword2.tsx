@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye,
   EyeOff,
@@ -8,7 +8,7 @@ import {
   CheckCircle,
   ArrowLeft,
 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useResetPasswordMutation } from "../services/apiService";
 
 interface FormData {
@@ -24,8 +24,9 @@ interface FormErrors {
 
 function ResetPassword2() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  // const [searchParams] = useSearchParams();
+  // const token = searchParams.get("token");
+  const { token } = useParams<{ token: string }>();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -38,6 +39,13 @@ function ResetPassword2() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [resetPassword] = useResetPasswordMutation();
+
+  // Redirect to forgot-password if no token
+  useEffect(() => {
+    if (!token) {
+      navigate("/forgot-password2");
+    }
+  }, [token, navigate]);
 
   // Validation functions
   const validatePassword = (password: string): boolean => {

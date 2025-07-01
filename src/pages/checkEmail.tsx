@@ -170,7 +170,6 @@ function CheckEmail() {
       </div>
 
       {/* Right side - Desktop only branding */}
-      {/* Right side - Background image (desktop only) */}
       <div className="hidden lg:block flex-1 relative">
         <img
           src={BackgroundImage}

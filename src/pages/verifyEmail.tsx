@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { CheckCircle, AlertCircle, Loader } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVerifyEmailQuery } from "../services/apiService";
+import BackgroundImage from "../assets/images/check-email.png";
 
 function VerifyEmail() {
   const navigate = useNavigate();
@@ -63,25 +64,16 @@ function VerifyEmail() {
         </div>
 
         {/* Right side - Desktop branding */}
-        <div className="hidden lg:block flex-1 relative bg-gradient-to-br from-blue-50 to-cyan-100">
-          <div className="absolute top-8 right-8">
+        <div className="hidden lg:block flex-1 relative">
+          <img
+            src={BackgroundImage}
+            alt="Person working on laptop"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute top-8 right-8 ">
             <div className="text-black font-semibold text-xl">
               <span className="font-bold">Safeguard</span>{" "}
               <span className="font-normal">Media</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center p-8">
-              <div className="bg-white p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                <Loader className="w-12 h-12 text-blue-600 animate-spin" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Verifying...
-              </h3>
-              <p className="text-gray-600 max-w-sm">
-                We're confirming your email verification. This should only take
-                a moment.
-              </p>
             </div>
           </div>
         </div>
@@ -142,25 +134,16 @@ function VerifyEmail() {
         </div>
 
         {/* Right side - Desktop branding */}
-        <div className="hidden lg:block flex-1 relative bg-gradient-to-br from-green-50 to-emerald-100">
-          <div className="absolute top-8 right-8">
+        <div className="hidden lg:block flex-1 relative">
+          <img
+            src={BackgroundImage}
+            alt="Person working on laptop"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute top-8 right-8 ">
             <div className="text-black font-semibold text-xl">
               <span className="font-bold">Safeguard</span>{" "}
               <span className="font-normal">Media</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center p-8">
-              <div className="bg-white p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-12 h-12 text-green-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Account Activated!
-              </h3>
-              <p className="text-gray-600 max-w-sm">
-                Your email has been verified and your account is now fully
-                activated. Welcome to the Safeguard Media family!
-              </p>
             </div>
           </div>
         </div>
@@ -243,25 +226,16 @@ function VerifyEmail() {
         </div>
 
         {/* Right side - Desktop branding */}
-        <div className="hidden lg:block flex-1 relative bg-gradient-to-br from-red-50 to-rose-100">
-          <div className="absolute top-8 right-8">
+        <div className="hidden lg:block flex-1 relative">
+          <img
+            src={BackgroundImage}
+            alt="Person working on laptop"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute top-8 right-8 ">
             <div className="text-black font-semibold text-xl">
               <span className="font-bold">Safeguard</span>{" "}
               <span className="font-normal">Media</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center p-8">
-              <div className="bg-white p-6 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                <AlertCircle className="w-12 h-12 text-red-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Verification Issues
-              </h3>
-              <p className="text-gray-600 max-w-sm">
-                The verification link may have expired or is invalid. Please try
-                signing up again or contact support if the issue persists.
-              </p>
             </div>
           </div>
         </div>
