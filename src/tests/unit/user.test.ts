@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
-import logger from '../../utils/logger';
-import { api, cleanup, initializeDB, testUser, JWT_SECRET } from '../setup';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+
 import User from '../../models/User.js';
 import { generateToken } from '../../utils/generateToken.js';
+import logger from '../../utils/logger';
+import { api, cleanup, initializeDB, JWT_SECRET, testUser } from '../setup';
 
 beforeAll(async () => {
   await initializeDB();
@@ -96,5 +97,25 @@ describe('User Tests', () => {
     });
   });
 
-  // describe('Delete User', () => {});
+  describe('Delete User', () => {
+    it('should delete user profile', async () => {
+      const user = await User.findOne({ email: testUser.email }).lean();
+
+      if (!user) {
+        throw new Error('Test user not found in the database');
+      }
+
+      const token = generateToken(user._id.toString());
+
+      const response = await api
+        .delete('/api/v1/user/delete')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      logger.info(
+        'Delete User Response: ',
+        JSON.stringify(response.body, null, 2)
+      );
+    });
+  });
 });
