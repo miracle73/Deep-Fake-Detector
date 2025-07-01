@@ -124,7 +124,7 @@ const UserSchema: Schema = new Schema(
     },
     currentPeriodEnd: {
       type: Date,
-      index: true,
+      // index: true,
       validate: {
         validator: function (this: IUser, value: Date) {
           return !this.isActive || value > new Date();
@@ -188,7 +188,6 @@ UserSchema.index({
 
 UserSchema.index({
   cancelAtPeriodEnd: 1,
-  currentPeriodEnd: 1,
 });
 
 export default mongoose.model<IUser>('User', UserSchema);
