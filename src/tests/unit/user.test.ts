@@ -80,7 +80,7 @@ describe('User Tests', () => {
       const token = generateToken(user._id.toString());
 
       const response = await api
-        .patch('api/v1/user/update')
+        .patch('/api/v1/user/update')
         .set('Authorization', `Bearer ${token}`)
         .send({
           firstName: 'Jake',
