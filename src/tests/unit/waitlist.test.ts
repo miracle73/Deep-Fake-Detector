@@ -1,7 +1,7 @@
-import logger from 'utils/logger.js';
+import logger from '../../utils/logger.js';
 import { api, cleanup, initializeDB, testUser } from '../setup.js';
-import User from 'models/User.js';
-import { generateToken } from 'utils/generateToken.js';
+import User from '../../models/User.js';
+import { generateToken } from '../../utils/generateToken.js';
 
 beforeAll(async () => {
   await initializeDB();
