@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   ChevronDown,
@@ -46,6 +46,26 @@ const Settings = () => {
   const [successMessages, setSuccessMessages] = useState({
     personalInfo: "",
   });
+
+  useEffect(() => {
+    if (errors.personalInfo) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, personalInfo: "" }));
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors.personalInfo]);
+
+  useEffect(() => {
+    if (errors.deleteAccount) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, deleteAccount: "" }));
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors.deleteAccount]);
   // Replace the existing handlePersonalInfoSave function
   const handlePersonalInfoSave = async () => {
     // Clear previous messages
