@@ -65,13 +65,6 @@ export const analyze = async (
     });
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
-    // const publishDetectionJob = async (job: DetectionJob) => {
-    //   const dataBuffer = Buffer.from(JSON.stringify(job));
-    //   await pubsub.topic('detect-media-topic').publish(dataBuffer);
-    // };
-
-    // await publishDetectionJob(job);
-
     const predictions = await callVertexAI(publicUrl);
     if (!predictions) {
       res.status(500).json({
