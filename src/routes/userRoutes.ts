@@ -8,7 +8,7 @@ import { updateUserSchema } from '../lib/schemas/user.schema.js';
 
 userRouter.get('/', protect, UserController.getCurrentUser);
 
-userRouter.put(
+userRouter.patch(
   '/update',
   protect,
   validateInput(updateUserSchema),

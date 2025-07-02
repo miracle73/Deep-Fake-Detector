@@ -182,10 +182,10 @@ export const login = async (
 
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(401).json({
+      return res.status(404).json({
         success: false,
-        code: 401,
-        message: 'Invalid credentials',
+        code: 404,
+        message: 'User not found',
         details: null,
       });
     }

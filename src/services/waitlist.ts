@@ -23,6 +23,7 @@ export async function addToWaitlist(
     throw new ConflictError('Email already exists in waitlist');
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const position = await (Waitlist as any).getNextPosition();
 
   const waitlistEntry = await Waitlist.create({
@@ -68,6 +69,7 @@ export async function getWaitlistStatus(
     return null;
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const currentPosition = await (Waitlist as any).getUserPosition(email);
   const totalActive = await Waitlist.countDocuments({ status: 'active' });
 
