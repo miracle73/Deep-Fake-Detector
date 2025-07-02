@@ -9,13 +9,11 @@ import Settings from "./pages/settings";
 import Billing from "./pages/billing";
 import DeepfakeDetector from "./pages";
 import VideoScreen from "./pages/video";
-import ForgotPassword from "./pages/forgotPassword";
-import ResetPassword from "./pages/resetPassword";
 import VerifyEmail from "./pages/verifyEmail";
 import CheckEmail from "./pages/checkEmail";
 import TermsAndConditions from "./pages/termsAndCondition";
-import ForgotPassword2 from "./pages/forgotPassword2";
-import ResetPassword2 from "./pages/resetPassword2";
+import ForgotPassword from "./pages/forgotPassword";
+import ResetPassword from "./pages/resetPassword";
 import ImageScreen from "./pages/image";
 import AudioScreen from "./pages/audio";
 
@@ -33,10 +31,10 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/billing" element={<Billing />} />
+
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/forgot-password2" element={<ForgotPassword2 />} />
+
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/reset-password2" element={<ResetPassword2 />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/check-email" element={<CheckEmail />} />
           <Route path="/image-detection" element={<ImageScreen />} />
