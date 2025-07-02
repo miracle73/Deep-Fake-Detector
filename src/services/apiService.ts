@@ -202,6 +202,55 @@ interface DeleteUserResponse {
   };
 }
 
+interface SubscriptionPlan {
+  id: string;
+  object: string;
+  active: boolean;
+  attributes: unknown[];
+  created: number;
+  default_price: string;
+  description: string;
+  images: unknown[];
+  livemode: boolean;
+  marketing_features: unknown[];
+  metadata: Record<string, unknown>;
+  name: string;
+  package_dimensions: unknown;
+  shippable: unknown;
+  statement_descriptor: unknown;
+  tax_code: unknown;
+  type: string;
+  unit_label: unknown;
+  updated: number;
+  url: unknown;
+}
+
+interface SubscriptionPlansResponse {
+  success: boolean;
+  message: string;
+  data: {
+    object: string;
+    data: SubscriptionPlan[];
+    has_more: boolean;
+    url: string;
+  };
+}
+
+interface CheckoutRequest {
+  priceId: string;
+}
+
+interface CheckoutResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: {
+    sessionId: string;
+    sessionUrl: string;
+    amount: number;
+  };
+}
+
 export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
@@ -328,6 +377,19 @@ export const apiService = createApi({
         method: "DELETE",
       }),
     }),
+    subscriptionPlans: builder.query<SubscriptionPlansResponse, void>({
+      query: () => ({
+        url: "subscriptions/plans",
+        method: "GET",
+      }),
+    }),
+    checkout: builder.mutation<CheckoutResponse, CheckoutRequest>({
+      query: ({ priceId }) => ({
+        url: "subscriptions/checkout",
+        method: "POST",
+        body: { priceId },
+      }),
+    }),
   }),
 });
 
@@ -342,4 +404,6 @@ export const {
   useGetUserQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useSubscriptionPlansQuery,
+  useCheckoutMutation,
 } = apiService;
