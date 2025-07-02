@@ -19,11 +19,23 @@ const testUser = {
   termsAgreedAt: new Date(),
 };
 
+const testAdmin = {
+  email: 'hello@admin.com',
+  password: 'password',
+  firstName: 'Admin',
+  lastName: 'User',
+  agreedToTerms: true,
+  userType: 'individual',
+  termsAgreedAt: new Date(),
+  role: 'admin',
+};
+
 const JWT_SECRET: string = process.env.JWT_SECRET ? process.env.JWT_SECRET : '';
 
 async function initializeDB() {
   await mongoose.connection.dropDatabase();
   await User.create(testUser);
+  await User.create(testAdmin);
 }
 
 async function cleanup() {

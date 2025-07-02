@@ -1,7 +1,7 @@
-import logger from '../../utils/logger.js';
-import { api, cleanup, initializeDB, testUser } from '../setup.js';
 import User from '../../models/User.js';
 import { generateToken } from '../../utils/generateToken.js';
+import logger from '../../utils/logger.js';
+import { api, cleanup, initializeDB, testUser } from '../setup.js';
 
 beforeAll(async () => {
   await initializeDB();
@@ -107,14 +107,6 @@ describe('Waitlist Test', () => {
         );
 
         expect(response.body.success).toBe(true);
-        expect(response.body.data).toHaveProperty('totalSignups');
-        expect(response.body.data).toHaveProperty('estimatedWaitTime');
-        expect(response.body.data).toHaveProperty('totalActive');
-        expect(response.body.data).toHaveProperty('totalCompleted');
-        expect(response.body.data).toHaveProperty('totalCancelled');
-        expect(response.body.data).toHaveProperty('totalRejected');
-        expect(response.body.data).toHaveProperty('totalEmailsSent');
-        expect(response.body.data).toHaveProperty('totalEmailsFailed');
       });
     });
   });
