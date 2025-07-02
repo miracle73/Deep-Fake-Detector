@@ -7,6 +7,7 @@ import {
   Loader,
   CheckCircle,
   ArrowLeft,
+  X,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useResetPasswordMutation } from "../services/apiService";
@@ -39,6 +40,15 @@ function ResetPassword2() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [resetPassword] = useResetPasswordMutation();
+  useEffect(() => {
+    if (errors.general) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
 
   // Redirect to forgot-password if no token
   useEffect(() => {
@@ -136,6 +146,7 @@ function ResetPassword2() {
       }
     } finally {
       setIsSubmitting(false);
+      setFormData({ password: "", confirmPassword: "" });
     }
   };
 
@@ -224,9 +235,16 @@ function ResetPassword2() {
 
             {/* General Error Message */}
             {errors.general && (
-              <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg mb-4">
+              <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                 <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                 <span>{errors.general}</span>
+                <button
+                  type="button"
+                  onClick={() => setErrors({ ...errors, general: undefined })}
+                  className="ml-auto text-red-400 hover:text-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             )}
 

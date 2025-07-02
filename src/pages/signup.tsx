@@ -1,6 +1,6 @@
 import type React from "react";
-import { useState } from "react";
-import { Eye, EyeOff, AlertCircle, Loader, Mail } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, AlertCircle, Loader, Mail, X } from "lucide-react";
 import "../App.css";
 import BackgroundImage from "../assets/images/signin-page-2.png";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +45,15 @@ function SignUp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [register] = useRegisterMutation();
+  useEffect(() => {
+    if (errors.general) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -243,6 +252,14 @@ function SignUp() {
       }
     } finally {
       setIsSubmitting(false);
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        password: "",
+        agreeTerms: false,
+      });
     }
   };
 
@@ -271,9 +288,15 @@ function SignUp() {
                 <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span>{errors.general}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrors({ ...errors, general: undefined })}
+                    className="ml-auto text-red-400 hover:text-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Account Type Toggle */}
                 <div className="flex p-1 bg-gray-100 rounded-full">

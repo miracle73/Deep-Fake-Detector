@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye,
   EyeOff,
@@ -7,6 +7,7 @@ import {
   Loader,
   CheckCircle,
   Lock,
+  X,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useResetPasswordMutation } from "../services/apiService";
@@ -38,7 +39,15 @@ function ResetPassword() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [resetPassword] = useResetPasswordMutation();
+  useEffect(() => {
+    if (errors.general) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+      }, 3000);
 
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
   // Redirect if no token
   //   useEffect(() => {
   //     if (!token) {
@@ -249,6 +258,13 @@ function ResetPassword() {
                 <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span>{errors.general}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrors({ ...errors, general: undefined })}
+                    className="ml-auto text-red-400 hover:text-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 

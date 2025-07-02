@@ -1,6 +1,6 @@
 import type React from "react";
-import { useState } from "react";
-import { Eye, EyeOff, AlertCircle, Loader } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, AlertCircle, Loader, X } from "lucide-react";
 import BackgroundImage from "../assets/images/signin-page.png";
 import { useLoginMutation } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +30,15 @@ function Signin() {
   const [googleLogin] = useGoogleLoginMutation();
 
   const [login] = useLoginMutation();
+  useEffect(() => {
+    if (errors.general) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+      }, 3000);
 
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (token) => {
       console.log("Google token received:", token);
@@ -177,6 +185,7 @@ function Signin() {
       }
     } finally {
       setIsSubmitting(false);
+      setFormData({ email: "", password: "" });
     }
   };
 
@@ -205,6 +214,13 @@ function Signin() {
                 <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span>{errors.general}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrors({ ...errors, general: undefined })}
+                    className="ml-auto text-red-400 hover:text-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
 

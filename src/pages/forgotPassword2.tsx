@@ -1,6 +1,6 @@
 import type React from "react";
-import { useState } from "react";
-import { AlertCircle, Loader, ArrowLeft, Mail } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertCircle, Loader, ArrowLeft, Mail, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForgotPasswordMutation } from "../services/apiService";
 
@@ -23,7 +23,15 @@ function ForgotPassword2() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const [forgotPassword] = useForgotPasswordMutation();
+  useEffect(() => {
+    if (errors.general) {
+      const timer = setTimeout(() => {
+        setErrors((prev) => ({ ...prev, general: undefined }));
+      }, 3000);
 
+      return () => clearTimeout(timer);
+    }
+  }, [errors.general]);
   // Validation function
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -107,6 +115,43 @@ function ForgotPassword2() {
     }
   };
 
+  const handleResendResetLink = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const result = await forgotPassword({
+        email: formData.email.trim().toLowerCase(),
+      }).unwrap();
+
+      console.log("Resend password request successful:", result);
+      // You could show a success message here if needed
+    } catch (error: unknown) {
+      console.error("Resend password request failed:", error);
+      if (error && typeof error === "object" && "data" in error) {
+        const apiError = error as {
+          data?: { message?: string; errors?: FormErrors };
+        };
+        if (apiError.data?.message) {
+          setErrors({ general: apiError.data.message });
+        } else if (apiError.data?.errors) {
+          setErrors(apiError.data.errors);
+        } else {
+          setErrors({
+            general: "Failed to resend reset email. Please try again.",
+          });
+        }
+      } else if (error && typeof error === "object" && "message" in error) {
+        const messageError = error as { message: string };
+        setErrors({ general: messageError.message });
+      } else {
+        setErrors({
+          general: "Failed to resend reset email. Please try again.",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gray-100">
@@ -153,10 +198,18 @@ function ForgotPassword2() {
 
                 <button
                   type="button"
-                  className="w-full h-12 bg-[#0F2FA3] hover:bg-blue-700 text-white font-medium rounded-full transition-colors"
-                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-full h-12 bg-[#0F2FA3] hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium rounded-full transition-colors flex items-center justify-center"
+                  onClick={handleResendResetLink}
                 >
-                  Resend Reset Link
+                  {isSubmitting ? (
+                    <>
+                      <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                      Resending...
+                    </>
+                  ) : (
+                    "Resend Reset Link"
+                  )}
                 </button>
               </div>
             </div>
@@ -197,9 +250,16 @@ function ForgotPassword2() {
 
             {/* General Error Message */}
             {errors.general && (
-              <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg mb-4">
+              <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
                 <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                 <span>{errors.general}</span>
+                <button
+                  type="button"
+                  onClick={() => setErrors({ ...errors, general: undefined })}
+                  className="ml-auto text-red-400 hover:text-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             )}
 

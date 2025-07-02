@@ -15,9 +15,9 @@ export default function DeepfakeDetector() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("individual");
   const [selectedPlan, setSelectedPlan] = useState("pro");
-  const imageRef = useRef(null);
-  const textRef = useRef(null);
-  const containerRef = useRef(null);
+  const imageRef = useRef<HTMLDivElement | null>(null);
+  const textRef = useRef<HTMLHeadingElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
 
