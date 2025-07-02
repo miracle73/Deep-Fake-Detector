@@ -6,9 +6,9 @@ import {
   LayoutGrid,
   Video,
   ImageIcon,
-  Clock,
-  FileText,
-  HelpCircle,
+  // Clock,
+  // FileText,
+  // HelpCircle,
   AudioLines,
   MoreHorizontal,
   ChevronLeft,
@@ -20,6 +20,7 @@ import { NoAnalysisYet, UploadIcon } from "../assets/svg";
 import FirstImage from "../assets/images/firstImage.png";
 import SecondImage from "../assets/images/secondImage.png";
 import ThirdImage from "../assets/images/thirdImage.png";
+import { useNavigate } from "react-router-dom";
 
 const mockAnalyses = [
   {
@@ -65,6 +66,7 @@ const mockAnalyses = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [dragActive, setDragActive] = useState(false);
   const [hasAnalyses, setHasAnalyses] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -209,35 +211,27 @@ const Dashboard = () => {
               </button>
             </div>
             <div className="flex-1 py-6 space-y-6 px-4">
-              <div className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
+                onClick={() => {
+                  navigate("/dashboard");
+                  setSidebarOpen(false);
+                }}
+              >
                 <LayoutGrid className="w-6 h-6" />
                 <span className="text-sm">Dashboard</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <div className="flex items-center space-x-3 text-gray-400 cursor-pointer">
                 <AudioLines className="w-6 h-6" />
                 <span className="text-sm">Audio</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
                 <Video className="w-6 h-6" />
                 <span className="text-sm">Video</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
-                <Clock className="w-6 h-6" />
-                <span className="text-sm">History</span>
-              </div>
-              <div className="border-t border-gray-200 pt-6 space-y-6">
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
-                  <FileText className="w-6 h-6" />
-                  <span className="text-sm">Documentation</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
-                  <HelpCircle className="w-6 h-6" />
-                  <span className="text-sm">Help</span>
-                </div>
               </div>
             </div>
           </div>
@@ -248,35 +242,26 @@ const Dashboard = () => {
       <div className="flex">
         {/* Desktop Sidebar */}
         <div className="hidden lg:flex w-24 bg-white border-r border-gray-200 flex-col items-center py-6 space-y-8 min-h-[calc(100vh-73px)]">
-          <div className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
+            onClick={() => {
+              navigate("/dashboard");
+            }}
+          >
             <LayoutGrid className="w-6 h-6" />
             <span className="text-xs">Dashboard</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <AudioLines className="w-6 h-6" />
             <span className="text-xs">Audio</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <Video className="w-6 h-6" />
             <span className="text-xs">Video</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
-            <Clock className="w-6 h-6" />
-            <span className="text-xs">History</span>
-          </div>
-          <div className="mt-auto space-y-8 border-t border-[#8C8C8C] pt-8 pb-24">
-            <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
-              <FileText className="w-6 h-6" />
-              <span className="text-xs">Documentation</span>
-            </div>
-            <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
-              <HelpCircle className="w-6 h-6" />
-              <span className="text-xs">Help</span>
-            </div>
           </div>
         </div>
 

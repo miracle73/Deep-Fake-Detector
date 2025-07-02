@@ -16,6 +16,8 @@ import CheckEmail from "./pages/checkEmail";
 import TermsAndConditions from "./pages/termsAndCondition";
 import ForgotPassword2 from "./pages/forgotPassword2";
 import ResetPassword2 from "./pages/resetPassword2";
+import ImageScreen from "./pages/image";
+import AudioScreen from "./pages/audio";
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
           <Route path="/reset-password2" element={<ResetPassword2 />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/check-email" element={<CheckEmail />} />
+          <Route path="/image-detection" element={<ImageScreen />} />
+          <Route path="/audio-detection" element={<AudioScreen />} />
 
           <Route
             path="/terms-and-conditions"

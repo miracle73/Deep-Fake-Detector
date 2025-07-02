@@ -5,13 +5,17 @@ import {
   LayoutGrid,
   Video,
   ImageIcon,
-  Clock,
-  FileText,
-  HelpCircle,
   AudioLines,
   Menu,
   X,
+  AlertCircle,
+  Loader,
 } from "lucide-react";
+import {
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+} from "../services/apiService";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,16 +28,174 @@ const Settings = () => {
   const [emailSettings, setEmailSettings] = useState({
     unsubscribeAll: false,
   });
-
+  const navigate = useNavigate();
   const handlePersonalInfoChange = (field: string, value: string) => {
     setPersonalInfo((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
+  const [updateUser] = useUpdateUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [isUpdatingPersonalInfo, setIsUpdatingPersonalInfo] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [errors, setErrors] = useState({
+    personalInfo: "",
+    deleteAccount: "",
+  });
+  const [successMessages, setSuccessMessages] = useState({
+    personalInfo: "",
+  });
+  // Replace the existing handlePersonalInfoSave function
+  const handlePersonalInfoSave = async () => {
+    // Clear previous messages
+    setErrors((prev) => ({ ...prev, personalInfo: "" }));
+    setSuccessMessages((prev) => ({ ...prev, personalInfo: "" }));
 
-  const handlePersonalInfoSave = () => {
-    console.log("Saving personal info:", personalInfo);
+    // Basic validation
+    if (
+      !personalInfo.firstName.trim() ||
+      !personalInfo.lastName.trim() ||
+      !personalInfo.email.trim()
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        personalInfo: "Please fill in all required fields",
+      }));
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(personalInfo.email)) {
+      setErrors((prev) => ({
+        ...prev,
+        personalInfo: "Please enter a valid email address",
+      }));
+      return;
+    }
+
+    setIsUpdatingPersonalInfo(true);
+
+    try {
+      const updateData = {
+        firstName: personalInfo.firstName.trim(),
+        lastName: personalInfo.lastName.trim(),
+        email: personalInfo.email.trim().toLowerCase(),
+        phone: personalInfo.phone.trim(),
+      };
+
+      const result = await updateUser(updateData).unwrap();
+
+      console.log("Personal info updated successfully:", result);
+      setSuccessMessages((prev) => ({
+        ...prev,
+        personalInfo: "Personal information updated successfully!",
+      }));
+      navigate("/dashboard"); // Redirect to dashboard after successful update
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessages((prev) => ({ ...prev, personalInfo: "" }));
+      }, 3000);
+    } catch (error) {
+      console.error("Update failed:", error);
+
+      if (error && typeof error === "object" && "data" in error) {
+        const apiError = error as { data?: { message?: string } };
+        if (apiError.data?.message) {
+          setErrors((prev) => ({
+            ...prev,
+            personalInfo:
+              apiError.data?.message ??
+              "Failed to update personal information. Please try again.",
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            personalInfo:
+              "Failed to update personal information. Please try again.",
+          }));
+        }
+      } else if (error && typeof error === "object" && "message" in error) {
+        const messageError = error as { message?: string };
+        setErrors((prev) => ({
+          ...prev,
+          personalInfo:
+            messageError.message ??
+            "Failed to update personal information. Please try again.",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          personalInfo:
+            "Failed to update personal information. Please try again.",
+        }));
+      }
+    } finally {
+      setIsUpdatingPersonalInfo(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    // Clear previous messages
+    setErrors((prev) => ({ ...prev, deleteAccount: "" }));
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data."
+    );
+
+    if (!confirmed) return;
+
+    setIsDeletingAccount(true);
+
+    try {
+      const result = await deleteUser().unwrap();
+
+      console.log("Account deleted successfully:", result);
+
+      // Redirect to signin page or home page after successful deletion
+      // You might want to clear any stored tokens/user data here
+      navigate("/signup");
+    } catch (error) {
+      console.error("Delete account failed:", error);
+
+      if (error && typeof error === "object" && "data" in error) {
+        const apiError = error as { data?: { message?: string } };
+        if (
+          apiError.data &&
+          typeof apiError.data === "object" &&
+          "message" in apiError.data
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            deleteAccount:
+              (apiError.data as { message?: string }).message ??
+              "Failed to delete account. Please try again.",
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            deleteAccount: "Failed to delete account. Please try again.",
+          }));
+        }
+      } else if (error && typeof error === "object" && "message" in error) {
+        const messageError = error;
+        setErrors((prev) => ({
+          ...prev,
+          deleteAccount:
+            typeof messageError.message === "string"
+              ? messageError.message
+              : "Failed to delete account. Please try again.",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          deleteAccount: "Failed to delete account. Please try again.",
+        }));
+      }
+    } finally {
+      setIsDeletingAccount(false);
+    }
   };
 
   const handleEmailSettingsSave = () => {
@@ -108,35 +270,27 @@ const Settings = () => {
               </button>
             </div>
             <div className="flex-1 py-6 space-y-6 px-4">
-              <div className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
+                onClick={() => {
+                  navigate("/dashboard");
+                  setSidebarOpen(false);
+                }}
+              >
                 <LayoutGrid className="w-6 h-6" />
                 <span className="text-sm">Dashboard</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <div className="flex items-center space-x-3 text-gray-400 cursor-pointer">
                 <AudioLines className="w-6 h-6" />
                 <span className="text-sm">Audio</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
                 <Video className="w-6 h-6" />
                 <span className="text-sm">Video</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
+              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
-                <Clock className="w-6 h-6" />
-                <span className="text-sm">History</span>
-              </div>
-              <div className="border-t border-gray-200 pt-6 space-y-6">
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
-                  <FileText className="w-6 h-6" />
-                  <span className="text-sm">Documentation</span>
-                </div>
-                <div className="flex items-center space-x-3 text-gray-400 hover:text-blue-600 cursor-pointer">
-                  <HelpCircle className="w-6 h-6" />
-                  <span className="text-sm">Help</span>
-                </div>
               </div>
             </div>
           </div>
@@ -147,35 +301,26 @@ const Settings = () => {
       <div className="flex">
         {/* Desktop Sidebar */}
         <div className="hidden lg:flex w-24 bg-white border-r border-gray-200 flex-col items-center py-6 space-y-8 min-h-[calc(100vh-73px)]">
-          <div className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
+            onClick={() => {
+              navigate("/dashboard");
+            }}
+          >
             <LayoutGrid className="w-6 h-6" />
             <span className="text-xs">Dashboard</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <AudioLines className="w-6 h-6" />
             <span className="text-xs">Audio</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <Video className="w-6 h-6" />
             <span className="text-xs">Video</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400 pb-20 hover:text-blue-600 cursor-pointer">
-            <Clock className="w-6 h-6" />
-            <span className="text-xs">History</span>
-          </div>
-          <div className="mt-auto space-y-8 border-t border-[#8C8C8C] pt-8 pb-12">
-            <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
-              <FileText className="w-6 h-6" />
-              <span className="text-xs">Documentation</span>
-            </div>
-            <div className="flex flex-col items-center space-y-2 text-gray-400 hover:text-blue-600 cursor-pointer">
-              <HelpCircle className="w-6 h-6" />
-              <span className="text-xs">Help</span>
-            </div>
           </div>
         </div>
 
@@ -208,13 +353,46 @@ const Settings = () => {
                     </p>
                   </div>
 
+                  {/* Error Message for Personal Info */}
+                  {errors.personalInfo && (
+                    <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span>{errors.personalInfo}</span>
+                    </div>
+                  )}
+
+                  {/* Success Message for Personal Info */}
+                  {successMessages.personalInfo && (
+                    <div className="flex items-center p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+                      <svg
+                        className="w-4 h-4 mr-2 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span>{successMessages.personalInfo}</span>
+                    </div>
+                  )}
                   {/* Save Changes Button */}
                   <div className="flex justify-start">
                     <button
                       onClick={handlePersonalInfoSave}
-                      className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors"
+                      disabled={isUpdatingPersonalInfo}
+                      className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors flex items-center"
                     >
-                      Save Changes
+                      {isUpdatingPersonalInfo ? (
+                        <>
+                          <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
                     </button>
                   </div>
                 </div>
@@ -304,8 +482,9 @@ const Settings = () => {
               </div>
 
               {/* Email Settings Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8  pt-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C]  pt-8">
                 {/* Left Column - Section Info and Button */}
+
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -348,6 +527,80 @@ const Settings = () => {
                     >
                       Unsubscribe all emails
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
+                {/* Left Column - Section Info and Button */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Delete Account
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Once you delete your account, there is no going back.
+                      Please be certain. This action will permanently delete
+                      your account, all your data, and cannot be undone.
+                    </p>
+                  </div>
+                  {errors.deleteAccount && (
+                    <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span>{errors.deleteAccount}</span>
+                    </div>
+                  )}
+
+                  {/* Delete Account Button */}
+
+                  <div className="flex justify-start">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={isDeletingAccount}
+                      className="bg-red-50 border border-red-300 hover:bg-red-100 disabled:bg-gray-100 disabled:cursor-not-allowed text-red-700 px-10 py-2 rounded-full text-sm font-medium transition-colors flex items-center"
+                    >
+                      {isDeletingAccount ? (
+                        <>
+                          <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Account"
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Column - Warning Message */}
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="w-5 h-5 text-red-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-red-800">
+                        Warning: This action is irreversible
+                      </h4>
+                      <p className="text-sm text-red-700 mt-1">
+                        Deleting your account will:
+                      </p>
+                      <ul className="text-sm text-red-700 mt-2 space-y-1">
+                        <li>• Permanently delete all your personal data</li>
+                        <li>• Remove access to all your processed media</li>
+                        <li>• Cancel any active subscriptions</li>
+                        <li>• Delete your account history</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>

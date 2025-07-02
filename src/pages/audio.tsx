@@ -22,7 +22,7 @@ import { BackIcon } from "../assets/svg";
 import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
 
-const VideoScreen = () => {
+const AudioScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -493,4 +493,4 @@ const VideoScreen = () => {
   );
 };
 
-export default VideoScreen;
+export default AudioScreen;

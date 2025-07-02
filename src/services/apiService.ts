@@ -207,12 +207,26 @@ export const apiService = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl:
       "https://deepfake-detector-655166731472.us-central1.run.app/api/v1",
-    prepareHeaders: (headers, { getState }) => {
-      // Get token from state if available
-      const token = (getState() as RootState).auth?.token;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
+    prepareHeaders: (headers, { getState, endpoint }) => {
+      // List of endpoints that should NOT include the token
+      const publicEndpoints = [
+        "register",
+        "login",
+        "forgotPassword",
+        "resetPassword",
+        "googleLogin",
+        "verifyEmail",
+        "registerEnterprise",
+      ];
+
+      // Only add token if it's not a public endpoint
+      if (!publicEndpoints.includes(endpoint)) {
+        const token = (getState() as RootState).auth?.token;
+        if (token) {
+          headers.set("Authorization", `Bearer ${token}`);
+        }
       }
+
       return headers;
     },
   }),
