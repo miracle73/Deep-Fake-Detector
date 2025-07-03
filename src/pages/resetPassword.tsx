@@ -53,7 +53,7 @@ function ResetPassword() {
   // Redirect to forgot-password if no token
   useEffect(() => {
     if (!token) {
-      navigate("/forgot-password2");
+      navigate("/forgot-password");
     }
   }, [token, navigate]);
 

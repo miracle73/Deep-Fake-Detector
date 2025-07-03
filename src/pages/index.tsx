@@ -90,9 +90,6 @@ export default function DeepfakeDetector() {
               </span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                Products
-              </a>
               <a
                 href="#"
                 className="text-gray-600 hover:text-gray-900"
@@ -100,9 +97,23 @@ export default function DeepfakeDetector() {
               >
                 Pricing
               </a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                News
+              <a
+                href="#faq-section"
+                className="text-gray-600 hover:text-gray-900"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const faqSection = document.getElementById("faq-section");
+                  if (faqSection) {
+                    faqSection.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+              >
+                FAQ
               </a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">
+                Support
+              </a>
+
               <Button
                 className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[50px]"
                 onClick={() => navigate("/signin")}
@@ -940,19 +951,13 @@ export default function DeepfakeDetector() {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-white text-sm"
-                  >
+                  <a href="" className="text-gray-300 hover:text-white text-sm">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-white text-sm"
-                  >
-                    Careers
+                  <a href="" className="text-gray-300 hover:text-white text-sm">
+                    Our Technology
                   </a>
                 </li>
                 <li>
@@ -960,7 +965,15 @@ export default function DeepfakeDetector() {
                     href="#"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Media
+                    Industries
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Help Center
                   </a>
                 </li>
               </ul>
@@ -974,7 +987,7 @@ export default function DeepfakeDetector() {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Terms of Use
@@ -982,7 +995,7 @@ export default function DeepfakeDetector() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Privacy Policies
@@ -990,7 +1003,7 @@ export default function DeepfakeDetector() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Responsible Disclosure Policy
@@ -998,7 +1011,7 @@ export default function DeepfakeDetector() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Compliance

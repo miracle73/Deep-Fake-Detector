@@ -290,19 +290,14 @@ function TermsAndConditions() {
               </span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                Products
-              </a>
               <a
-                href="#"
+                href="/plans"
                 className="text-gray-600 hover:text-gray-900"
                 onClick={() => navigate("/plans")}
               >
                 Pricing
               </a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">
-                News
-              </a>
+
               <Button
                 className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[50px]"
                 onClick={() => navigate("/signin")}
@@ -324,9 +319,6 @@ function TermsAndConditions() {
                 <h1 className="text-3xl font-bold text-center text-gray-900">
                   Terms and Conditions
                 </h1>
-                <div className="flex items-center text-center text-sm text-gray-500 mt-1">
-                  Last updated: June 23, 2025
-                </div>
               </div>
             </div>
             <p className="text-gray-600 text-center">
@@ -396,19 +388,13 @@ function TermsAndConditions() {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-white text-sm"
-                  >
+                  <a href="" className="text-gray-300 hover:text-white text-sm">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-white text-sm"
-                  >
-                    Careers
+                  <a href="" className="text-gray-300 hover:text-white text-sm">
+                    Our Technology
                   </a>
                 </li>
                 <li>
@@ -416,7 +402,15 @@ function TermsAndConditions() {
                     href="#"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Media
+                    Industries
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Help Center
                   </a>
                 </li>
               </ul>
@@ -430,7 +424,7 @@ function TermsAndConditions() {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Terms of Use
@@ -438,7 +432,7 @@ function TermsAndConditions() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Privacy Policies
@@ -446,7 +440,7 @@ function TermsAndConditions() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Responsible Disclosure Policy
@@ -454,7 +448,7 @@ function TermsAndConditions() {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Compliance

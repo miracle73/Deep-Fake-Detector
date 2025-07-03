@@ -20,29 +20,7 @@ const SubscriptionPlans = () => {
                 <span className="font-normal">Media</span>
               </h1>
             </div>
-            <nav className="hidden md:flex items-center space-x-8">
-              <a
-                href="#"
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-              >
-                Features
-              </a>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-              >
-                Pricing
-              </a>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-              >
-                FAQs
-              </a>
-              <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                Get Started
-              </button>
-            </nav>
+            <div></div>
             {/* Mobile menu button */}
             <button className="md:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
               Get Started
@@ -438,19 +416,13 @@ const SubscriptionPlans = () => {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-white text-sm"
-                  >
+                  <a href="" className="text-gray-300 hover:text-white text-sm">
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#"
-                    className="text-gray-300 hover:text-white text-sm"
-                  >
-                    Careers
+                  <a href="" className="text-gray-300 hover:text-white text-sm">
+                    Our Technology
                   </a>
                 </li>
                 <li>
@@ -458,7 +430,15 @@ const SubscriptionPlans = () => {
                     href="#"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Media
+                    Industries
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Help Center
                   </a>
                 </li>
               </ul>
@@ -472,7 +452,7 @@ const SubscriptionPlans = () => {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Terms of Use
@@ -480,7 +460,7 @@ const SubscriptionPlans = () => {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Privacy Policies
@@ -488,7 +468,7 @@ const SubscriptionPlans = () => {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Responsible Disclosure Policy
@@ -496,7 +476,7 @@ const SubscriptionPlans = () => {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="/terms-and-conditions"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     Compliance
@@ -513,7 +493,19 @@ const SubscriptionPlans = () => {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="#"
+                    href="https://www.instagram.com/safe_guard_media/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://x.com/safeguardmedia1"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white text-sm"
                   >
                     X
@@ -521,18 +513,20 @@ const SubscriptionPlans = () => {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="https://www.linkedin.com/company/safeguardmedia/about/?viewAsMember=true"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Facebook
+                    LinkedIn
                   </a>
                 </li>
                 <li>
                   <a
-                    href="mailto:iinfo@safeguardmedia.io"
+                    href="mailto:info@safeguardmedia.io"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Mail: info@safeguardmedia.io
+                    Contact Us: info@safeguardmedia.io
                   </a>
                 </li>
               </ul>

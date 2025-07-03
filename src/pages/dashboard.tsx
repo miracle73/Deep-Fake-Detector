@@ -21,7 +21,7 @@ import FirstImage from "../assets/images/firstImage.png";
 import SecondImage from "../assets/images/secondImage.png";
 import ThirdImage from "../assets/images/thirdImage.png";
 import { useNavigate } from "react-router-dom";
-
+// import { useGetUserQuery } from "../services/apiService";
 const mockAnalyses = [
   {
     id: 1,
@@ -77,7 +77,7 @@ const Dashboard = () => {
     thumbnail: string;
   } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-
+  // const { data: userData, isLoading: userLoading, error: userError } = useGetUserQuery();
   // Modify the handleUploadMedia function
   const handleUploadMedia = () => {
     setIsUploading(true);
@@ -162,19 +162,33 @@ const Dashboard = () => {
             </h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="hidden sm:flex border border-[#8C8C8C] bg-[#FBFBEF] rounded-[30px] pl-2 gap-2 justify-between items-center">
-              <span className="text-sm text-gray-600">4,000 sec left</span>
+            <div
+              className="hidden sm:flex  bg-[#FBFBEF] gap-2 justify-between items-center"
+              onClick={() => {
+                navigate("/plans");
+              }}
+            >
               <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[30px] text-sm font-medium">
                 Upgrade
               </button>
             </div>
 
             {/* Mobile upgrade button */}
-            <button className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium">
+            <button
+              className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium"
+              onClick={() => {
+                navigate("/plans");
+              }}
+            >
               Upgrade
             </button>
 
-            <button className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]">
+            <button
+              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]"
+              onClick={() => {
+                navigate("/notifications");
+              }}
+            >
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
@@ -189,6 +203,19 @@ const Dashboard = () => {
               </span>
               <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
+            {/* <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">
+                  {userData?.data?.user?.firstName
+                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                    : "U"}
+                </span>
+              </div>
+              <span className="hidden sm:inline text-sm text-gray-700">
+                {userData?.data?.user?.firstName || "Username"}
+              </span>
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+            </div> */}
           </div>
         </div>
       </header>
