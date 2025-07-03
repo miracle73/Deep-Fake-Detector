@@ -40,7 +40,7 @@ const mockNotifications = [
   },
 ];
 
-const Notifications = () => {
+const Notifications2 = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -357,4 +357,4 @@ const Notifications = () => {
   );
 };
 
-export default Notifications;
+export default Notifications2;

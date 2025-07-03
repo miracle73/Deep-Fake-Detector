@@ -29,6 +29,7 @@ function App() {
           <Route path="/video-detection" element={<VideoScreen />} />
           <Route path="/plans" element={<SubscriptionPlans />} />
           <Route path="/notifications" element={<Notifications />} />
+
           <Route path="/settings" element={<Settings />} />
           <Route path="/billing" element={<Billing />} />
 
