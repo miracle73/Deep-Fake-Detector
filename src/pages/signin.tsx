@@ -6,6 +6,9 @@ import { useLoginMutation } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useGoogleLoginMutation } from "../services/apiService";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../store/slices/authSlices";
+import { setUserInfo } from "../store/slices/userSlices";
 
 interface FormData {
   email: string;
@@ -19,6 +22,7 @@ interface FormErrors {
 }
 
 function Signin() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -50,12 +54,31 @@ function Signin() {
         }).unwrap();
 
         // Handle successful Google login
+
         console.log("Google login successful:", response);
 
         if (response.success) {
-          // Navigate to dashboard (same as regular login)
+          // Dispatch user data to Redux store
+          dispatch(
+            setUserInfo({
+              _id: response.user.id,
+              email: response.user.email,
+              userType: response.user.userType,
+              plan: response.user.plan,
+              isGoogleUser: true,
+              firstName: response.user.firstName,
+              lastName: response.user.lastName,
+            })
+          );
+
+          // Dispatch token to auth store
+          dispatch(loginUser(response.token));
+
+          // Store token in localStorage for persistence
+          localStorage.setItem("authToken", response.token);
+
+          // Navigate to dashboard
           navigate("/dashboard");
-          // You might also want to store the token/user data in your auth state here
         } else {
           setErrors({ general: "Google sign-in failed. Please try again." });
         }
@@ -157,7 +180,26 @@ function Signin() {
       // Handle successful login
       console.log("Login successful:", result);
 
-      // You can redirect to dashboard or wherever needed
+      // Dispatch user data to Redux store
+      dispatch(
+        setUserInfo({
+          _id: result.user.id,
+          email: result.user.email,
+          userType: result.user.userType,
+          plan: result.user.plan,
+          isGoogleUser: false,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+        })
+      );
+
+      // Dispatch token to auth store
+      dispatch(loginUser(result.token));
+
+      // Store token in localStorage for persistence
+      localStorage.setItem("authToken", result.token);
+
+      // Navigate to dashboard
       navigate("/dashboard");
       // Or handle token storage, user context, etc.
     } catch (error: unknown) {

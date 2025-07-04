@@ -21,7 +21,7 @@ import FourthImage from "../assets/images/fourthImage.png";
 import { BackIcon } from "../assets/svg";
 import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
-// import { useGetUserQuery } from "../services/apiService";
+import { useGetUserQuery } from "../services/apiService";
 
 const ImageScreen = () => {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const ImageScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration] = useState(531); // 8:51 in seconds
-  // const { data: userData, isLoading: userLoading, error: userError } = useGetUserQuery();
+  const { data: userData } = useGetUserQuery();
   const handleBack = () => {
     // Handle back navigation
     console.log("Going back...");
@@ -114,7 +114,7 @@ const ImageScreen = () => {
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+            {/* <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
                   U
@@ -124,20 +124,20 @@ const ImageScreen = () => {
                 Username
               </span>
               <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+            </div> */}
+            <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">
+                  {userData?.data?.user?.firstName
+                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                    : "U"}
+                </span>
+              </div>
+              <span className="hidden sm:inline text-sm text-gray-700">
+                {userData?.data?.user?.firstName || "Username"}
+              </span>
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
-            {/* <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
-               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                 <span className="text-xs sm:text-sm font-medium text-gray-600">
-                   {userData?.data?.user?.firstName
-                     ? userData.data.user.firstName.charAt(0).toUpperCase()
-                     : "U"}
-                 </span>
-               </div>
-               <span className="hidden sm:inline text-sm text-gray-700">
-                 {userData?.data?.user?.firstName || "Username"}
-               </span>
-               <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-             </div> */}
           </div>
         </div>
       </header>

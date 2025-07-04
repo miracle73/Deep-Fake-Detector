@@ -9,6 +9,9 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useGoogleLoginMutation } from "../services/apiService";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../store/slices/authSlices";
+import { setUserInfo } from "../store/slices/userSlices";
 
 interface FormData {
   firstName: string;
@@ -30,6 +33,7 @@ interface FormErrors {
 }
 
 function SignUp() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [accountType, setAccountType] = useState("individual");
@@ -88,12 +92,31 @@ function SignUp() {
         }).unwrap();
 
         // Handle successful Google login
+
         console.log("Google login successful:", response);
 
         if (response.success) {
-          // Navigate to dashboard (same as regular login)
+          // Dispatch user data to Redux store
+          dispatch(
+            setUserInfo({
+              _id: response.user.id,
+              email: response.user.email,
+              userType: response.user.userType,
+              plan: response.user.plan,
+              isGoogleUser: true,
+              firstName: response.user.firstName,
+              lastName: response.user.lastName,
+            })
+          );
+
+          // Dispatch token to auth store
+          dispatch(loginUser(response.token));
+
+          // Store token in localStorage for persistence
+          localStorage.setItem("authToken", response.token);
+
+          // Navigate to dashboard
           navigate("/dashboard");
-          // You might also want to store the token/user data in your auth state here
         } else {
           setErrors({ general: "Google sign-in failed. Please try again." });
         }
@@ -225,9 +248,22 @@ function SignUp() {
       // Handle successful registration
       console.log("Registration successful:", result);
 
-      // You might want to show a success message or redirect
-      // navigate("/signin", { state: { message: "Registration successful! Please sign in." } });
-      // Or redirect to email verification page
+      // Dispatch user data to Redux store
+      dispatch(
+        setUserInfo({
+          _id: result.user.id,
+          email: result.user.email,
+          userType: result.user.userType,
+          plan: result.user.plan,
+          isGoogleUser: false,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+        })
+      );
+
+      // Dispatch token to auth store
+      dispatch(loginUser(result.token));
+
       navigate("/check-email", { state: { email: formData.email } });
     } catch (error: unknown) {
       console.error("Registration failed:", error);

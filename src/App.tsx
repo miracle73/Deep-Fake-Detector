@@ -16,34 +16,104 @@ import ForgotPassword from "./pages/forgotPassword";
 import ResetPassword from "./pages/resetPassword";
 import ImageScreen from "./pages/image";
 import AudioScreen from "./pages/audio";
+import { useSelector } from "react-redux";
+import type { RootState } from "./store/store";
+import { Navigate } from "react-router-dom";
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
+
+  return isAuthenticated ? children : <Navigate to="/signin" replace />;
+};
 
 function App() {
   return (
     <>
       <Router>
         <Routes>
-          <Route path="/" element={<DeepfakeDetector />} />
+          {/* Public Routes */}
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/video-detection" element={<VideoScreen />} />
-          <Route path="/plans" element={<SubscriptionPlans />} />
-          <Route path="/notifications" element={<Notifications />} />
-
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/billing" element={<Billing />} />
-
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-
-          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/check-email" element={<CheckEmail />} />
-          <Route path="/image-detection" element={<ImageScreen />} />
-          <Route path="/audio-detection" element={<AudioScreen />} />
-
           <Route
             path="/terms-and-conditions"
             element={<TermsAndConditions />}
+          />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/" element={<DeepfakeDetector />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/video-detection"
+            element={
+              <ProtectedRoute>
+                <VideoScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/plans"
+            element={
+              <ProtectedRoute>
+                <SubscriptionPlans />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/billing"
+            element={
+              <ProtectedRoute>
+                <Billing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/image-detection"
+            element={
+              <ProtectedRoute>
+                <ImageScreen />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/audio-detection"
+            element={
+              <ProtectedRoute>
+                <AudioScreen />
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </Router>

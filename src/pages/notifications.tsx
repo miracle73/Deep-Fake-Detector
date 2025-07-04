@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { NoAnalysisYet } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
+import { useGetUserQuery } from "../services/apiService";
 
 // Mock notifications data - replace with your actual data source
 const mockNotifications = [
@@ -43,7 +44,7 @@ const mockNotifications = [
 const Notifications = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-
+  const { data: userData } = useGetUserQuery();
   const [selectedNotification, setSelectedNotification] =
     useState<Notification | null>(null);
   // Toggle this to show/hide notifications for testing
@@ -126,7 +127,7 @@ const Notifications = () => {
               Upgrade
             </button>
 
-            <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+            {/* <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
                   U
@@ -134,6 +135,19 @@ const Notifications = () => {
               </div>
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
+              </span>
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+            </div> */}
+            <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-600">
+                  {userData?.data?.user?.firstName
+                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                    : "U"}
+                </span>
+              </div>
+              <span className="hidden sm:inline text-sm text-gray-700">
+                {userData?.data?.user?.firstName || "Username"}
               </span>
               <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>

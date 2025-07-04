@@ -1,12 +1,222 @@
-import { Check, Plus, X, Mail } from "lucide-react";
-import { useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { Check, Plus, X, Mail, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  useSubscriptionPlansQuery,
+  useCheckoutMutation,
+} from "../services/apiService";
+import { useGetUserQuery } from "../services/apiService";
+
+// Type definitions matching the API service
+interface SubscriptionPlan {
+  id: string;
+  object: string;
+  active: boolean;
+  attributes: unknown[];
+  created: number;
+  default_price: string;
+  description: string;
+  images: unknown[];
+  livemode: boolean;
+  marketing_features: unknown[];
+  metadata: Record<string, unknown>;
+  name: string;
+  package_dimensions: unknown;
+  shippable: unknown;
+  statement_descriptor: unknown;
+  tax_code: unknown;
+  type: string;
+  unit_label: unknown;
+  updated: number;
+  url: unknown;
+}
+
+interface SubscriptionPlansResponse {
+  success: boolean;
+  message: string;
+  data: {
+    object: string;
+    data: SubscriptionPlan[];
+    has_more: boolean;
+    url: string;
+  };
+}
 
 const SubscriptionPlans = () => {
   const [selectedTab, setSelectedTab] = useState("Individual");
-  // const navigate = useNavigate();
-
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const {
+    data: userData,
+    // isLoading: userLoading,
+    // error: userError,
+  } = useGetUserQuery();
+  // Fetch subscription plans from API
+  const {
+    data: plansData,
+    isLoading,
+    error,
+  } = useSubscriptionPlansQuery() as {
+    data: SubscriptionPlansResponse | undefined;
+    isLoading: boolean;
+    error: unknown;
+  };
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000); // Auto-dismiss after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
+  // Checkout mutation
+  const [checkout] = useCheckoutMutation();
+
+  // Helper function to map plan names to display information
+  const getPlanDisplayInfo = (planName: string) => {
+    switch (planName) {
+      case "SAFEGUARD_FREE":
+        return {
+          displayName: "Free",
+          price: "$0",
+          billing: "Try Safeguard Media for free",
+          features: ["Analyze media for up to 4,000 seconds each month."],
+        };
+      case "SAFEGUARD_PRO":
+        return {
+          displayName: "Pro",
+          price: "$10",
+          billing: "per month, billed annually",
+          features: [
+            "All features in Free mode.",
+            "30 media analysis each month.",
+          ],
+        };
+      case "SAFEGUARD_MAX":
+        return {
+          displayName: "Max",
+          price: "$25",
+          billing: "per month, billed annually",
+          features: [
+            "All features in Pro mode.",
+            "Unlimited access to all features each month.",
+          ],
+        };
+      default:
+        return {
+          displayName: planName,
+          price: "Contact Us",
+          billing: "Custom pricing",
+          features: ["Custom features available"],
+        };
+    }
+  };
+
+  // Helper function to get current user plan
+  const getCurrentUserPlan = () => {
+    console.log(userData?.data?.user?.plan);
+    return userData?.data?.user?.plan || null;
+  };
+
+  // Helper function to check if plan is current user's plan
+  // const isCurrentPlan = (planName: string) => {
+  //   const currentPlan = getCurrentUserPlan();
+  //   return currentPlan === planName;
+  // };
+
+  // Helper function to check if plan is current user's plan
+  const isCurrentPlan = (planName: string) => {
+    const currentPlan = getCurrentUserPlan();
+
+    // Handle the naming mismatch between API response and plan names
+    if (!currentPlan) {
+      return false;
+    }
+    const normalizedCurrentPlan = currentPlan.toUpperCase();
+    const normalizedPlanName = planName;
+
+    console.log("Current plan from API:", currentPlan);
+    console.log("Normalized current plan:", normalizedCurrentPlan);
+    console.log("Plan name to check:", normalizedPlanName);
+
+    return normalizedCurrentPlan === normalizedPlanName;
+  };
+
+  // Helper function to get button text and state
+  const getButtonConfig = (planName: string) => {
+    if (isCurrentPlan(planName)) {
+      return {
+        text: "Current Plan",
+        disabled: true,
+      };
+    }
+    return {
+      text: "Upgrade",
+      disabled: false,
+    };
+  };
+  // Handle checkout process
+  const handleGetStarted = async (plan: SubscriptionPlan) => {
+    // Clear any previous error messages
+    setErrorMessage(null);
+
+    if (isCurrentPlan(plan.name)) {
+      return;
+    }
+    // For free plan, you might want to handle differently
+    if (plan.name === "SAFEGUARD_FREE") {
+      // Handle free plan signup logic here
+      console.log("Free plan selected");
+      return;
+    }
+
+    try {
+      setLoadingPlanId(plan.id);
+
+      const response = await checkout({
+        priceId: plan.default_price,
+      }).unwrap();
+
+      if (response.success && response.data.sessionUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.sessionUrl;
+      } else {
+        console.error("Checkout failed:", response);
+        setErrorMessage("Failed to initialize checkout. Please try again.");
+      }
+    } catch (error: unknown) {
+      console.error("Checkout error:", error);
+
+      // Extract error message from the API response
+      let errorMsg = "An unexpected error occurred. Please try again.";
+
+      if (error && typeof error === "object" && "data" in error) {
+        const apiError = error as { data?: { message?: string } };
+        if (apiError.data?.message) {
+          errorMsg = apiError.data.message;
+        }
+      } else if (error && typeof error === "object" && "message" in error) {
+        const messageError = error as { message: string };
+        errorMsg = messageError.message;
+      }
+
+      setErrorMessage(errorMsg);
+    } finally {
+      setLoadingPlanId(null);
+    }
+  };
+
+  // Sort plans in desired order: Free, Pro, Max with proper null checking
+  const sortedPlans = plansData?.data?.data
+    ? [...plansData.data.data].sort(
+        (a: SubscriptionPlan, b: SubscriptionPlan) => {
+          const order = ["SAFEGUARD_FREE", "SAFEGUARD_PRO", "SAFEGUARD_MAX"];
+          return order.indexOf(a.name) - order.indexOf(b.name);
+        }
+      )
+    : [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -31,6 +241,22 @@ const SubscriptionPlans = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12">
+        {/*  error message section */}
+        {errorMessage && (
+          <div className="mb-6 max-w-3xl mx-auto">
+            <div className="flex items-center p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              <X className="w-5 h-5 mr-3 flex-shrink-0" />
+              <span className="flex-1">{errorMessage}</span>
+              <button
+                type="button"
+                onClick={() => setErrorMessage(null)}
+                className="ml-3 text-red-400 hover:text-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
         {/* Pricing Section */}
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8">
@@ -92,111 +318,100 @@ const SubscriptionPlans = () => {
           {/* Pricing Cards */}
           {selectedTab === "Individual" && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {/* Free Plan */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
-                <div className="text-left h-full flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Free
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-gray-900">$0</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Try Safeguard Media for free
-                  </p>
-
-                  <div className="space-y-3 mb-8 flex-1">
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        Analyze media for up to 4,000 seconds each month.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-full flex justify-center items-center">
-                    <button className="bg-gray-900 hover:bg-gray-800 text-white py-3 px-6 rounded-[40px] font-medium transition-colors">
-                      Get Started
-                    </button>
-                  </div>
+              {isLoading ? (
+                <div className="col-span-3 flex justify-center items-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+                  <span className="ml-2 text-gray-500">Loading plans...</span>
                 </div>
-              </div>
-
-              {/* Pro Plan */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
-                <div className="text-left h-full flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Pro
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-gray-900">
-                      $19
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    per month, billed annually
+              ) : error ? (
+                <div className="col-span-3 text-center py-12">
+                  <p className="text-red-500 mb-4">
+                    Failed to load subscription plans
                   </p>
-
-                  <div className="space-y-3 mb-8 flex-1">
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        All features in Free mode.
-                      </span>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        Analyze media for 15,000 seconds each month.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-full flex justify-center items-center">
-                    <button className="bg-gray-900 hover:bg-gray-800 text-white py-3 px-6 rounded-[40px] font-medium transition-colors">
-                      Get Started
-                    </button>
-                  </div>
+                  <p className="text-gray-600">Please try again later</p>
                 </div>
-              </div>
+              ) : sortedPlans && sortedPlans.length > 0 ? (
+                sortedPlans.map((plan: SubscriptionPlan) => {
+                  const displayInfo = getPlanDisplayInfo(plan.name);
 
-              {/* Max Plan */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
-                <div className="text-left h-full flex flex-col">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Max
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-gray-900">
-                      $49
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    per month, billed annually
-                  </p>
+                  return (
+                    <div
+                      key={plan.id}
+                      className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8"
+                    >
+                      <div className="text-left h-full flex flex-col">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {displayInfo.displayName}
+                        </h3>
+                        <div className="mb-4">
+                          <span className="text-4xl font-bold text-gray-900">
+                            {displayInfo.price}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-6">
+                          {displayInfo.billing}
+                        </p>
 
-                  <div className="space-y-3 mb-8 flex-1">
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        All features in Pro mode.
-                      </span>
+                        <div className="space-y-3 mb-8 flex-1">
+                          {displayInfo.features.map((feature, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start space-x-3"
+                            >
+                              <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">
+                                {feature}
+                              </span>
+                            </div>
+                          ))}
+                          {plan.description && (
+                            <div className="flex items-start space-x-3">
+                              <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">
+                                {plan.description}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="w-full flex justify-center items-center">
+                          {(() => {
+                            const buttonConfig = getButtonConfig(plan.name);
+                            const isLoadingThis = loadingPlanId === plan.id;
+                            const isDisabled =
+                              isLoadingThis || buttonConfig.disabled;
+
+                            return (
+                              <button
+                                onClick={() => handleGetStarted(plan)}
+                                disabled={isDisabled}
+                                className={`py-3 px-6 rounded-[40px] font-medium transition-colors flex items-center justify-center min-w-[120px] ${
+                                  buttonConfig.disabled
+                                    ? "bg-gray-900 text-white cursor-not-allowed opacity-50"
+                                    : "bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white"
+                                }`}
+                              >
+                                {isLoadingThis ? (
+                                  <>
+                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                    Processing...
+                                  </>
+                                ) : (
+                                  buttonConfig.text
+                                )}
+                              </button>
+                            );
+                          })()}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">
-                        Analyze media for 45,000 seconds each month.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-full flex justify-center items-center">
-                    <button className="bg-gray-900 hover:bg-gray-800 text-white py-3 px-6 rounded-[40px] font-medium transition-colors">
-                      Get Started
-                    </button>
-                  </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-3 text-center py-12">
+                  <p className="text-gray-500">No plans available</p>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -405,6 +620,7 @@ const SubscriptionPlans = () => {
           </div>
         </div>
       </main>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
