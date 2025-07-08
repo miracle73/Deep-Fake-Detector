@@ -421,3 +421,88 @@ export const generatePasswordResetEmail = (resetLink: string) => {
 
   `;
 };
+
+export const generateDemoConfirmationEmail = (name: string) => {
+  return `
+  <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Demo Confirmation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f6f9fc;
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .header h1 {
+        color: #2e3a59;
+      }
+      .button {
+        display: inline-block;
+        background-color: #3b82f6;
+        color: #ffffff !important;
+        padding: 12px 24px;
+        margin-top: 30px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 13px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>You're on the list 🎉</h1>
+      </div>
+
+      <p>Hi ${name || 'there'},</p>
+
+      <p>
+        Thanks for requesting early access to <strong>SafeguardMedia</strong>.
+        We’ve added you to the list and we’ll let you know the moment we launch.
+      </p>
+
+      <p>When we're live, you'll be able to:</p>
+      <ul>
+        <li>✅ Upload and verify your own photos and videos instantly</li>
+        <li>✅ Learn how to spot deepfakes in real-time</li>
+        <li>✅ Use tools tailored to your content type</li>
+        <li>✅ Start your free plan — no credit card required</li>
+      </ul>
+
+      <p>
+        We’re putting the final touches on the platform and can’t wait to show you what’s coming.
+      </p>
+
+      <p>Stay sharp,<br />
+      — The SafeguardMedia Team</p>
+
+      <div class="footer">
+        You’re receiving this email because you requested early demo access to SafeguardMedia.<br />
+        If this wasn’t you, please ignore this message.
+      </div>
+    </div>
+  </body>
+</html>
+`;
+};
