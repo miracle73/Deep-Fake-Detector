@@ -1,11 +1,10 @@
 import express from 'express';
 
+import * as AdminController from '../controllers/admin.controller.js';
 import { submitBusinessIntegration } from '../controllers/businessIntegration.controller.js';
-import { validateInput } from '../middlewares/validate';
 import { businessIntegrationSchema } from '../lib/schemas/businessIntegration.schema.js';
 import { authorizeRoles, protect } from '../middlewares/auth.js';
-
-import * as AdminController from '../controllers/admin.controller.js';
+import { validateInput } from '../middlewares/validate.js';
 
 const router = express.Router();
 

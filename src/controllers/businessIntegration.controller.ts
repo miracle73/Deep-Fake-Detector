@@ -4,6 +4,7 @@ import logger from '../utils/logger.js';
 
 import type { NextFunction, Request, Response } from 'express';
 import type { BusinessIntegrationType } from '../lib/schemas/businessIntegration.schema.js';
+
 export const submitBusinessIntegration = async (
   req: Request,
   res: Response,

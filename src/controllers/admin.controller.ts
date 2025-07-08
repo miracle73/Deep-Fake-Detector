@@ -1,8 +1,9 @@
+import { businessIntegrationSchema } from '../lib/schemas/businessIntegration.schema.js';
+import BusinessIntegration from '../models/BusinessIntegration.js';
+import { getDemoRequests } from '../services/demoRequest.service.js';
+import logger from '../utils/logger.js';
+
 import type { NextFunction, Request, Response } from 'express';
-import { businessIntegrationSchema } from 'lib/schemas/businessIntegration.schema';
-import BusinessIntegration from 'models/BusinessIntegration';
-import { getDemoRequests } from 'services/demoRequest.service';
-import logger from 'utils/logger';
 
 export const fetchDemoRequests = async (
   req: Request,

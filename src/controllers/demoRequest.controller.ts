@@ -1,7 +1,6 @@
-import { generateDemoConfirmationEmail } from 'utils/email.templates.js';
-
 import emailQueue from '../queues/emailQueue.js';
 import { createDemoUser } from '../services/demoRequest.service.js';
+import { generateDemoConfirmationEmail } from '../utils/email.templates.js';
 import logger from '../utils/logger.js';
 
 import type { Request, NextFunction, Response } from 'express';

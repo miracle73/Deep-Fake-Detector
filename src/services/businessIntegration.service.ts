@@ -1,5 +1,6 @@
-import type { BusinessIntegrationType } from 'lib/schemas/businessIntegration.schema';
-import BusinessIntegration from 'models/BusinessIntegration';
+import BusinessIntegration from '../models/BusinessIntegration.js';
+
+import type { BusinessIntegrationType } from '../lib/schemas/businessIntegration.schema.js';
 
 export const createBusinessIntegrationRequest = async (
   data: BusinessIntegrationType
