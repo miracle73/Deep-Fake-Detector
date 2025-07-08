@@ -14,6 +14,7 @@ import { limiter } from './middlewares/rateLimit.js';
 import { requestLogger } from './middlewares/requestLogger.js';
 import detectRoutes from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
+import businessIntegrationRoutes from './routes/businessIntegrationRoutes.js';
 import demoRequestRoutes from './routes/demoRequestRoutes.js';
 import { detectHandler } from './routes/detect.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
@@ -69,6 +70,7 @@ app.use('/api/v1/waitlist', waitlistRoutes);
 
 // demo request endpoints
 app.use('/api/v1/demo-request', demoRequestRoutes);
+app.use('/api/v1/business-integration', businessIntegrationRoutes);
 
 app.use(errorHandler as express.ErrorRequestHandler);
 

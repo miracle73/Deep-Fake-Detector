@@ -506,3 +506,57 @@ export const generateDemoConfirmationEmail = (name: string) => {
 </html>
 `;
 };
+
+export const generateBusinessIntegrationEmail = () => {
+  return `
+  <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>New Business Integration Request</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f8;
+        padding: 30px;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin: 0 auto;
+      }
+      h2 {
+        color: #1a202c;
+        margin-bottom: 20px;
+      }
+      p {
+        margin: 8px 0;
+      }
+      .label {
+        font-weight: bold;
+        color: #2d3748;
+      }
+      .footer {
+        margin-top: 30px;
+        font-size: 13px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>🚀 New Business Integration Request</h2>
+
+      <div class="footer">
+        Sent automatically from SafeguardMedia
+      </div>
+    </div>
+  </body>
+</html>
+`;
+};

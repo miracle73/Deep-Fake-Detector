@@ -15,9 +15,6 @@ export const Submit = async (
   try {
     const user = await createDemoUser(req.body as DemoRequest);
 
-    // add to queue
-    // await sendDemoConfirmationEmail(email, name); // basic "you’re on the waitlist" email
-
     const html = generateDemoConfirmationEmail(user.firstName);
 
     await emailQueue.add('demoConfirmationEmail', {
