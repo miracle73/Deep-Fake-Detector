@@ -1,5 +1,5 @@
-import DemoRequest from 'models/DemoRequest';
-import { AppError } from 'utils/error';
+import DemoRequest from '../models/DemoRequest.js';
+import { AppError } from '../utils/error.js';
 
 interface UserData {
   firstName: string;
@@ -25,4 +25,17 @@ export const createDemoUser = async (userdata: UserData) => {
   }
 
   return user;
+};
+
+export const getDemoRequests = async () => {
+  const demoRequests = await DemoRequest.find()
+    .sort({ createdAt: -1 })
+    .select('-__v')
+    .lean();
+
+  if (!demoRequests || demoRequests.length === 0) {
+    return [];
+  }
+
+  return demoRequests;
 };

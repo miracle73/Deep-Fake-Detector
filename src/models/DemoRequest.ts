@@ -77,6 +77,10 @@ const demoRequestSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  demoMailSent: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const DemoRequest = mongoose.model('DemoRequest', demoRequestSchema);
