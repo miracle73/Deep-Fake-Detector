@@ -4,7 +4,7 @@ import User from '../models/User.js';
 import { NotFoundError, ValidationError } from '../utils/error.js';
 import logger from '../utils/logger.js';
 
-import type { NextFunction, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import type { AuthRequest } from '../middlewares/auth.js';
 
 export async function getCurrentUser(
@@ -113,3 +113,22 @@ export async function DeleteUser(
     next(error);
   }
 }
+
+export const GetBillingHistory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const result = req.user?.billingHistory;
+
+    res.status(200).json({
+      success: true,
+      message: 'Billing history fetched successfully',
+      data: result,
+    });
+  } catch (error) {
+    logger.error('Error fetching billing history', error);
+    next(error);
+  }
+};
