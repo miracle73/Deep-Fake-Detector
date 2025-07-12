@@ -7,7 +7,7 @@ export const getNotifications = async (req: Request, res: Response) => {
     createdAt: -1,
   });
   res
-    .status(20)
+    .status(200)
     .json({ success: true, message: 'Notification fetched', notifications });
 };
 

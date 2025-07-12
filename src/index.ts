@@ -68,7 +68,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/waitlist', waitlistRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // demo request endpoints
 app.use('/api/v1/demo-request', demoRequestRoutes);

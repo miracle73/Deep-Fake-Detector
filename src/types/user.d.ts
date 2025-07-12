@@ -28,6 +28,25 @@ export interface BillingHistoryItem {
   paymentMethod?: string;
 }
 
+export interface Notifications {
+  userId: string;
+  type:
+    | 'media_verified'
+    | 'media_flagged'
+    | 'system'
+    | 'credential_verified'
+    | 'credential_denied'
+    | 'transaction'
+    | 'account'
+    | 'promotional';
+  title: string;
+  message: string;
+  link?: string;
+  read: boolean;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  metadata?: any;
+  expiresAt?: Date;
+}
 export interface TeamMember {
   userId: string;
   email: string;
@@ -68,6 +87,7 @@ export interface BaseUserFields {
   unlimitedQuota: boolean;
   lastLogin?: Date;
   role: string;
+  notifications: string[];
   usageQuota: {
     monthlyAnalysis: number;
     remainingAnalysis: number;

@@ -152,6 +152,13 @@ const UserSchema: Schema = new Schema(
     },
     teamMembers: [TeamMemberSchema],
     apiAccess: ApiAccessSchema,
+    notifications: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Notification',
+        index: true,
+      },
+    ],
   },
   {
     timestamps: true,

@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
 
 import { formatUserResponse } from '../lib/helpers.js';
+import { Notification } from '../models/Notification.js';
 import User from '../models/User.js';
 import emailQueue from '../queues/emailQueue.js';
 import { stripe } from '../services/stripeService.js';
@@ -26,7 +27,6 @@ import type {
 } from '../lib/schemas/user.schema.js';
 
 import type { NextFunction, Request, Response } from 'express';
-import type { Secret } from 'jsonwebtoken';
 import type {
   ForgotPasswordInput,
   LoginInput,
@@ -143,6 +143,18 @@ export const register = async (
 
     userData.stripeCustomerId = stripeCustomer.id;
     const user = await User.create(userData);
+
+    const createdNotification = await Notification.create({
+      userId: user._id,
+      type: 'system',
+      title: 'Welcome to SafeGuard Media',
+      message: 'Lorem ipsum dolor elistir',
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    user.notifications.push(createdNotification._id.toString());
+    await user.save();
+
     const token = generateToken(user._id.toString());
 
     const emailToken = generateEmailVerificationToken(user._id.toString());
@@ -201,6 +213,7 @@ export const login = async (
     }
 
     user.lastLogin = new Date();
+
     await user.save();
 
     const token = generateToken(user._id.toString());
