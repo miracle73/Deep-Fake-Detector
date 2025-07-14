@@ -32,6 +32,7 @@ function Signin() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [googleLogin] = useGoogleLoginMutation();
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const [login] = useLoginMutation();
   useEffect(() => {
@@ -43,6 +44,17 @@ function Signin() {
       return () => clearTimeout(timer);
     }
   }, [errors.general]);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (token) => {
       console.log("Google token received:", token);
@@ -77,8 +89,14 @@ function Signin() {
           // Store token in localStorage for persistence
           localStorage.setItem("authToken", response.token);
 
-          // Navigate to dashboard
-          navigate("/dashboard");
+          setSuccessMessage(
+            "Google sign-in successful! Redirecting to dashboard..."
+          );
+
+          // Navigate to dashboard after a brief delay
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 1500);
         } else {
           setErrors({ general: "Google sign-in failed. Please try again." });
         }
@@ -199,9 +217,13 @@ function Signin() {
       // Store token in localStorage for persistence
       localStorage.setItem("authToken", result.token);
 
-      // Navigate to dashboard
-      navigate("/dashboard");
-      // Or handle token storage, user context, etc.
+      // Show success message
+      setSuccessMessage("Login successful! Redirecting to dashboard...");
+
+      // Navigate to dashboard after a brief delay
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
     } catch (error: unknown) {
       console.error("Login failed:", error);
 
@@ -260,6 +282,33 @@ function Signin() {
                     type="button"
                     onClick={() => setErrors({ ...errors, general: undefined })}
                     className="ml-auto text-red-400 hover:text-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {successMessage && (
+                <div className="flex items-center p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="w-4 h-4 mr-2 flex-shrink-0">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <span>{successMessage}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSuccessMessage("")}
+                    className="ml-auto text-green-400 hover:text-green-600"
                   >
                     <X className="w-4 h-4" />
                   </button>

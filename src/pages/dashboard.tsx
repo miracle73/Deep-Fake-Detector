@@ -10,87 +10,149 @@ import {
   // FileText,
   // HelpCircle,
   AudioLines,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
+  // MoreHorizontal,
+  // ChevronLeft,
+  // ChevronRight,
   Menu,
   X,
 } from "lucide-react";
-import { NoAnalysisYet, UploadIcon } from "../assets/svg";
-import FirstImage from "../assets/images/firstImage.png";
-import SecondImage from "../assets/images/secondImage.png";
+import {
+  // NoAnalysisYet,
+  UploadIcon,
+} from "../assets/svg";
+// import FirstImage from "../assets/images/firstImage.png";
+// import SecondImage from "../assets/images/secondImage.png";
 import ThirdImage from "../assets/images/thirdImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
-const mockAnalyses = [
-  {
-    id: 1,
-    fileName: "Video_Clip_01.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Authentic",
-    confidence: 88,
-    type: "video",
-    image: FirstImage,
-  },
-  {
-    id: 2,
-    fileName: "Audio_Clip_02.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Uncertain",
-    confidence: 20,
-    type: "audio",
-    image: SecondImage,
-  },
-  {
-    id: 3,
-    fileName: "Image_Clip_03.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Deepfake",
-    confidence: 97,
-    type: "image",
-    image: FirstImage,
-  },
-  {
-    id: 4,
-    fileName: "Video_Clip_04.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Deepfake",
-    confidence: 98,
-    type: "video",
-    image: SecondImage,
-  },
-];
+// const mockAnalyses = [
+//   {
+//     id: 1,
+//     fileName: "Video_Clip_01.mp4",
+//     thumbnail: "/placeholder.svg?height=40&width=40",
+//     uploadDate: "May 10, 2025, 08:15 AM",
+//     status: "Authentic",
+//     confidence: 88,
+//     type: "video",
+//     image: FirstImage,
+//   },
+//   {
+//     id: 2,
+//     fileName: "Audio_Clip_02.mp4",
+//     thumbnail: "/placeholder.svg?height=40&width=40",
+//     uploadDate: "May 10, 2025, 08:15 AM",
+//     status: "Uncertain",
+//     confidence: 20,
+//     type: "audio",
+//     image: SecondImage,
+//   },
+//   {
+//     id: 3,
+//     fileName: "Image_Clip_03.mp4",
+//     thumbnail: "/placeholder.svg?height=40&width=40",
+//     uploadDate: "May 10, 2025, 08:15 AM",
+//     status: "Deepfake",
+//     confidence: 97,
+//     type: "image",
+//     image: FirstImage,
+//   },
+//   {
+//     id: 4,
+//     fileName: "Video_Clip_04.mp4",
+//     thumbnail: "/placeholder.svg?height=40&width=40",
+//     uploadDate: "May 10, 2025, 08:15 AM",
+//     status: "Deepfake",
+//     confidence: 98,
+//     type: "video",
+//     image: SecondImage,
+//   },
+// ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [dragActive, setDragActive] = useState(false);
   const [hasAnalyses, setHasAnalyses] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{
     name: string;
     size: string;
     thumbnail: string;
   } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { data: userData } = useGetUserQuery();
   // Modify the handleUploadMedia function
+
   const handleUploadMedia = () => {
+    const fileInput = document.getElementById(
+      "file-upload-input"
+    ) as HTMLInputElement;
+    fileInput?.click();
+  };
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
     setIsUploading(true);
 
-    // Simulate file upload with delay
+    // Generate preview based on file type
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFilePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type.startsWith("video/")) {
+      // For videos, create a video element to extract thumbnail
+      const video = document.createElement("video");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        video.currentTime = 1; // Seek to 1 second
+      };
+
+      video.onseeked = () => {
+        if (ctx) {
+          ctx.drawImage(video, 0, 0);
+          setFilePreview(canvas.toDataURL());
+        }
+      };
+
+      video.src = URL.createObjectURL(file);
+    } else {
+      // For audio files, use a default audio icon or create a simple preview
+      setFilePreview(null);
+    }
+
+    // Format file size
+    const formatFileSize = (bytes: number) => {
+      if (bytes === 0) return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    // Simulate upload delay
     setTimeout(() => {
       setUploadedFile({
-        name: "Video_Clip_01.mp4",
-        size: "17.53 MB",
-        thumbnail: ThirdImage,
+        name: file.name,
+        size: formatFileSize(file.size),
+        thumbnail: filePreview || ThirdImage,
       });
       setIsUploading(false);
-    }, 3000);
+    }, 1000);
+  };
+
+  // Add this function to handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -107,7 +169,36 @@ const Dashboard = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    // Handle file drop logic here
+
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      const file = files[0];
+      // Check if file type is supported
+      const supportedTypes = [
+        "video/mp4",
+        "video/avi",
+        "video/quicktime",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "audio/mp3",
+        "audio/mpeg",
+        "audio/wav",
+        "audio/aac",
+      ];
+
+      if (
+        supportedTypes.includes(file.type) ||
+        file.name.match(/\.(mp4|avi|mov|jpeg|jpg|png|webp|mp3|wav|aac)$/i)
+      ) {
+        handleFileSelect(file);
+      } else {
+        alert(
+          "Unsupported file type. Please upload MP4, AVI, MOV, JPEG, PNG, WEBP, MP3, WAV, or AAC files."
+        );
+      }
+    }
   };
 
   // const handleUploadMedia = () => {
@@ -129,19 +220,19 @@ const Dashboard = () => {
     console.log("Analysing media...");
     setUploadedFile(null);
   };
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
-    switch (status) {
-      case "Authentic":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "Uncertain":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "Deepfake":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
-  };
+  // const getStatusBadge = (status: string) => {
+  //   const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+  //   switch (status) {
+  //     case "Authentic":
+  //       return `${baseClasses} bg-green-100 text-green-800`;
+  //     case "Uncertain":
+  //       return `${baseClasses} bg-yellow-100 text-yellow-800`;
+  //     case "Deepfake":
+  //       return `${baseClasses} bg-red-100 text-red-800`;
+  //     default:
+  //       return `${baseClasses} bg-gray-100 text-gray-800`;
+  //   }
+  // };
 
   return (
     <div className={`min-h-screen bg-gray-50`}>
@@ -348,11 +439,23 @@ const Dashboard = () => {
                     <div className="flex flex-col items-center space-y-4">
                       {/* Video Thumbnail */}
                       <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200">
-                        <img
-                          src={ThirdImage}
-                          alt="Video thumbnail"
-                          className="w-full h-full object-cover"
-                        />
+                        {filePreview ? (
+                          <img
+                            src={filePreview}
+                            alt="File preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : selectedFile?.type.startsWith("audio/") ? (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                            <AudioLines className="w-8 h-8 text-gray-600" />
+                          </div>
+                        ) : (
+                          <img
+                            src={ThirdImage}
+                            alt="File thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </div>
 
                       {/* File Info */}
@@ -386,6 +489,21 @@ const Dashboard = () => {
               </div>
             </div>
 
+            {/* Hidden file input */}
+            <input
+              type="file"
+              ref={(input) => {
+                if (input) {
+                  input.onclick = () => {
+                    input.value = "";
+                  };
+                }
+              }}
+              onChange={handleFileInputChange}
+              accept=".mp4,.avi,.mov,.jpeg,.jpg,.png,.webp,.mp3,.wav,.aac"
+              style={{ display: "none" }}
+              id="file-upload-input"
+            />
             {/* Right Sidebar */}
             <div className="w-full lg:w-1/3 p-4 sm:p-6 lg:mt-22">
               {/* Combined Subscription and How it Works Card */}
@@ -429,7 +547,7 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Analyses Section - Full Width */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+          {/* <div className="px-4 sm:px-6 pb-4 sm:pb-6">
             <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
               <div className="mb-6">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
@@ -439,12 +557,12 @@ const Dashboard = () => {
                   Review the results of your recently uploaded media files.
                   Results are stored for 30 days.
                 </p>
-              </div>
-
+              </div> */}
+          {/* 
               {hasAnalyses ? (
-                /* Analyses Table View */
+            
                 <div>
-                  {/* Desktop Table Header */}
+       
                   <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500">
                     <div className="col-span-4">File name/thumbnail</div>
                     <div className="col-span-3">Upload date/time</div>
@@ -453,11 +571,10 @@ const Dashboard = () => {
                     <div className="col-span-1"></div>
                   </div>
 
-                  {/* Table Rows */}
                   <div className="space-y-3 mt-4">
                     {mockAnalyses.map((analysis) => (
                       <div key={analysis.id}>
-                        {/* Desktop Row */}
+                    
                         <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
                           <div className="col-span-4 flex items-center space-x-3">
                             <div className="w-10 h-10 rounded-lg flex items-center justify-center">
@@ -493,7 +610,7 @@ const Dashboard = () => {
                           </div>
                         </div>
 
-                        {/* Mobile Card */}
+                  
                         <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
                           <div className="flex items-start space-x-3">
                             <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -532,10 +649,9 @@ const Dashboard = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
+                  </div>  */}
 
-                  {/* Pagination */}
-                  <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
+          {/* <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
                     <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
                       <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                     </button>
@@ -559,7 +675,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <>
-                  {/* Empty State */}
+           
                   <div className="text-center py-8 sm:py-12">
                     <div className="flex justify-center items-center mb-4">
                       <NoAnalysisYet />
@@ -578,7 +694,7 @@ const Dashboard = () => {
                 </>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -47,6 +47,7 @@ function SignUp() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const [register] = useRegisterMutation();
   useEffect(() => {
@@ -58,6 +59,17 @@ function SignUp() {
       return () => clearTimeout(timer);
     }
   }, [errors.general]);
+
+  // Add this useEffect after the existing error useEffect
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -114,9 +126,13 @@ function SignUp() {
 
           // Store token in localStorage for persistence
           localStorage.setItem("authToken", response.token);
-
-          // Navigate to dashboard
-          navigate("/dashboard");
+          setSuccessMessage(
+            "Google signup successful! Redirecting to dashboard..."
+          );
+          // Navigate to dashboard after a brief delay
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 1500);
         } else {
           setErrors({ general: "Google sign-in failed. Please try again." });
         }
@@ -263,6 +279,7 @@ function SignUp() {
 
       // Dispatch token to auth store
       dispatch(loginUser(result.token));
+      setSuccessMessage("Signup successful! Redirecting to verify email");
 
       navigate("/check-email", { state: { email: formData.email } });
     } catch (error: unknown) {
@@ -328,6 +345,33 @@ function SignUp() {
                     type="button"
                     onClick={() => setErrors({ ...errors, general: undefined })}
                     className="ml-auto text-red-400 hover:text-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {successMessage && (
+                <div className="flex items-center p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="w-4 h-4 mr-2 flex-shrink-0">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <span>{successMessage}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSuccessMessage("")}
+                    className="ml-auto text-green-400 hover:text-green-600"
                   >
                     <X className="w-4 h-4" />
                   </button>
