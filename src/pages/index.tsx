@@ -7,7 +7,7 @@ import { Check, Plus, X } from "lucide-react";
 import { FaArrowDownLong } from "react-icons/fa6";
 import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
-import TravelImage from "../assets/images/travel-image.png";
+import TravelImage from "../assets/images/recent.jpg";
 import ScanImage from "../assets/images/scan-image.png";
 import MediaHouseImage from "../assets/images/mediahouse-image.png";
 

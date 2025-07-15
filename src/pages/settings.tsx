@@ -283,7 +283,12 @@ const Settings = () => {
               </span>
               <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div> */}
-            <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
+            <div
+              className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
+              onClick={() => {
+                navigate("/settings");
+              }}
+            >
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
                   {userData?.data?.user?.firstName
