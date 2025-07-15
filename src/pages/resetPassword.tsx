@@ -161,7 +161,7 @@ function ResetPassword() {
             onClick={() => navigate("/")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go back to home
+            Go back
           </button>
         </div>
 
@@ -215,7 +215,7 @@ function ResetPassword() {
           onClick={() => navigate("/")}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Go back to home
+          Go back
         </button>
       </div>
 
