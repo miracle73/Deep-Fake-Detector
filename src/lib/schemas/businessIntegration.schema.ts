@@ -32,7 +32,7 @@ export const businessIntegrationSchema = z.object({
   email: emailSchema,
   companyName: requiredString('Company name', 2, 100),
   companyWebsite: urlSchema,
-  businessNeeds: requiredString('Business needs', 10, 500),
+  businessNeeds: requiredString('Business needs', 1, 500),
   status: z.enum(statusOptions).default('new'),
 });
 

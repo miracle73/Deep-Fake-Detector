@@ -238,7 +238,7 @@ export const googleLogin = async (
 ) => {
   try {
     const { email, googleId, firstName, lastName } = req.user as GoogleTempUser;
-    const { userType, agreedToTerms, plan = 'free' } = req.body;
+    const { userType, agreedToTerms, plan = 'SafeGuard_Free' } = req.body;
 
     if (!agreedToTerms) {
       throw new AppError(
