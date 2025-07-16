@@ -1,7 +1,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, AlertCircle, Loader, X } from "lucide-react";
-import BackgroundImage from "../assets/images/signin-page.png";
+import BackgroundImage from "../assets/images/signin-2.png";
 import { useLoginMutation } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";

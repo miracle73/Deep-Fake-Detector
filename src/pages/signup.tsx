@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, AlertCircle, Loader, Mail, X } from "lucide-react";
 import "../App.css";
-import BackgroundImage from "../assets/images/signin-page-2.png";
+import BackgroundImage from "../assets/images/signin-2.png";
 import { useNavigate } from "react-router-dom";
 import { useRegisterMutation } from "../services/apiService";
 import PhoneInput from "react-phone-number-input";
