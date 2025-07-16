@@ -1,9 +1,6 @@
-import type React from "react";
-
 import { useState } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -12,23 +9,16 @@ import {
   X,
   Download,
   Trash2,
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
 } from "lucide-react";
 import FourthImage from "../assets/images/fourthImage.png";
 import { BackIcon } from "../assets/svg";
-import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 const ImageScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration] = useState(531); // 8:51 in seconds
   const { data: userData } = useGetUserQuery();
   const handleBack = () => {
     // Handle back navigation
@@ -45,26 +35,6 @@ const ImageScreen = () => {
     console.log("Deleting report...");
   };
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
-  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = clickX / rect.width;
-    const newTime = Math.floor(percentage * duration);
-    setCurrentTime(newTime);
-  };
-
   return (
     <div className={`min-h-screen bg-gray-50`}>
       {/* Full Width Header */}
@@ -78,10 +48,16 @@ const ImageScreen = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div
@@ -123,7 +99,7 @@ const ImageScreen = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+       
             </div> */}
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
@@ -141,7 +117,6 @@ const ImageScreen = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 {userData?.data?.user?.firstName || "Username"}
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>
@@ -336,190 +311,16 @@ const ImageScreen = () => {
             </div>
           </div>
 
-          {/* Video Analysis Interface - New Section */}
-          <div className="px-2 sm:px-4 md:px-6 py-4 sm:py-6">
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-              {/* Video Player Interface - Left Side */}
-              <div className="w-full lg:w-2/3">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  {/* Video Player Controls */}
-                  <div className="p-4 sm:p-6">
-                    {/* Time Display and Controls */}
-                    <div className="flex flex-row items-center justify-center space-x-4 gap-2 sm:gap-4 mb-4">
-                      <div className="flex items-center justify-between sm:justify-start space-x-4 order-1 sm:order-1">
-                        <span className="text-sm font-mono text-gray-600">
-                          {formatTime(currentTime)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-center space-x-4 order-2 sm:order-2">
-                        <button
-                          onClick={() =>
-                            setCurrentTime(Math.max(0, currentTime - 10))
-                          }
-                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                          <SkipBack className="w-4 h-4 text-gray-600" />
-                        </button>
-                        <button
-                          onClick={handlePlayPause}
-                          className="p-3 bg-[#0F2FA3] hover:bg-blue-700 rounded-full transition-colors"
-                        >
-                          {isPlaying ? (
-                            <Pause className="w-5 h-5 text-white" />
-                          ) : (
-                            <Play className="w-5 h-5 text-white ml-0.5" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() =>
-                            setCurrentTime(Math.min(duration, currentTime + 10))
-                          }
-                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                          <SkipForward className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end space-x-4 order-3 sm:order-3">
-                        <span className="text-sm font-mono text-gray-600">
-                          {formatTime(duration)}
-                        </span>
-                      </div>
-                    </div>
-                    {/* Timeline Scrubber */}
-                    <div className="mb-4">
-                      <div
-                        className="relative h-1 bg-gray-200 rounded-full cursor-pointer"
-                        onClick={handleTimelineClick}
-                      >
-                        <div
-                          className="absolute top-0 left-0 h-full bg-[#0F2FA3] rounded-full transition-all duration-150"
-                          style={{
-                            width: `${(currentTime / duration) * 100}%`,
-                          }}
-                        />
-                        <div
-                          className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-[#0F2FA3] rounded-full border-2 border-white shadow-md transition-all duration-150"
-                          style={{
-                            left: `${(currentTime / duration) * 100}%`,
-                            marginLeft: "-8px",
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Timeline Markers */}
-                    <div className="flex justify-between text-xs text-gray-500 mb-4 px-1">
-                      <span>0s</span>
-                      <span className="hidden xs:inline">1m</span>
-                      <span>2m</span>
-                      <span className="hidden xs:inline">4m</span>
-                      <span>6m</span>
-                      <span>8m</span>
-                    </div>
-
-                    {/* Video Thumbnails Timeline */}
-                    <div className="overflow-x-auto pb-2">
-                      <div
-                        className="flex space-x-1"
-                        style={{ minWidth: "max-content" }}
-                      >
-                        {Array.from({ length: 11 }, (_, i) => (
-                          <div
-                            key={i}
-                            className="flex-shrink-0 w-10 h-6 sm:w-12 sm:h-8 md:w-16 md:h-10 bg-gray-200 rounded border overflow-hidden cursor-pointer hover:border-[#0F2FA3] transition-colors"
-                            onClick={() =>
-                              setCurrentTime(Math.floor((i / 7) * duration))
-                            }
-                          >
-                            <img
-                              src={FifthImage || "/placeholder.svg"}
-                              alt={`Frame ${i + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Analysis Note */}
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-xs sm:text-sm text-gray-700">
-                        <span className="font-medium">Note:</span> Highlights
-                        indicate areas where our model detected anomalies most
-                        strongly associated with known deepfake methods.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Results Explanation Panel - Right Side */}
-              <div className="w-full lg:w-1/3">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full">
-                  {/* Header */}
-                  <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4">
-                    <h3 className="text-sm sm:text-base font-medium">
-                      What Do My Results Mean?
-                    </h3>
-                  </div>
-
-                  {/* Results Categories */}
-                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
-                    <h3 className="text-sm sm:text-base font-medium text-[#020717]">
-                      What Do My Results Mean?
-                    </h3>
-                    {/* Authentic */}
-                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
-                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#E8F8EA] rounded-full flex-shrink-0 self-start">
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#257933]">
-                          Authentic
-                        </h4>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                          Our model found little to no evidence of manipulation.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Uncertain */}
-                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
-                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#FFF8E5] rounded-full flex-shrink-0 self-start">
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#8F6D00]">
-                          Uncertain
-                        </h4>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                          Our model detected some indicators of manipulation,
-                          but the evidence isn't conclusive, or the media
-                          quality impacts certainty.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Deepfake */}
-                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
-                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#FDEDEE] rounded-full flex-shrink-0 self-start">
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#B5171F]">
-                          Deepfake
-                        </h4>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                          Our model found significant evidence suggesting this
-                          media has been manipulated.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Disclaimer Section */}
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 mt-5 ">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">Disclaimer:</span> Results are
+                provided for informational purposes only and users assume full
+                responsibility for any decisions based on these analyses.
+              </p>
             </div>
           </div>
-
-          {/* Recent Analyses Section - Full Width */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6"></div>
         </div>
       </div>
     </div>

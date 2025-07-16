@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -135,7 +134,6 @@ const Notifications2 = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>

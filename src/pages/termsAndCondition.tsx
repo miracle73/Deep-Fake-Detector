@@ -6,6 +6,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 function TermsAndConditions() {
   const navigate = useNavigate();
@@ -284,9 +285,13 @@ function TermsAndConditions() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-gray-900">Safeguard</span>
-              <span className="text-xl font-normal text-gray-600 ml-1">
-                Media
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
               </span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">

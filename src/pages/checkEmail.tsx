@@ -59,7 +59,7 @@ function CheckEmail() {
             onClick={() => navigate("/signup")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Sign Up
+            Go Back
           </button>
         </div>
         <div className="flex items-center justify-center">
@@ -159,7 +159,9 @@ function CheckEmail() {
                         console.log("Contact support");
                       }}
                     >
-                      contact support
+                      <a href="mailto:info@safeguardmedia.org">
+                        contact support
+                      </a>
                     </button>
                   </p>
                 </div>

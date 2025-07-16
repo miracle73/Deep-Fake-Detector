@@ -160,7 +160,7 @@ function ForgotPassword() {
           <button
             type="button"
             className="flex items-center text-sm hover:text-gray-200"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/signin")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Go back

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 const Billing = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,10 +35,16 @@ const Billing = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div
@@ -80,7 +86,7 @@ const Billing = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+            
             </div> */}
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
@@ -98,7 +104,6 @@ const Billing = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 {userData?.data?.user?.firstName || "Username"}
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>

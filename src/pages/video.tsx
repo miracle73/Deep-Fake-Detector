@@ -3,7 +3,6 @@ import type React from "react";
 import { useState } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -22,7 +21,7 @@ import { BackIcon } from "../assets/svg";
 import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
-
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 const VideoScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -78,10 +77,16 @@ const VideoScreen = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div
@@ -123,7 +128,7 @@ const VideoScreen = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+          
             </div> */}
             <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
@@ -136,7 +141,6 @@ const VideoScreen = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 {userData?.data?.user?.firstName || "Username"}
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>
@@ -513,8 +517,16 @@ const VideoScreen = () => {
             </div>
           </div>
 
-          {/* Recent Analyses Section - Full Width */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6"></div>
+          {/* Disclaimer Section */}
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">Disclaimer:</span> Results are
+                provided for informational purposes only and users assume full
+                responsibility for any decisions based on these analyses.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -3,7 +3,6 @@ import type React from "react";
 import { useState } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -16,20 +15,24 @@ import {
   Pause,
   SkipBack,
   SkipForward,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
-import FourthImage from "../assets/images/fourthImage.png";
 import { BackIcon } from "../assets/svg";
-import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 const AudioScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration] = useState(531); // 8:51 in seconds
+  const [duration] = useState(531);
+  const [volume, setVolume] = useState(0.8);
+  const [isMuted, setIsMuted] = useState(false);
   const { data: userData } = useGetUserQuery();
+
   const handleBack = () => {
     // Handle back navigation
     console.log("Going back...");
@@ -47,6 +50,16 @@ const AudioScreen = () => {
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
+  };
+
+  const handleVolumeToggle = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
   };
 
   const formatTime = (seconds: number) => {
@@ -78,10 +91,16 @@ const AudioScreen = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div
@@ -114,17 +133,6 @@ const AudioScreen = () => {
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  U
-                </span>
-              </div>
-              <span className="hidden sm:inline text-sm text-gray-700">
-                Username
-              </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-            </div> */}
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
               onClick={() => {
@@ -141,7 +149,6 @@ const AudioScreen = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 {userData?.data?.user?.firstName || "Username"}
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>
@@ -221,7 +228,6 @@ const AudioScreen = () => {
 
         {/* Main Content Container */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Upper Section: File Header + Right Sidebar */}
           {/* File Header Section - Full Width */}
           <div className="px-4 sm:px-6 pt-4 sm:pt-6">
             <div className=" p-2 sm:p-4 mb-2 sm:mb-6">
@@ -243,12 +249,12 @@ const AudioScreen = () => {
                   </div>
                   <div>
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                      Video_Clip_01.mp4
+                      Audio_Recording_01.mp3
                     </h2>
                   </div>
                   {/* File details */}
                   <div className="text-sm text-gray-600">
-                    <span>File size: 17.53 MB</span>
+                    <span>File size: 12.34 MB</span>
                     <span className="mx-2">•</span>
                     <span>Date: 9th May, 2025, 10:34 am</span>
                   </div>
@@ -276,22 +282,28 @@ const AudioScreen = () => {
             </div>
           </div>
 
-          {/* Video Preview and DF Results Section - Side by Side */}
+          {/* Audio Visualization and Results Section - Side by Side */}
           <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6">
-            {/* Video Preview - Left Side */}
+            {/* Audio Visualization - Left Side */}
             <div className="w-full lg:w-2/3">
-              <div className=" rounded-xl overflow-hidden">
-                <img
-                  src={FourthImage || "/placeholder.svg"}
-                  alt="Video preview showing analysis result"
-                  className="w-full h-auto"
-                />
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                {/* Audio waveform visualization placeholder */}
+                <div className="h-48 sm:h-64 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                  <div className="text-center">
+                    <AudioLines className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-sm">
+                      Audio Waveform Visualization
+                    </p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      Waveform will be displayed here
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* DF Results Card - Right Side */}
             <div className="w-full lg:w-1/3">
-              {/* DF Results Card */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full flex flex-col">
                 {/* Header with DF Results and Deepfake badge */}
                 <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
@@ -326,8 +338,8 @@ const AudioScreen = () => {
                       Result Summary:
                     </h4>
                     <p className="text-xs sm:text-sm text-[#020717] font-[300] leading-relaxed">
-                      Our model analysis found significant indicators on this
-                      media file strongly suggesting this media has been
+                      Our model analysis found significant indicators in this
+                      audio file strongly suggesting this media has been
                       manipulated using deepfake techniques.
                     </p>
                   </div>
@@ -336,13 +348,13 @@ const AudioScreen = () => {
             </div>
           </div>
 
-          {/* Video Analysis Interface - New Section */}
+          {/* Audio Analysis Interface - New Section */}
           <div className="px-2 sm:px-4 md:px-6 py-4 sm:py-6">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-              {/* Video Player Interface - Left Side */}
+              {/* Audio Player Interface - Left Side */}
               <div className="w-full lg:w-2/3">
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  {/* Video Player Controls */}
+                  {/* Audio Player Controls */}
                   <div className="p-4 sm:p-6">
                     {/* Time Display and Controls */}
                     <div className="flex flex-row items-center justify-center space-x-4 gap-2 sm:gap-4 mb-4">
@@ -385,6 +397,35 @@ const AudioScreen = () => {
                         </span>
                       </div>
                     </div>
+
+                    {/* Volume Control */}
+                    <div className="flex items-center justify-center space-x-3 mb-4">
+                      <button
+                        onClick={handleVolumeToggle}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        {isMuted || volume === 0 ? (
+                          <VolumeX className="w-4 h-4 text-gray-600" />
+                        ) : (
+                          <Volume2 className="w-4 h-4 text-gray-600" />
+                        )}
+                      </button>
+                      <div className="flex-1 max-w-32">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={isMuted ? 0 : volume}
+                          onChange={handleVolumeChange}
+                          className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500 w-8">
+                        {Math.round((isMuted ? 0 : volume) * 100)}%
+                      </span>
+                    </div>
+
                     {/* Timeline Scrubber */}
                     <div className="mb-4">
                       <div
@@ -417,25 +458,26 @@ const AudioScreen = () => {
                       <span>8m</span>
                     </div>
 
-                    {/* Video Thumbnails Timeline */}
-                    <div className="overflow-x-auto pb-2">
-                      <div
-                        className="flex space-x-1"
-                        style={{ minWidth: "max-content" }}
-                      >
-                        {Array.from({ length: 11 }, (_, i) => (
+                    {/* Audio Analysis Segments */}
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Analysis Segments
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {Array.from({ length: 8 }, (_, i) => (
                           <div
                             key={i}
-                            className="flex-shrink-0 w-10 h-6 sm:w-12 sm:h-8 md:w-16 md:h-10 bg-gray-200 rounded border overflow-hidden cursor-pointer hover:border-[#0F2FA3] transition-colors"
+                            className="p-2 bg-gray-50 rounded border cursor-pointer hover:bg-gray-100 transition-colors text-center"
                             onClick={() =>
-                              setCurrentTime(Math.floor((i / 7) * duration))
+                              setCurrentTime(Math.floor((i / 8) * duration))
                             }
                           >
-                            <img
-                              src={FifthImage || "/placeholder.svg"}
-                              alt={`Frame ${i + 1}`}
-                              className="w-full h-full object-cover"
-                            />
+                            <div className="text-xs text-gray-600">
+                              Segment {i + 1}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {formatTime(Math.floor((i / 8) * duration))}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -444,9 +486,10 @@ const AudioScreen = () => {
                     {/* Analysis Note */}
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="text-xs sm:text-sm text-gray-700">
-                        <span className="font-medium">Note:</span> Highlights
-                        indicate areas where our model detected anomalies most
-                        strongly associated with known deepfake methods.
+                        <span className="font-medium">Note:</span> Highlighted
+                        segments indicate areas where our model detected
+                        anomalies most strongly associated with known deepfake
+                        audio techniques.
                       </p>
                     </div>
                   </div>
@@ -492,7 +535,7 @@ const AudioScreen = () => {
                       <div className="flex-1">
                         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                           Our model detected some indicators of manipulation,
-                          but the evidence isn't conclusive, or the media
+                          but the evidence isn't conclusive, or the audio
                           quality impacts certainty.
                         </p>
                       </div>
@@ -508,7 +551,7 @@ const AudioScreen = () => {
                       <div className="flex-1">
                         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                           Our model found significant evidence suggesting this
-                          media has been manipulated.
+                          audio has been manipulated.
                         </p>
                       </div>
                     </div>
@@ -518,8 +561,16 @@ const AudioScreen = () => {
             </div>
           </div>
 
-          {/* Recent Analyses Section - Full Width */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6"></div>
+          {/* Disclaimer Section */}
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">Disclaimer:</span> Results are
+                provided for informational purposes only and users assume full
+                responsibility for any decisions based on these analyses.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

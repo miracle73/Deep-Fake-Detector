@@ -282,7 +282,7 @@ function SignUp() {
 
       // Dispatch token to auth store
       dispatch(loginUser(result.token));
-      setSuccessMessage("Signup successful! Redirecting to verify email");
+      setSuccessMessage("Signup successful! ");
 
       navigate("/check-email", { state: { email: formData.email } });
     } catch (error: unknown) {

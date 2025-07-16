@@ -5,6 +5,7 @@ import {
   useCheckoutMutation,
 } from "../services/apiService";
 import { useGetUserQuery } from "../services/apiService";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 // Type definitions matching the API service
 interface SubscriptionPlan {
@@ -225,10 +226,14 @@ const SubscriptionPlans = () => {
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                <span className="font-bold">Safeguard</span>{" "}
-                <span className="font-normal">Media</span>
-              </h1>
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
             </div>
             <div></div>
             {/* Mobile menu button */}

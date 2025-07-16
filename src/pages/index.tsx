@@ -7,9 +7,10 @@ import { Check, Plus, X } from "lucide-react";
 import { FaArrowDownLong } from "react-icons/fa6";
 import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
-import TravelImage from "../assets/images/recent2.jpg";
+import TravelImage from "../assets/images/front-4.png";
 import ScanImage from "../assets/images/scan-image.png";
 import MediaHouseImage from "../assets/images/mediahouse-image.png";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 export default function DeepfakeDetector() {
   const navigate = useNavigate();
@@ -84,9 +85,13 @@ export default function DeepfakeDetector() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-gray-900">Safeguard</span>
-              <span className="text-xl font-normal text-gray-600 ml-1">
-                Media
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
               </span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
@@ -110,7 +115,10 @@ export default function DeepfakeDetector() {
               >
                 FAQ
               </a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">
+              <a
+                href="mailto:info@safeguardmedia.org"
+                className="text-gray-600 hover:text-gray-900"
+              >
                 Support
               </a>
 
@@ -202,15 +210,15 @@ export default function DeepfakeDetector() {
           </svg>
 
           {/* Image Section */}
-          <div className="relative w-full lg:w-1/2 mb-6 lg:mb-0 ">
+          <div className="relative w-full lg:w-1/2 mb-6 lg:mb-0">
             <div
               ref={imageRef}
-              className="rounded-2xl  overflow-hidden shadow-md  mx-auto lg:mx-0"
+              className="rounded-2xl overflow-hidden shadow-md mx-auto lg:mx-0 h-[450px] lg:h-[400px]"
             >
               <img
-                src={TravelImage} // Replace with your TravelImage import
+                src={TravelImage}
                 alt="Person with yellow suitcase at ancient ruins"
-                className="w-full h-auto object-cover mx-auto lg:mx-0"
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
@@ -237,7 +245,7 @@ export default function DeepfakeDetector() {
               {/* Header with DF Results and Deepfake badge */}
               <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <span className="text-sm sm:text-base font-medium">
-                  Safeguard Media Results
+                  Safeguardmedia Results
                 </span>
                 <span className="bg-white text-red-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                   Deepfake
@@ -602,7 +610,7 @@ export default function DeepfakeDetector() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-6">
-                      Try Safeguard Media for free
+                      Try Safeguardmedia for free
                     </p>
 
                     <div className="space-y-3 mb-8 flex-grow">

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -17,6 +16,7 @@ import {
 } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 const Settings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -236,10 +236,16 @@ const Settings = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div
@@ -281,7 +287,7 @@ const Settings = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+           
             </div> */}
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
@@ -299,7 +305,6 @@ const Settings = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 {userData?.data?.user?.firstName || "Username"}
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>
@@ -581,6 +586,36 @@ const Settings = () => {
                     >
                       Unsubscribe all emails
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sign Out Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
+                {/* Left Column - Section Info and Button */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Sign Out
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Sign out of your account. You can always sign back in
+                      later.
+                    </p>
+                  </div>
+
+                  {/* Sign Out Button */}
+                  <div className="flex justify-start">
+                    <button
+                      onClick={() => {
+                        // Add your signout logic here
+                        localStorage.removeItem("authToken"); // or however you handle auth
+                        navigate("/signin");
+                      }}
+                      className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors"
+                    >
+                      Sign Out
+                    </button>
                   </div>
                 </div>
               </div>

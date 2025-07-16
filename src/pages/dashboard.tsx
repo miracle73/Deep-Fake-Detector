@@ -1,8 +1,7 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
-  ChevronDown,
   LayoutGrid,
   Video,
   ImageIcon,
@@ -10,69 +9,67 @@ import {
   // FileText,
   // HelpCircle,
   AudioLines,
-  // MoreHorizontal,
-  // ChevronLeft,
-  // ChevronRight,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
   Menu,
   X,
 } from "lucide-react";
-import {
-  // NoAnalysisYet,
-  UploadIcon,
-} from "../assets/svg";
-// import FirstImage from "../assets/images/firstImage.png";
-// import SecondImage from "../assets/images/secondImage.png";
+import { NoAnalysisYet, UploadIcon } from "../assets/svg";
+import FirstImage from "../assets/images/firstImage.png";
+import SecondImage from "../assets/images/secondImage.png";
 import ThirdImage from "../assets/images/thirdImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
-// const mockAnalyses = [
-//   {
-//     id: 1,
-//     fileName: "Video_Clip_01.mp4",
-//     thumbnail: "/placeholder.svg?height=40&width=40",
-//     uploadDate: "May 10, 2025, 08:15 AM",
-//     status: "Authentic",
-//     confidence: 88,
-//     type: "video",
-//     image: FirstImage,
-//   },
-//   {
-//     id: 2,
-//     fileName: "Audio_Clip_02.mp4",
-//     thumbnail: "/placeholder.svg?height=40&width=40",
-//     uploadDate: "May 10, 2025, 08:15 AM",
-//     status: "Uncertain",
-//     confidence: 20,
-//     type: "audio",
-//     image: SecondImage,
-//   },
-//   {
-//     id: 3,
-//     fileName: "Image_Clip_03.mp4",
-//     thumbnail: "/placeholder.svg?height=40&width=40",
-//     uploadDate: "May 10, 2025, 08:15 AM",
-//     status: "Deepfake",
-//     confidence: 97,
-//     type: "image",
-//     image: FirstImage,
-//   },
-//   {
-//     id: 4,
-//     fileName: "Video_Clip_04.mp4",
-//     thumbnail: "/placeholder.svg?height=40&width=40",
-//     uploadDate: "May 10, 2025, 08:15 AM",
-//     status: "Deepfake",
-//     confidence: 98,
-//     type: "video",
-//     image: SecondImage,
-//   },
-// ];
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
+const mockAnalyses = [
+  {
+    id: 1,
+    fileName: "Video_Clip_01.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Authentic",
+    confidence: 88,
+    type: "video",
+    image: FirstImage,
+  },
+  {
+    id: 2,
+    fileName: "Audio_Clip_02.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Uncertain",
+    confidence: 20,
+    type: "audio",
+    image: SecondImage,
+  },
+  {
+    id: 3,
+    fileName: "Image_Clip_03.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Deepfake",
+    confidence: 97,
+    type: "image",
+    image: FirstImage,
+  },
+  {
+    id: 4,
+    fileName: "Video_Clip_04.mp4",
+    thumbnail: "/placeholder.svg?height=40&width=40",
+    uploadDate: "May 10, 2025, 08:15 AM",
+    status: "Deepfake",
+    confidence: 98,
+    type: "video",
+    image: SecondImage,
+  },
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [dragActive, setDragActive] = useState(false);
   const [hasAnalyses, setHasAnalyses] = useState(true);
-  // const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{
     name: string;
@@ -82,15 +79,38 @@ const Dashboard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [hasConsented, setHasConsented] = useState(true);
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
+  const [showConsentModal, setShowConsentModal] = useState(false);
   const { data: userData } = useGetUserQuery();
   // Modify the handleUploadMedia function
 
   const handleUploadMedia = () => {
+    if (isFirstTimeUser && !hasConsented) {
+      setShowConsentModal(true);
+      return;
+    }
+
     const fileInput = document.getElementById(
       "file-upload-input"
     ) as HTMLInputElement;
     fileInput?.click();
   };
+
+  const handleConsentSubmit = () => {
+    // Store the consent choice regardless of what user selected
+    localStorage.setItem("safeguardmedia_consent", hasConsented.toString());
+    localStorage.setItem("safeguardmedia_uploaded", "true");
+    setIsFirstTimeUser(false);
+    setShowConsentModal(false);
+
+    // Always proceed with file upload regardless of consent choice
+    const fileInput = document.getElementById(
+      "file-upload-input"
+    ) as HTMLInputElement;
+    fileInput?.click();
+  };
+
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setIsUploading(true);
@@ -220,20 +240,34 @@ const Dashboard = () => {
     console.log("Analysing media...");
     setUploadedFile(null);
   };
-  // const getStatusBadge = (status: string) => {
-  //   const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
-  //   switch (status) {
-  //     case "Authentic":
-  //       return `${baseClasses} bg-green-100 text-green-800`;
-  //     case "Uncertain":
-  //       return `${baseClasses} bg-yellow-100 text-yellow-800`;
-  //     case "Deepfake":
-  //       return `${baseClasses} bg-red-100 text-red-800`;
-  //     default:
-  //       return `${baseClasses} bg-gray-100 text-gray-800`;
-  //   }
-  // };
+  const getStatusBadge = (status: string) => {
+    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+    switch (status) {
+      case "Authentic":
+        return `${baseClasses} bg-green-100 text-green-800`;
+      case "Uncertain":
+        return `${baseClasses} bg-yellow-100 text-yellow-800`;
+      case "Deepfake":
+        return `${baseClasses} bg-red-100 text-red-800`;
+      default:
+        return `${baseClasses} bg-gray-100 text-gray-800`;
+    }
+  };
 
+  useEffect(() => {
+    const userConsent = localStorage.getItem("safeguardmedia_consent");
+    const userHasUploadedBefore = localStorage.getItem(
+      "safeguardmedia_uploaded"
+    );
+
+    if (userConsent === "false") {
+      setHasConsented(false);
+    }
+
+    if (userHasUploadedBefore === "true") {
+      setIsFirstTimeUser(false);
+    }
+  }, []);
   return (
     <div className={`min-h-screen bg-gray-50`}>
       {/* Full Width Header */}
@@ -247,10 +281,16 @@ const Dashboard = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div
@@ -292,7 +332,7 @@ const Dashboard = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 Username
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+            
             </div> */}
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
@@ -310,7 +350,6 @@ const Dashboard = () => {
               <span className="hidden sm:inline text-sm text-gray-700">
                 {userData?.data?.user?.firstName || "Username"}
               </span>
-              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             </div>
           </div>
         </div>
@@ -429,6 +468,48 @@ const Dashboard = () => {
                         Supports audio, video and image format. Max file size
                         1GB
                       </p>
+                      {/* <button
+                        className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
+                        onClick={() => {
+                          setHasAnalyses(!hasAnalyses);
+                          handleUploadMedia();
+                        }}
+                        disabled={isUploading}
+                      >
+                        Upload Media
+                      </button> */}
+                      {!isFirstTimeUser && (
+                        <div className="mb-4">
+                          <label className="flex items-start space-x-3 cursor-pointer text-left">
+                            <input
+                              type="checkbox"
+                              checked={hasConsented}
+                              onChange={(e) => {
+                                setHasConsented(e.target.checked);
+                                // Store consent choice when user changes it
+                                localStorage.setItem(
+                                  "safeguardmedia_consent",
+                                  e.target.checked.toString()
+                                );
+                              }}
+                              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-xs text-gray-600 leading-relaxed">
+                              I consent to the processing of my uploaded media
+                              files for AI detection analysis and agree that my
+                              files will be temporarily processed on secure
+                              servers, anonymized results may be used to improve
+                              detection algorithms, I have the necessary rights
+                              to upload this content, no personal data will be
+                              shared with third parties, and I understand this
+                              service is provided for informational purposes
+                              only and results may not be 100% accurate.
+                              (Uncheck to opt out)
+                            </span>
+                          </label>
+                        </div>
+                      )}
+
                       <button
                         className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
                         onClick={() => {
@@ -493,7 +574,53 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+            {/* Consent Modal */}
+            {showConsentModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl max-w-md w-full p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Processing Consent
+                  </h3>
 
+                  <div className="mb-6">
+                    <label className="flex items-start space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasConsented}
+                        onChange={(e) => setHasConsented(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 leading-relaxed">
+                        I consent to the processing of my uploaded media files
+                        for AI detection analysis and agree that my files will
+                        be temporarily processed on secure servers, anonymized
+                        results may be used to improve detection algorithms, I
+                        have the necessary rights to upload this content, no
+                        personal data will be shared with third parties, and I
+                        understand this service is provided for informational
+                        purposes only and results may not be 100% accurate.
+                        (Uncheck to opt out)
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowConsentModal(false)}
+                      className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConsentSubmit}
+                      className="flex-1 px-4 py-2 text-white rounded-lg font-medium bg-[#0F2FA3] hover:bg-blue-700"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Hidden file input */}
             <input
               type="file"
@@ -552,7 +679,7 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Analyses Section - Full Width */}
-          {/* <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
             <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
               <div className="mb-6">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
@@ -562,12 +689,10 @@ const Dashboard = () => {
                   Review the results of your recently uploaded media files.
                   Results are stored for 30 days.
                 </p>
-              </div> */}
-          {/* 
+              </div>
+
               {hasAnalyses ? (
-            
                 <div>
-       
                   <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500">
                     <div className="col-span-4">File name/thumbnail</div>
                     <div className="col-span-3">Upload date/time</div>
@@ -579,7 +704,6 @@ const Dashboard = () => {
                   <div className="space-y-3 mt-4">
                     {mockAnalyses.map((analysis) => (
                       <div key={analysis.id}>
-                    
                         <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
                           <div className="col-span-4 flex items-center space-x-3">
                             <div className="w-10 h-10 rounded-lg flex items-center justify-center">
@@ -615,7 +739,6 @@ const Dashboard = () => {
                           </div>
                         </div>
 
-                  
                         <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
                           <div className="flex items-start space-x-3">
                             <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -654,9 +777,9 @@ const Dashboard = () => {
                         </div>
                       </div>
                     ))}
-                  </div>  */}
+                  </div>
 
-          {/* <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
                     <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
                       <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                     </button>
@@ -680,7 +803,6 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <>
-           
                   <div className="text-center py-8 sm:py-12">
                     <div className="flex justify-center items-center mb-4">
                       <NoAnalysisYet />
@@ -699,7 +821,7 @@ const Dashboard = () => {
                 </>
               )}
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

@@ -221,7 +221,7 @@ function Signin() {
       localStorage.setItem("authToken", result.token);
 
       // Show success message
-      setSuccessMessage("Login successful! Redirecting to dashboard...");
+      setSuccessMessage("Login successful!");
 
       // Navigate to dashboard after a brief delay
       setTimeout(() => {
