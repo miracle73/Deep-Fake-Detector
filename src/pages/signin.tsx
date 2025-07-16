@@ -262,8 +262,7 @@ function Signin() {
       <div className="lg:hidden p-6 bg-white">
         <div className="text-center max-md:text-left">
           <h1 className="text-xl font-bold text-gray-900">
-            <span className="font-bold">Safeguard</span>{" "}
-            <span className="font-normal">Media</span>
+            <span className="font-bold">Safeguardmedia</span>{" "}
           </h1>
         </div>
       </div>
@@ -481,8 +480,7 @@ function Signin() {
         />
         <div className="absolute top-8 right-8 ">
           <div className="text-black font-semibold text-xl">
-            <span className="font-bold">Safeguard</span>{" "}
-            <span className="font-normal">Media</span>
+            <span className="font-bold">Safeguardmedia</span>
           </div>
         </div>
       </div>
