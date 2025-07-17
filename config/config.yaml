@@ -1,0 +1,29 @@
+# Model Configuration
+model:
+  name: "efficientnet-b4"
+  num_classes: 2
+  pretrained: true
+  dropout: 0.3
+
+# Training Configuration
+training:
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  patience: 10
+  
+# Data Configuration
+data:
+  input_size: 224
+  train_split: 0.7
+  val_split: 0.2
+  test_split: 0.1
+  augmentation: true
+  
+# Paths
+paths:
+  data_dir: "data/"
+  models_dir: "checkpoints/"
+  logs_dir: "logs/"
+  results_dir: "results/"
