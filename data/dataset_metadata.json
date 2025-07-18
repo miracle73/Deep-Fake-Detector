@@ -1,0 +1,21 @@
+{
+  "dataset_info": {
+    "total_size_mb": 500,
+    "creation_date": "/workspaces/Deep-Fake-Detector",
+    "description": "Custom deepfake detection dataset for GitHub Codespaces"
+  },
+  "splits": {
+    "train": {
+      "real": 700,
+      "fake": 1039
+    },
+    "val": {
+      "real": 200,
+      "fake": 297
+    },
+    "test": {
+      "real": 100,
+      "fake": 149
+    }
+  }
+}
