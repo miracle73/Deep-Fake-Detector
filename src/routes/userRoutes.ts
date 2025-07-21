@@ -8,6 +8,8 @@ import { updateUserSchema } from '../lib/schemas/user.schema.js';
 
 userRouter.get('/', protect, UserController.getCurrentUser);
 
+userRouter.get('/analysis-history', protect, UserController.getAnalysisHistory);
+
 userRouter.put(
   '/update',
   protect,

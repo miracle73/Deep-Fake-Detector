@@ -113,3 +113,27 @@ export async function DeleteUser(
     next(error);
   }
 }
+
+export const getAnalysisHistory = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select('analysisHistory').lean();
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    res.status(200).json({
+      success: true,
+      analysisHistory: user.analysisHistory,
+    });
+  } catch (error) {
+    console.error('Failed to fetch analysis history:', error);
+    next(error);
+  }
+};
