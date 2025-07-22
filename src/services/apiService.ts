@@ -255,7 +255,8 @@ export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
     baseUrl:
-      "https://deepfake-detector-655166731472.us-central1.run.app/api/v1",
+      "https://deepfake-detector-996819843496.us-central1.run.app/api/v1",
+
     prepareHeaders: (headers, { getState, endpoint }) => {
       // List of endpoints that should NOT include the token
       const publicEndpoints = [
