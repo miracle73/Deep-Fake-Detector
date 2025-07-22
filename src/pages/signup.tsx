@@ -687,6 +687,13 @@ function SignUp() {
                               className="text-blue-600 hover:underline"
                             >
                               Terms of Service
+                            </a>{" "}
+                            and{" "}
+                            <a
+                              onClick={() => navigate("/privacy-policy")}
+                              className="text-blue-600 hover:underline"
+                            >
+                              Privacy Policy
                             </a>
                           </label>
                         </div>
