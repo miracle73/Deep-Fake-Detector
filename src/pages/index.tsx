@@ -402,7 +402,7 @@ export default function DeepfakeDetector() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">
-                      Supports All Media
+                      Supports Multi Media
                     </h4>
                     <p className="text-gray-600">
                       Check videos, audio clips, and images for manipulation.
