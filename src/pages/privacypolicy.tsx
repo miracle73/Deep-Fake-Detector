@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
-function TermsOfService() {
+function PrivacyPolicy() {
   const navigate = useNavigate();
 
   return (
@@ -49,264 +49,228 @@ function TermsOfService() {
             <div className="flex items-center justify-center space-x-3 mb-4">
               <div className="flex items-center flex-col justify-center">
                 <h1 className="text-3xl font-bold text-center text-gray-900">
-                  Terms of Service
+                  Privacy Policy
                 </h1>
               </div>
             </div>
             <p className="text-gray-600 text-center">
-              Please read these Terms of Service carefully before using the
-              SafeguardMedia platform. By accessing or using our service, you
-              agree to be bound by these terms.
+              SafeguardMedia is committed to protecting your privacy. This
+              Privacy Policy describes how we collect, use, and protect your
+              information.
             </p>
             <p className="text-center text-sm text-gray-500 mt-2">
-              Last Updated: [Insert Date]
+              Effective Date: [Insert Date]
             </p>
           </div>
 
-          {/* Terms Content */}
+          {/* Privacy Policy Content */}
           <div className="p-8 prose max-w-none">
-            <p className="text-gray-700 mb-6">
-              Welcome to SafeguardMedia ("SafeguardMedia," "we," "our," or
-              "us"). These Terms of Service ("Terms") govern your use of our
-              website located at [www.safeguardmedia.org] (the "Site"), browser
-              extension, detection tools, and related services (collectively,
-              the "Service").
+            <p className="text-gray-700 mb-8">
+              SafeguardMedia ("we," "our," or "us") is committed to protecting
+              your privacy. This Privacy Policy describes the types of
+              information we collect, how we use it, and your choices regarding
+              your data when you access our website, tools, or services
+              (collectively, the "Service").
             </p>
             <p className="text-gray-700 mb-8">
-              By accessing or using the Service, you agree to be bound by these
-              Terms and our [Privacy Policy]. If you do not agree, please do not
-              use the Service.
+              By using our Service, you consent to the practices described in
+              this Privacy Policy.
             </p>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                1. The Service
+                1. Information We Collect
               </h2>
               <p className="text-gray-700 mb-4">
-                SafeguardMedia provides users with tools to analyze and verify
-                multimedia content, including images, video, and audio, for
-                signs of manipulation using AI-based detection techniques. The
-                Service is intended to help users better understand the
-                credibility of content online.
+                We collect limited data necessary to operate and improve our
+                media verification services. This may include:
               </p>
+
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  a. Information You Provide Voluntarily
+                </h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                  <li>
+                    Email address (if you create an account, join a waitlist, or
+                    contact us)
+                  </li>
+                  <li>Media files you upload for analysis</li>
+                  <li>Feedback or support requests</li>
+                </ul>
+              </div>
+
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  b. Information We Collect Automatically
+                </h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                  <li>IP address and browser type (for basic analytics)</li>
+                  <li>
+                    Usage data (e.g., number of uploads, timestamp of use)
+                  </li>
+                  <li>
+                    Diagnostic logs (for security, performance, and abuse
+                    monitoring)
+                  </li>
+                </ul>
+              </div>
+
               <p className="text-gray-700">
-                The platform is currently in beta testing and functionality may
-                evolve or change without notice.
+                We do <strong>not</strong> use tracking cookies or sell your
+                personal data.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                2. Eligibility
+                2. How We Use Your Information
               </h2>
+              <p className="text-gray-700 mb-4">We use your information to:</p>
+              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
+                <li>Operate, maintain, and improve the Service</li>
+                <li>Deliver detection results</li>
+                <li>Respond to inquiries or feedback</li>
+                <li>
+                  Conduct internal research and model training (media is
+                  anonymized when used for this purpose)
+                </li>
+                <li>Ensure platform integrity and prevent abuse</li>
+              </ul>
               <p className="text-gray-700">
-                To use the Service, you must be at least 18 years old and have
-                the legal capacity to enter into a binding agreement. If you use
-                the Service on behalf of an organization, you represent and
-                warrant that you have authority to bind that organization.
+                We do <strong>not</strong> use your data for advertising or
+                resale.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                3. Acceptable Use
+                3. Data Retention
               </h2>
-              <p className="text-gray-700 mb-4">You agree that you will not:</p>
+              <p className="text-gray-700 mb-4">
+                We retain your media uploads temporarily for the purpose of
+                processing and model improvement. Files may be stored securely
+                for internal quality checks or deleted based on user request or
+                after a defined time window.
+              </p>
+              <p className="text-gray-700">
+                User account data (e.g., email address) is retained until the
+                user deletes their account or requests removal.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                4. Data Security
+              </h2>
+              <p className="text-gray-700">
+                We use secure encryption, cloud-based storage, and access
+                controls to protect your information. However, no method of
+                transmission over the internet is 100% secure, and we cannot
+                guarantee absolute security.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                5. Data Sharing
+              </h2>
+              <p className="text-gray-700 mb-4">
+                We do <strong>not</strong> sell, rent, or share your personal
+                data with third parties except:
+              </p>
               <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4">
                 <li>
-                  Use the Service in violation of any local, state, national, or
-                  international law.
+                  When required by law or to comply with legal obligations
                 </li>
                 <li>
-                  Upload content that contains personal data, copyrighted
-                  material, or sensitive information without lawful
-                  authorization.
+                  To investigate or prevent fraud, abuse, or security threats
                 </li>
-                <li>
-                  Attempt to access or reverse engineer the Service's underlying
-                  code, models, or infrastructure.
-                </li>
-                <li>
-                  Upload or submit malicious content, malware, or disinformation
-                  to the Service.
-                </li>
-                <li>
-                  Use the Service for surveillance, profiling, or to harm or
-                  mislead others.
-                </li>
+                <li>With your consent (e.g., API integrations you enable)</li>
               </ul>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                4. User Submissions
+                6. Third-Party Services
               </h2>
               <p className="text-gray-700 mb-4">
-                You may submit media files ("Submissions") to the Service for
-                analysis. By submitting content, you affirm that:
+                Our platform may integrate third-party services (e.g.,
+                fact-check APIs or maps). These providers have their own privacy
+                policies, and we recommend reviewing them.
               </p>
+              <p className="text-gray-700">
+                We do not control how third-party services process your data.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                7. Your Rights
+              </h2>
+              <p className="text-gray-700 mb-4">You may:</p>
               <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-                <li>
-                  You either own the content or have permission to upload and
-                  analyze it.
-                </li>
-                <li>
-                  The content does not contain confidential or private
-                  information unless you have consent or legal authority to
-                  include it.
-                </li>
-                <li>
-                  You grant SafeguardMedia a non-exclusive, royalty-free, and
-                  revocable license to process the submission for the sole
-                  purpose of providing analysis and improving our Service.
-                </li>
+                <li>Request access to your personal data</li>
+                <li>Request deletion of your account or uploads</li>
+                <li>Opt-out of email communication</li>
+                <li>Withdraw consent (where applicable)</li>
               </ul>
               <p className="text-gray-700">
-                We do not claim ownership of your uploaded content, but you
-                acknowledge that SafeguardMedia may retain a record of processed
-                content for model improvement, research, or quality assurance
-                unless otherwise requested.
+                To exercise these rights, contact us at{" "}
+                <strong>privacy@safeguardmedia.io</strong>.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                5. Account and Security
+                8. Children's Privacy
               </h2>
-              <p className="text-gray-700 mb-4">
-                Some features may require account registration. You agree to:
-              </p>
-              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-                <li>Provide accurate and complete information</li>
-                <li>Keep your login credentials confidential</li>
-                <li>
-                  Notify us immediately of any unauthorized access or security
-                  breach
-                </li>
-              </ul>
               <p className="text-gray-700">
-                You are responsible for all activity under your account.
+                SafeguardMedia is not intended for children under 13. We do not
+                knowingly collect data from children. If you believe we've
+                collected such information, please contact us and we will delete
+                it.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                6. Intellectual Property
+                9. International Users
               </h2>
-              <p className="text-gray-700 mb-4">
-                All intellectual property rights in the Service, including but
-                not limited to models, code, logos, interfaces, and datasets,
-                are owned by or licensed to SafeguardMedia. These Terms do not
-                grant you any right to use the SafeguardMedia brand or
-                trademarks without written permission.
-              </p>
               <p className="text-gray-700">
-                You agree not to copy, distribute, modify, or create derivative
-                works from the Service or its components.
+                If you are located outside the United States, note that your
+                data may be processed and stored in the U.S. and governed by
+                U.S. law. By using our Service, you consent to this transfer and
+                processing.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                7. Feedback
+                10. Changes to This Policy
               </h2>
               <p className="text-gray-700">
-                We welcome suggestions and feedback. By submitting feedback, you
-                grant us the unrestricted right to use it without compensation
-                or obligation.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                8. Disclaimers
-              </h2>
-              <p className="text-gray-700 mb-4">
-                The Service is provided "as is" and "as available."
-                SafeguardMedia makes no guarantees regarding:
-              </p>
-              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-                <li>The accuracy or completeness of results</li>
-                <li>The reliability of detection models</li>
-                <li>Uninterrupted or error-free service</li>
-              </ul>
-              <p className="text-gray-700">
-                SafeguardMedia does not guarantee that flagged content is
-                definitively manipulated, nor does a clean result guarantee
-                authenticity. Our Service is a tool—not a final judgment
-                platform.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                9. Limitation of Liability
-              </h2>
-              <p className="text-gray-700 mb-4">
-                To the fullest extent permitted by law, SafeguardMedia shall not
-                be liable for:
-              </p>
-              <ul className="list-disc list-inside text-gray-700 space-y-2 ml-4 mb-4">
-                <li>Any loss of data, profits, business, or goodwill</li>
-                <li>Any indirect, incidental, or consequential damages</li>
-                <li>
-                  Any harm caused by misinformation, false negatives, or false
-                  positives from our detection tools
-                </li>
-              </ul>
-              <p className="text-gray-700">
-                Your use of the Service is at your own risk.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                10. Termination
-              </h2>
-              <p className="text-gray-700">
-                We reserve the right to suspend or terminate access to the
-                Service at our discretion, without notice, if we believe a user
-                has violated these Terms or poses a risk to the platform or
-                others.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                11. Changes to the Service
-              </h2>
-              <p className="text-gray-700">
-                We may update, enhance, or discontinue parts of the Service at
-                any time without notice. Continued use of the Service after
-                changes constitutes acceptance of the updated Terms.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                12. Governing Law
-              </h2>
-              <p className="text-gray-700">
-                These Terms are governed by the laws of the State of New Jersey
-                (or your local jurisdiction if required). You agree that any
-                legal action must be brought in courts located in New Jersey,
-                unless otherwise required by law.
+                We may update this Privacy Policy from time to time. If material
+                changes are made, we will notify users via the website or email.
               </p>
             </section>
 
             {/* Contact Section */}
             <div className="bg-gray-50 rounded-lg p-6 mt-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                13. Contact
+                11. Contact Us
               </h2>
               <div className="text-gray-700 space-y-2">
                 <p>
-                  If you have questions about these Terms of Service, please
-                  contact us at:
+                  For questions about this Privacy Policy or your personal data,
+                  contact:
                 </p>
                 <div className="space-y-1">
                   <p>
-                    <strong>Email:</strong> info@safeguardmedia.io
+                    <strong>Privacy Email:</strong> privacy@safeguardmedia.io
+                  </p>
+                  <p>
+                    <strong>General Email:</strong> info@safeguardmedia.io
                   </p>
                 </div>
               </div>
@@ -354,7 +318,7 @@ function TermsOfService() {
               </ul>
             </div>
 
-            {/* Cookies Column */}
+            {/* Legal Column */}
             <div>
               <h3 className="text-sm font-medium text-gray-400 mb-4">Legal</h3>
               <ul className="space-y-3">
@@ -453,4 +417,4 @@ function TermsOfService() {
   );
 }
 
-export default TermsOfService;
+export default PrivacyPolicy;

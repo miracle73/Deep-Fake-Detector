@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, AlertCircle, Loader, Mail, X } from "lucide-react";
 import "../App.css";
-import BackgroundImage from "../assets/images/signin-2.png";
+// import BackgroundImage from "../assets/images/signin-2.png";
 import { useNavigate } from "react-router-dom";
 import { useRegisterMutation } from "../services/apiService";
 import PhoneInput from "react-phone-number-input";
@@ -12,6 +12,7 @@ import { useGoogleLoginMutation } from "../services/apiService";
 import { useDispatch } from "react-redux";
 import { loginUser } from "../store/slices/authSlices";
 import { setUserInfo } from "../store/slices/userSlices";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 interface FormData {
   firstName: string;
@@ -324,7 +325,12 @@ function SignUp() {
       {/* Mobile header - only visible on mobile */}
       <div className="lg:hidden p-6 bg-white">
         <div className="text-center max-md:text-left">
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold  flex items-center gap-2 text-gray-900">
+            <img
+              src={SafeguardMediaLogo}
+              alt="Safeguardmedia Logo"
+              className="h-12 w-auto"
+            />
             <span className="font-bold">Safeguardmedia</span>
           </h1>
         </div>
@@ -677,10 +683,10 @@ function SignUp() {
                           >
                             Yes, I agree with the{" "}
                             <a
-                              href="#"
+                              onClick={() => navigate("/terms-and-conditions")}
                               className="text-blue-600 hover:underline"
                             >
-                              Terms of Use
+                              Terms of Service
                             </a>
                           </label>
                         </div>
@@ -728,15 +734,43 @@ function SignUp() {
       </div>
 
       {/* Right side - Background image (desktop only) */}
-      <div className="hidden lg:block flex-1 relative">
-        <img
-          src={BackgroundImage}
-          alt="Person working on laptop"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute top-8 right-8 ">
-          <div className="text-black font-semibold text-xl">
-            <span className="font-bold">Safeguardmedia</span>
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-50 to-indigo-100 flex-col justify-between items-center p-8 min-h-screen overflow-y-auto">
+        {/* Top section - Logo and brand */}
+        <div className="text-center pt-16">
+          <div className="flex items-center justify-center mb-4">
+            <img
+              src={SafeguardMediaLogo}
+              alt="Safeguardmedia Logo"
+              className="h-16 w-auto mr-3"
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Safeguardmedia
+          </h1>
+          <p className="text-lg text-gray-600 max-w-md">
+            Join thousands who trust us with their digital security
+          </p>
+        </div>
+
+        {/* Bottom section - Terms and Privacy */}
+        <div className="text-center pb-8 max-w-sm">
+          <p className="text-sm text-gray-600 mb-4">
+            By signing up, you agree to the Terms & Conditions and Privacy
+            Policy.
+          </p>
+          <div className="flex justify-center space-x-6 text-sm">
+            <a
+              onClick={() => navigate("/terms-and-conditions")}
+              className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+            >
+              Terms of Service
+            </a>
+            <a
+              onClick={() => navigate("/privacy-policy")}
+              className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+            >
+              Privacy Policy
+            </a>
           </div>
         </div>
       </div>

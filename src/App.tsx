@@ -11,7 +11,7 @@ import DeepfakeDetector from "./pages";
 import VideoScreen from "./pages/video";
 import VerifyEmail from "./pages/verifyEmail";
 import CheckEmail from "./pages/checkEmail";
-import TermsAndConditions from "./pages/termsAndCondition";
+// import TermsAndConditions from "./pages/termsAndCondition";
 import ForgotPassword from "./pages/forgotPassword";
 import ResetPassword from "./pages/resetPassword";
 import ImageScreen from "./pages/image";
@@ -19,6 +19,8 @@ import AudioScreen from "./pages/audio";
 import { useSelector } from "react-redux";
 import type { RootState } from "./store/store";
 import { Navigate } from "react-router-dom";
+import TermsOfService from "./pages/termsAndCondition";
+import PrivacyPolicy from "./pages/privacypolicy";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -42,10 +44,8 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/check-email" element={<CheckEmail />} />
-          <Route
-            path="/terms-and-conditions"
-            element={<TermsAndConditions />}
-          />
+          <Route path="/terms-and-conditions" element={<TermsOfService />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<DeepfakeDetector />} />

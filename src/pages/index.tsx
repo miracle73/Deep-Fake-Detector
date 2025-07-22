@@ -96,7 +96,6 @@ export default function DeepfakeDetector() {
             </div>
             <nav className="hidden md:flex items-center space-x-8">
               <a
-                href="#"
                 className="text-gray-600 hover:text-gray-900"
                 onClick={() => navigate("/plans")}
               >
@@ -646,7 +645,7 @@ export default function DeepfakeDetector() {
                     </h3>
                     <div className="mb-4">
                       <span className="text-3xl font-bold text-gray-900">
-                        $19
+                        $10
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-6">
@@ -692,7 +691,7 @@ export default function DeepfakeDetector() {
                     </h3>
                     <div className="mb-4">
                       <span className="text-3xl font-bold text-gray-900">
-                        $49
+                        $25
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-6">
