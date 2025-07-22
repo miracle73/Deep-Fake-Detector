@@ -58,9 +58,6 @@ function TermsOfService() {
               SafeguardMedia platform. By accessing or using our service, you
               agree to be bound by these terms.
             </p>
-            <p className="text-center text-sm text-gray-500 mt-2">
-              Last Updated: [Insert Date]
-            </p>
           </div>
 
           {/* Terms Content */}
@@ -306,7 +303,7 @@ function TermsOfService() {
                 </p>
                 <div className="space-y-1">
                   <p>
-                    <strong>Email:</strong> info@safeguardmedia.io
+                    <strong>Email:</strong> info@safeguardmedia.org
                   </p>
                 </div>
               </div>
@@ -431,10 +428,10 @@ function TermsOfService() {
                 </li>
                 <li>
                   <a
-                    href="mailto:info@safeguardmedia.io"
+                    href="mailto:info@safeguardmedia.org"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Contact Us: info@safeguardmedia.io
+                    Contact Us: info@safeguardmedia.org
                   </a>
                 </li>
               </ul>

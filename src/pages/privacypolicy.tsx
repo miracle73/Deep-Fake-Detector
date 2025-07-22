@@ -58,9 +58,6 @@ function PrivacyPolicy() {
               Privacy Policy describes how we collect, use, and protect your
               information.
             </p>
-            <p className="text-center text-sm text-gray-500 mt-2">
-              Effective Date: [Insert Date]
-            </p>
           </div>
 
           {/* Privacy Policy Content */}
@@ -95,6 +92,7 @@ function PrivacyPolicy() {
                     Email address (if you create an account, join a waitlist, or
                     contact us)
                   </li>
+                  <li>Phone number</li>
                   <li>Media files you upload for analysis</li>
                   <li>Feedback or support requests</li>
                 </ul>
@@ -215,10 +213,6 @@ function PrivacyPolicy() {
                 <li>Opt-out of email communication</li>
                 <li>Withdraw consent (where applicable)</li>
               </ul>
-              <p className="text-gray-700">
-                To exercise these rights, contact us at{" "}
-                <strong>privacy@safeguardmedia.io</strong>.
-              </p>
             </section>
 
             <section className="mb-8">
@@ -254,27 +248,6 @@ function PrivacyPolicy() {
                 changes are made, we will notify users via the website or email.
               </p>
             </section>
-
-            {/* Contact Section */}
-            <div className="bg-gray-50 rounded-lg p-6 mt-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                11. Contact Us
-              </h2>
-              <div className="text-gray-700 space-y-2">
-                <p>
-                  For questions about this Privacy Policy or your personal data,
-                  contact:
-                </p>
-                <div className="space-y-1">
-                  <p>
-                    <strong>Privacy Email:</strong> privacy@safeguardmedia.io
-                  </p>
-                  <p>
-                    <strong>General Email:</strong> info@safeguardmedia.io
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -395,10 +368,10 @@ function PrivacyPolicy() {
                 </li>
                 <li>
                   <a
-                    href="mailto:info@safeguardmedia.io"
+                    href="mailto:info@safeguardmedia.org"
                     className="text-gray-300 hover:text-white text-sm"
                   >
-                    Contact Us: info@safeguardmedia.io
+                    Contact Us: info@safeguardmedia.org
                   </a>
                 </li>
               </ul>

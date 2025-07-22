@@ -495,16 +495,10 @@ const Dashboard = () => {
                               className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
                             <span className="text-xs text-gray-600 leading-relaxed">
-                              I consent to the processing of my uploaded media
-                              files for AI detection analysis and agree that my
-                              files will be temporarily processed on secure
-                              servers, anonymized results may be used to improve
-                              detection algorithms, I have the necessary rights
-                              to upload this content, no personal data will be
-                              shared with third parties, and I understand this
-                              service is provided for informational purposes
-                              only and results may not be 100% accurate.
-                              (Uncheck to opt out)
+                              I do not consent to SafeguardMedia using my
+                              uploaded media for AI model training or research.
+                              My upload should be used only for analysis and
+                              detection.
                             </span>
                           </label>
                         </div>
