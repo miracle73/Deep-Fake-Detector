@@ -184,7 +184,7 @@ function ForgotPassword() {
 
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Reset Link Sent!
+                    Reset Password Link Sent!
                   </h3>
                   <p className="text-gray-600 text-sm">
                     We've sent a password reset link to{" "}

@@ -47,7 +47,8 @@ function App() {
           <Route path="/terms-and-conditions" element={<TermsOfService />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
           <Route path="/" element={<DeepfakeDetector />} />
 
           {/* Protected Routes */}
