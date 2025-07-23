@@ -231,7 +231,7 @@ const SubscriptionPlans = () => {
                 alt="Safeguardmedia Logo"
                 className="h-12 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
                 Safeguardmedia
               </span>
             </div>

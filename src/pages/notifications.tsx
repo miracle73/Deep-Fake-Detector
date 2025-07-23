@@ -11,8 +11,8 @@ import {
 import { NoAnalysisYet } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
-import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 // Mock notifications data - replace with your actual data source
 const mockNotifications = [
@@ -106,7 +106,7 @@ const Notifications = () => {
                 alt="Safeguardmedia Logo"
                 className="h-12 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
                 Safeguardmedia
               </span>
             </div>

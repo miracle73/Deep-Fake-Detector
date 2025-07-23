@@ -84,7 +84,7 @@ const VideoScreen = () => {
                 alt="Safeguardmedia Logo"
                 className="h-12 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
                 Safeguardmedia
               </span>
             </div>
@@ -112,7 +112,7 @@ const VideoScreen = () => {
             </button>
 
             <button
-              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]"
+              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] max-lg:hidden"
               onClick={() => {
                 navigate("/notifications");
               }}

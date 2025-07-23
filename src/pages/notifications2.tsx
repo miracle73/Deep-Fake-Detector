@@ -11,6 +11,7 @@ import {
 import { NoAnalysisYet } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
 import { CiSettings } from "react-icons/ci";
+import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 // Mock notifications data - replace with your actual data source
 const mockNotifications = [
@@ -98,10 +99,16 @@ const Notifications2 = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg sm:text-xl font-bold text-gray-900">
-              <span className="font-bold">Safeguard</span>{" "}
-              <span className="font-normal">Media</span>
-            </h1>
+            <div className="flex items-center">
+              <img
+                src={SafeguardMediaLogo}
+                alt="Safeguardmedia Logo"
+                className="h-12 w-auto"
+              />
+              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
+                Safeguardmedia
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4">

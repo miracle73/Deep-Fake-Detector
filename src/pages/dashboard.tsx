@@ -247,7 +247,7 @@ const Dashboard = () => {
                 alt="Safeguardmedia Logo"
                 className="h-12 w-auto"
               />
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
                 Safeguardmedia
               </span>
             </div>
@@ -275,7 +275,7 @@ const Dashboard = () => {
             </button>
 
             <button
-              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]"
+              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] max-lg:hidden"
               onClick={() => {
                 navigate("/notifications");
               }}
@@ -497,8 +497,7 @@ const Dashboard = () => {
                         Drag and drop to upload or browse files
                       </h3>
                       <p className="text-xs sm:text-sm text-red-500 mb-6">
-                        Supports audio, video and image format. Max file size
-                        1GB
+                        Max file size 1GB
                       </p>
                       {/* <button
                         className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
@@ -510,6 +509,39 @@ const Dashboard = () => {
                       >
                         Upload Media
                       </button> */}
+                      {/* Supported Formats Section */}
+                      <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">
+                          Currently, SafeguardMedia supports the following
+                          formats:
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                          <div>
+                            <span className="font-medium text-gray-800">
+                              Videos:
+                            </span>
+                            <div className="text-gray-600 mt-1">
+                              MP4, AVI, MOV
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-800">
+                              Images:
+                            </span>
+                            <div className="text-gray-600 mt-1">
+                              JPEG, PNG, WEBP
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-800">
+                              Audio:
+                            </span>
+                            <div className="text-gray-600 mt-1">
+                              MP3, WAV, AAC
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       {!isFirstTimeUser && (
                         <div className="mb-4">
                           <label className="flex items-start space-x-3 cursor-pointer text-left">
@@ -657,18 +689,22 @@ const Dashboard = () => {
               id="file-upload-input"
             />
             {/* Right Sidebar */}
+
             <div className="w-full lg:w-1/3 p-4 sm:p-6 lg:mt-22">
               {/* Combined Subscription and How it Works Card */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full flex flex-col">
+              <div
+                className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col"
+                style={{ height: "300px" }}
+              >
                 {/* Subscription Header */}
-                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4">
+                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
                   <span className="text-xs sm:text-sm font-medium">
-                    Subscribe to Max plan and get 30% off
+                    Upgrade to Max plan for unlimited analysis
                   </span>
                 </div>
 
                 {/* How it Works Content */}
-                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-center">
+                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-start">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
                     How it Works
                   </h3>
@@ -697,7 +733,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          {/* Recent Analyses Section - Full Width */}
 
           {/* Recent Analyses Section - Full Width */}
           <div className="px-4 sm:px-6 pb-4 sm:pb-6">
