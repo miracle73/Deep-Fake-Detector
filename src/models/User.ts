@@ -105,6 +105,7 @@ const UserSchema: Schema = new Schema(
     },
     phoneNumber: {
       type: String,
+      unique: true,
     },
     paymentMethods: [PaymentMethodSchema],
     unlimitedQuota: {
