@@ -358,6 +358,16 @@ export const forgotPassword = async (
       });
     }
 
+    if (user.isGoogleUser) {
+      return res.status(400).json({
+        success: false,
+        code: 400,
+        message: 'Google users cannot reset password via email',
+        details:
+          'Google users cannot reset password via email. Please use Google sign-in to access your account.',
+      });
+    }
+
     const resetToken = crypto.randomBytes(20).toString('hex');
 
     user.resetPasswordToken = crypto
@@ -414,6 +424,16 @@ export const resetPassword = async (
         code: 404,
         message: 'Invalid or expired password reset token',
         details: null,
+      });
+    }
+
+    if (user.isGoogleUser) {
+      return res.status(400).json({
+        success: false,
+        code: 400,
+        message: 'Google users cannot reset password via email',
+        details:
+          'Google users cannot reset password via email. Please use Google sign-in to access your account.',
       });
     }
 
@@ -532,6 +552,14 @@ export const resendVerificationEmail = async (
 
     if (!user) {
       throw new AppError(404, 'No user found with that email', null);
+    }
+
+    if (user.isGoogleUser) {
+      throw new AppError(
+        400,
+        'Google users cannot resend verification email',
+        'Google users cannot resend verification email. Please use Google sign-in to access your account.'
+      );
     }
 
     if (user.isEmailVerified) {
