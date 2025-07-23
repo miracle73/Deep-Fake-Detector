@@ -10,7 +10,7 @@ userRouter.get('/', protect, UserController.getCurrentUser);
 
 userRouter.get('/analysis-history', protect, UserController.getAnalysisHistory);
 
-userRouter.put(
+userRouter.patch(
   '/update',
   protect,
   validateInput(updateUserSchema),

@@ -9,6 +9,16 @@ export interface AnalysisHistoryItem {
   mediaUrl?: string;
 }
 
+export interface Analysis extends Document {
+  id: string;
+  userId: string;
+  fileName: string;
+  thumbnailUrl: string;
+  uploadDate: Date;
+  status: 'authentic' | 'uncertain' | 'deepfake';
+  confidenceScore: number;
+}
+
 export interface BillingHistoryItem {
   invoiceId: string;
   date: Date;
@@ -18,6 +28,25 @@ export interface BillingHistoryItem {
   paymentMethod?: string;
 }
 
+export interface Notifications {
+  userId: string;
+  type:
+    | 'media_verified'
+    | 'media_flagged'
+    | 'system'
+    | 'credential_verified'
+    | 'credential_denied'
+    | 'transaction'
+    | 'account'
+    | 'promotional';
+  title: string;
+  message: string;
+  link?: string;
+  read: boolean;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  metadata?: any;
+  expiresAt?: Date;
+}
 export interface TeamMember {
   userId: string;
   email: string;
@@ -58,6 +87,7 @@ export interface BaseUserFields {
   unlimitedQuota: boolean;
   lastLogin?: Date;
   role: string;
+  notifications: string[];
   usageQuota: {
     monthlyAnalysis: number;
     remainingAnalysis: number;

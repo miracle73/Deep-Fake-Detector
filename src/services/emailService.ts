@@ -29,7 +29,7 @@ export async function sendEmail(options: EmailOptions) {
       from,
       ...options,
       envelope: {
-        from: 'info@safeguardmedia.io',
+        from: 'admin@safeguardmedia.org',
         to: options.to,
       },
     };

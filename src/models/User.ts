@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { Schema } from 'mongoose';
 
+import logger from '../utils/logger.js';
 import { AnalysisHistorySchema } from './subdocs/AnalysisHistory.js';
 import { ApiAccessSchema } from './subdocs/ApiAccess.js';
 import { BillingContactSchema } from './subdocs/BillingContact.js';
@@ -11,7 +12,6 @@ import { TeamMemberSchema } from './subdocs/TeamMember.js';
 import { UsageQuotaSchema } from './subdocs/UsageQuota.js';
 
 import type { IUser } from '../types/user.js';
-import logger from '../utils/logger.js';
 
 const UserSchema: Schema = new Schema(
   {
@@ -125,7 +125,7 @@ const UserSchema: Schema = new Schema(
     },
     currentPeriodEnd: {
       type: Date,
-      index: true,
+      // index: true,
       validate: {
         validator: function (this: IUser, value: Date) {
           return !this.isActive || value > new Date();
@@ -153,6 +153,13 @@ const UserSchema: Schema = new Schema(
     },
     teamMembers: [TeamMemberSchema],
     apiAccess: ApiAccessSchema,
+    notifications: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Notification',
+        index: true,
+      },
+    ],
   },
   {
     timestamps: true,
@@ -189,7 +196,6 @@ UserSchema.index({
 
 UserSchema.index({
   cancelAtPeriodEnd: 1,
-  currentPeriodEnd: 1,
 });
 
 export default mongoose.model<IUser>('User', UserSchema);

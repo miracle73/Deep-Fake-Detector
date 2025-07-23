@@ -11,7 +11,6 @@ const WebhookEventSchema = new Schema(
   { timestamps: true }
 );
 
-WebhookEventSchema.index({ eventId: 1 }, { unique: true });
 WebhookEventSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 30 * 24 * 60 * 60 }
