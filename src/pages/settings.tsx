@@ -17,6 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
+import { CiSettings } from "react-icons/ci";
 
 const Settings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -338,24 +339,55 @@ const Settings = () => {
                 <LayoutGrid className="w-6 h-6" />
                 <span className="text-sm">Dashboard</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-400 cursor-not-allowed"
+                // onClick={() => {
+                //   navigate("/audio-detection");
+                //   setSidebarOpen(false);
+                // }}
+              >
                 <AudioLines className="w-6 h-6" />
                 <span className="text-sm">Audio</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-400  cursor-not-allowed"
+                // onClick={() => {
+                //   navigate("/video-detection");
+                //   setSidebarOpen(false);
+                // }}
+              >
                 <Video className="w-6 h-6" />
                 <span className="text-sm">Video</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-400  cursor-not-allowed"
+                // onClick={() => {
+                //   navigate("/image-detection");
+                //   setSidebarOpen(false);
+                // }}
+              >
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
               </div>
-              <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
-                <ImageIcon className="w-6 h-6" />
+              <div
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
+                onClick={() => {
+                  navigate("/settings");
+                  setSidebarOpen(false);
+                }}
+              >
+                <CiSettings className="w-6 h-6" />
+
                 <span className="text-xs">Settings</span>
               </div>
-              <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
-                <ImageIcon className="w-6 h-6" />
+              <div
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
+                onClick={() => {
+                  navigate("/notifications");
+                  setSidebarOpen(false);
+                }}
+              >
+                <Bell className="w-6 h-6" />
                 <span className="text-xs">Notifications</span>
               </div>
             </div>
@@ -376,24 +408,49 @@ const Settings = () => {
             <LayoutGrid className="w-6 h-6" />
             <span className="text-xs">Dashboard</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            // onClick={() => {
+            //   navigate("/audio-detection");
+            // }}
+          >
             <AudioLines className="w-6 h-6" />
             <span className="text-xs">Audio</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            // onClick={() => {
+            //   navigate("/video-detection");
+            // }}
+          >
             <Video className="w-6 h-6" />
             <span className="text-xs">Video</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            // onClick={() => {
+            //   navigate("/image-detection");
+            // }}
+          >
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
-            <ImageIcon className="w-6 h-6" />
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
+            onClick={() => {
+              navigate("/settings");
+            }}
+          >
+            <CiSettings className="w-6 h-6" />
             <span className="text-xs">Settings</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
-            <ImageIcon className="w-6 h-6" />
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
+            onClick={() => {
+              navigate("/notifications");
+            }}
+          >
+            <Bell className="w-6 h-6" />
             <span className="text-xs">Notifications</span>
           </div>
         </div>

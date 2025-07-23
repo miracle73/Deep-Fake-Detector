@@ -22,6 +22,7 @@ import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
+import { CiSettings } from "react-icons/ci";
 const VideoScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -175,47 +176,48 @@ const VideoScreen = () => {
                 <span className="text-sm">Dashboard</span>
               </div>
               <div
-                className="flex items-center space-x-3 text-gray-400 cursor-pointer"
-                onClick={() => {
-                  navigate("/audio-detection");
-                  setSidebarOpen(false);
-                }}
+                className="flex items-center space-x-3 text-gray-400 cursor-not-allowed"
+                // onClick={() => {
+                //   navigate("/audio-detection");
+                //   setSidebarOpen(false);
+                // }}
               >
                 <AudioLines className="w-6 h-6" />
                 <span className="text-sm">Audio</span>
               </div>
               <div
-                className="flex items-center space-x-3 text-gray-400  cursor-pointer"
-                onClick={() => {
-                  navigate("/video-detection");
-                  setSidebarOpen(false);
-                }}
+                className="flex items-center space-x-3 text-gray-400  cursor-not-allowed"
+                // onClick={() => {
+                //   navigate("/video-detection");
+                //   setSidebarOpen(false);
+                // }}
               >
                 <Video className="w-6 h-6" />
                 <span className="text-sm">Video</span>
               </div>
               <div
-                className="flex items-center space-x-3 text-gray-400  cursor-pointer"
-                onClick={() => {
-                  navigate("/image-detection");
-                  setSidebarOpen(false);
-                }}
+                className="flex items-center space-x-3 text-gray-400  cursor-not-allowed"
+                // onClick={() => {
+                //   navigate("/image-detection");
+                //   setSidebarOpen(false);
+                // }}
               >
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
               </div>
               <div
-                className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
                 onClick={() => {
                   navigate("/settings");
                   setSidebarOpen(false);
                 }}
               >
-                <ImageIcon className="w-6 h-6" />
+                <CiSettings className="w-6 h-6" />
+
                 <span className="text-xs">Settings</span>
               </div>
               <div
-                className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
                 onClick={() => {
                   navigate("/notifications");
                   setSidebarOpen(false);
@@ -243,43 +245,43 @@ const VideoScreen = () => {
             <span className="text-xs">Dashboard</span>
           </div>
           <div
-            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
-            onClick={() => {
-              navigate("/audio-detection");
-            }}
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            // onClick={() => {
+            //   navigate("/audio-detection");
+            // }}
           >
             <AudioLines className="w-6 h-6" />
             <span className="text-xs">Audio</span>
           </div>
           <div
-            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
-            onClick={() => {
-              navigate("/video-detection");
-            }}
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            // onClick={() => {
+            //   navigate("/video-detection");
+            // }}
           >
             <Video className="w-6 h-6" />
             <span className="text-xs">Video</span>
           </div>
           <div
-            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
-            onClick={() => {
-              navigate("/image-detection");
-            }}
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            // onClick={() => {
+            //   navigate("/image-detection");
+            // }}
           >
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
           </div>
           <div
-            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
             onClick={() => {
               navigate("/settings");
             }}
           >
-            <ImageIcon className="w-6 h-6" />
+            <CiSettings className="w-6 h-6" />
             <span className="text-xs">Settings</span>
           </div>
           <div
-            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
             onClick={() => {
               navigate("/notifications");
             }}
