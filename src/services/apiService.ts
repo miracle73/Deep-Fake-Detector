@@ -7,6 +7,7 @@ interface RegisterRequest {
   lastName: string;
   agreedToTerms: boolean;
   userType: string;
+  phoneNumber: string; // Optional phone number field
 }
 
 interface RootState {
@@ -81,7 +82,7 @@ export interface AnalysisHistory {
   result: string;
   createdAt: string;
   fileName?: string;
-  confidence?: number; // Add this line
+  confidence?: number;
 }
 
 interface BillingHistory {
@@ -290,10 +291,19 @@ export const apiService = createApi({
         lastName,
         agreedToTerms,
         userType,
+        phoneNumber,
       }) => ({
         url: "auth/register",
         method: "POST",
-        body: { email, password, firstName, lastName, agreedToTerms, userType },
+        body: {
+          email,
+          password,
+          firstName,
+          lastName,
+          agreedToTerms,
+          userType,
+          phoneNumber,
+        },
       }),
     }),
     login: builder.mutation<LoginResponse, LoginRequest>({

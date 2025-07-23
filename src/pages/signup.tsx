@@ -261,6 +261,7 @@ function SignUp() {
         phone: formData.phone,
         agreedToTerms: formData.agreeTerms,
         userType: accountType,
+        phoneNumber: formData.phone,
       };
 
       const result = await register(registrationData).unwrap();
