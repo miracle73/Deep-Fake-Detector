@@ -50,7 +50,9 @@ const Settings = () => {
   });
   const [successMessages, setSuccessMessages] = useState({
     personalInfo: "",
+    emailSettings: "",
   });
+  const [showUnsubscribeModal, setShowUnsubscribeModal] = useState(false);
   const { data: userData } = useGetUserQuery();
   useEffect(() => {
     if (errors.personalInfo) {
@@ -61,6 +63,61 @@ const Settings = () => {
       return () => clearTimeout(timer);
     }
   }, [errors.personalInfo]);
+
+  // Add this useEffect to load unsubscribe status from localStorage when component mounts
+  useEffect(() => {
+    const savedUnsubscribeStatus = localStorage.getItem("unsubscribeAll");
+    if (savedUnsubscribeStatus) {
+      setEmailSettings((prev) => ({
+        ...prev,
+        unsubscribeAll: JSON.parse(savedUnsubscribeStatus),
+      }));
+    }
+  }, []);
+
+  const handleEmailSettingsSave = () => {
+    console.log("Saving email settings:", emailSettings);
+    // Save to localStorage to persist the setting
+    localStorage.setItem(
+      "unsubscribeAll",
+      JSON.stringify(emailSettings.unsubscribeAll)
+    );
+
+    // Show success message or handle API call here if needed
+    setSuccessMessages((prev) => ({
+      ...prev,
+      emailSettings: "Email settings updated successfully!",
+    }));
+
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+    }, 3000);
+  };
+
+  const handleUnsubscribeChange = (checked: boolean) => {
+    if (checked) {
+      // Show modal when user checks unsubscribe
+      setShowUnsubscribeModal(true);
+    } else {
+      // Directly update when unchecking
+      setEmailSettings((prev) => ({
+        ...prev,
+        unsubscribeAll: false,
+      }));
+      localStorage.setItem("unsubscribeAll", "false");
+    }
+  };
+
+  // Function to confirm unsubscribe
+  const confirmUnsubscribe = () => {
+    setEmailSettings((prev) => ({
+      ...prev,
+      unsubscribeAll: true,
+    }));
+    localStorage.setItem("unsubscribeAll", "true");
+    setShowUnsubscribeModal(false);
+  };
 
   useEffect(() => {
     if (errors.deleteAccount) {
@@ -227,10 +284,6 @@ const Settings = () => {
       setIsDeletingAccount(false);
       setShowDeleteModal(false);
     }
-  };
-
-  const handleEmailSettingsSave = () => {
-    console.log("Saving email settings:", emailSettings);
   };
 
   return (
@@ -623,9 +676,8 @@ const Settings = () => {
               </div>
 
               {/* Email Settings Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C]  pt-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
                 {/* Left Column - Section Info and Button */}
-
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -635,6 +687,24 @@ const Settings = () => {
                       Get firsthand information on product updates
                     </p>
                   </div>
+
+                  {/* Success Message for Email Settings */}
+                  {successMessages.emailSettings && (
+                    <div className="flex items-center p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+                      <svg
+                        className="w-4 h-4 mr-2 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span>{successMessages.emailSettings}</span>
+                    </div>
+                  )}
 
                   {/* Save Changes Button */}
                   <div className="flex justify-start">
@@ -655,10 +725,7 @@ const Settings = () => {
                       id="unsubscribeAll"
                       checked={emailSettings.unsubscribeAll}
                       onChange={(e) =>
-                        setEmailSettings((prev) => ({
-                          ...prev,
-                          unsubscribeAll: e.target.checked,
-                        }))
+                        handleUnsubscribeChange(e.target.checked)
                       }
                       className="w-4 h-4 text-[#0F2FA3] bg-gray-100 border-gray-300 rounded focus:ring-[#0F2FA3] focus:ring-2"
                     />
@@ -909,6 +976,73 @@ const Settings = () => {
                         ) : (
                           "Delete Account"
                         )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showUnsubscribeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div
+                    className="fixed inset-0 backdrop-blur-sm bg-black bg-opacity-50"
+                    onClick={() => setShowUnsubscribeModal(false)}
+                  />
+                  <div className="relative bg-white rounded-lg max-w-md w-full p-6 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Unsubscribe from All Emails
+                      </h3>
+                      <button
+                        onClick={() => setShowUnsubscribeModal(false)}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="text-center space-y-4">
+                      <div className="flex justify-center mb-4">
+                        <div className="bg-blue-100 p-3 rounded-full">
+                          <svg
+                            className="w-6 h-6 text-blue-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h4 className="text-base font-medium text-gray-900">
+                          You have successfully unsubscribed!
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          You will no longer receive marketing emails,
+                          newsletters, or promotional updates from
+                          Safeguardmedia.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-3 pt-4">
+                      <button
+                        onClick={() => setShowUnsubscribeModal(false)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={confirmUnsubscribe}
+                        className="flex-1 px-4 py-2 bg-[#0F2FA3] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                      >
+                        Confirm Unsubscribe
                       </button>
                     </div>
                   </div>
