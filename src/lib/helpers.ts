@@ -84,6 +84,7 @@ export const formatUserResponse = (user: IUser): UserResponse => {
     email: user.email,
     userType: user.userType,
     plan: user.plan,
+    phoneNumber: user.phoneNumber,
   };
 
   if (user.userType === 'individual') {

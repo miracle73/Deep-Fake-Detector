@@ -144,6 +144,7 @@ export interface BaseUserResponse {
   email: string;
   userType: 'individual' | 'enterprise';
   plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
+  phoneNumber: string;
 }
 
 export interface IndividualUserResponse extends BaseUserResponse {
@@ -171,7 +172,7 @@ export type UserResponse = IndividualUserResponse | EnterpriseUserResponse;
 
 export interface AuthResponse {
   success: boolean;
-  token: string;
+  token?: string;
   user: UserResponse;
 }
 

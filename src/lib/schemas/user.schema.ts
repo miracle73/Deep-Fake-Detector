@@ -12,6 +12,19 @@ const baseUserSchema = z.object({
     .enum(['SafeGuard_Free', 'SafeGuard_Pro', 'SafeGuard_Max'])
     .optional()
     .default('SafeGuard_Free'),
+  phoneNumber: z
+    .string()
+    .min(8, { message: 'Phone number too short' })
+    .max(15, { message: 'Phone number too long' })
+    .regex(/^\+\d{1,4}[\s\d]{6,14}$/, {
+      message:
+        'Must be a valid international phone number with country code. Examples: ' +
+        '+819012345678 (Japan), ' +
+        '+14740222222 (Canada), ' +
+        '+447700900123 (UK), ' +
+        '+33612345678 (France), ',
+    })
+    .transform((val) => val.replace(/\s+/g, '')),
 });
 
 export const individualUserSchema = baseUserSchema.extend({
