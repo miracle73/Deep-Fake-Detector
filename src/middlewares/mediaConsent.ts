@@ -2,7 +2,7 @@ import type { NextFunction, Response } from 'express';
 
 import type { AuthRequest } from './auth.js';
 
-const checkMediaConsent = async (
+export const checkMediaConsent = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
