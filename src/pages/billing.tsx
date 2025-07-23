@@ -149,6 +149,14 @@ const Billing = () => {
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
               </div>
+              <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+                <ImageIcon className="w-6 h-6" />
+                <span className="text-xs">Settings</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+                <ImageIcon className="w-6 h-6" />
+                <span className="text-xs">Notifications</span>
+              </div>
             </div>
           </div>
         </div>
@@ -178,6 +186,14 @@ const Billing = () => {
           <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-xs">Settings</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-xs">Notifications</span>
           </div>
         </div>
 

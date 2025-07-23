@@ -16,54 +16,13 @@ import {
   X,
 } from "lucide-react";
 import { NoAnalysisYet, UploadIcon } from "../assets/svg";
-import FirstImage from "../assets/images/firstImage.png";
-import SecondImage from "../assets/images/secondImage.png";
+// import FirstImage from "../assets/images/firstImage.png";
+// import SecondImage from "../assets/images/secondImage.png";
 import ThirdImage from "../assets/images/thirdImage.png";
 import { useNavigate } from "react-router-dom";
 import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
-const mockAnalyses = [
-  {
-    id: 1,
-    fileName: "Video_Clip_01.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Authentic",
-    confidence: 88,
-    type: "video",
-    image: FirstImage,
-  },
-  {
-    id: 2,
-    fileName: "Audio_Clip_02.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Uncertain",
-    confidence: 20,
-    type: "audio",
-    image: SecondImage,
-  },
-  {
-    id: 3,
-    fileName: "Image_Clip_03.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Deepfake",
-    confidence: 97,
-    type: "image",
-    image: FirstImage,
-  },
-  {
-    id: 4,
-    fileName: "Video_Clip_04.mp4",
-    thumbnail: "/placeholder.svg?height=40&width=40",
-    uploadDate: "May 10, 2025, 08:15 AM",
-    status: "Deepfake",
-    confidence: 98,
-    type: "video",
-    image: SecondImage,
-  },
-];
+import type { AnalysisHistory } from "../services/apiService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -240,19 +199,19 @@ const Dashboard = () => {
     console.log("Analysing media...");
     setUploadedFile(null);
   };
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
-    switch (status) {
-      case "Authentic":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "Uncertain":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "Deepfake":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
-  };
+  // const getStatusBadge = (status: string) => {
+  //   const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
+  //   switch (status) {
+  //     case "Authentic":
+  //       return `${baseClasses} bg-green-100 text-green-800`;
+  //     case "Uncertain":
+  //       return `${baseClasses} bg-yellow-100 text-yellow-800`;
+  //     case "Deepfake":
+  //       return `${baseClasses} bg-red-100 text-red-800`;
+  //     default:
+  //       return `${baseClasses} bg-gray-100 text-gray-800`;
+  //   }
+  // };
 
   useEffect(() => {
     const userConsent = localStorage.getItem("safeguardmedia_consent");
@@ -395,6 +354,14 @@ const Dashboard = () => {
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
               </div>
+              <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+                <ImageIcon className="w-6 h-6" />
+                <span className="text-xs">Settings</span>
+              </div>
+              <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+                <ImageIcon className="w-6 h-6" />
+                <span className="text-xs">Notifications</span>
+              </div>
             </div>
           </div>
         </div>
@@ -424,6 +391,14 @@ const Dashboard = () => {
           <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-xs">Settings</span>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-xs">Notifications</span>
           </div>
         </div>
 
@@ -671,6 +646,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          {/* Recent Analyses Section - Full Width */}
 
           {/* Recent Analyses Section - Full Width */}
           <div className="px-4 sm:px-6 pb-4 sm:pb-6">
@@ -685,7 +661,8 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              {hasAnalyses ? (
+              {userData?.data?.user?.analysisHistory &&
+              userData.data.user.analysisHistory.length > 0 ? (
                 <div>
                   <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500">
                     <div className="col-span-4">File name/thumbnail</div>
@@ -696,123 +673,202 @@ const Dashboard = () => {
                   </div>
 
                   <div className="space-y-3 mt-4">
-                    {mockAnalyses.map((analysis) => (
-                      <div key={analysis.id}>
-                        <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
-                          <div className="col-span-4 flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-                              <img
-                                src={analysis.image || "/placeholder.svg"}
-                                alt={analysis.fileName}
-                                className="w-10 h-10 rounded-lg object-cover"
-                              />
-                            </div>
-                            <span className="text-sm font-medium text-gray-900 truncate">
-                              {analysis.fileName}
-                            </span>
-                          </div>
-                          <div className="col-span-3">
-                            <span className="text-sm text-gray-600">
-                              {analysis.uploadDate}
-                            </span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className={getStatusBadge(analysis.status)}>
-                              {analysis.status}
-                            </span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-sm font-medium text-gray-900">
-                              {analysis.confidence}%
-                            </span>
-                          </div>
-                          <div className="col-span-1 flex justify-end">
-                            <button className="p-1 hover:bg-gray-100 rounded">
-                              <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                            </button>
-                          </div>
-                        </div>
+                    {userData.data.user.analysisHistory.map(
+                      (analysis: AnalysisHistory) => {
+                        // Helper function to get file type icon
+                        const getFileTypeIcon = (type: string | undefined) => {
+                          switch (type?.toLowerCase()) {
+                            case "video":
+                              return (
+                                <Video className="w-6 h-6 text-gray-600" />
+                              );
+                            case "audio":
+                              return (
+                                <AudioLines className="w-6 h-6 text-gray-600" />
+                              );
+                            case "image":
+                              return (
+                                <ImageIcon className="w-6 h-6 text-gray-600" />
+                              );
+                            default:
+                              return (
+                                <ImageIcon className="w-6 h-6 text-gray-600" />
+                              );
+                          }
+                        };
 
-                        <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <img
-                                src={analysis.image || "/placeholder.svg"}
-                                alt={analysis.fileName}
-                                className="w-12 h-12 rounded-lg object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">
-                                    {analysis.fileName}
-                                  </p>
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    {analysis.uploadDate}
-                                  </p>
+                        // Helper function to format date
+                        const formatDate = (dateString: string): string => {
+                          const date = new Date(dateString);
+                          return date.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          });
+                        };
+
+                        // Helper function to get status badge
+                        const getStatusBadge = (
+                          result: string | undefined
+                        ): string => {
+                          const baseClasses =
+                            "px-3 py-1 rounded-full text-xs font-medium";
+                          switch (result?.toLowerCase()) {
+                            case "authentic":
+                            case "real":
+                              return `${baseClasses} bg-green-100 text-green-800`;
+                            case "uncertain":
+                            case "inconclusive":
+                              return `${baseClasses} bg-yellow-100 text-yellow-800`;
+                            case "deepfake":
+                            case "fake":
+                            case "synthetic":
+                              return `${baseClasses} bg-red-100 text-red-800`;
+                            default:
+                              return `${baseClasses} bg-gray-100 text-gray-800`;
+                          }
+                        };
+
+                        // Helper function to extract confidence from result if available
+                        const getConfidence = (
+                          analysis: AnalysisHistory
+                        ): string => {
+                          // If there's a separate confidence field, use it
+                          if (analysis.confidence !== undefined) {
+                            return `${analysis.confidence}%`;
+                          }
+                          // Otherwise, return a placeholder or extract from result if it contains confidence info
+                          return "N/A";
+                        };
+
+                        return (
+                          <div key={analysis.id}>
+                            {/* Desktop View */}
+                            <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
+                              <div className="col-span-4 flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
+                                  {getFileTypeIcon(analysis.type)}
                                 </div>
-                                <button className="p-1 hover:bg-gray-200 rounded ml-2">
+                                <span className="text-sm font-medium text-gray-900 truncate">
+                                  {analysis.fileName ||
+                                    `${
+                                      analysis.type || "Media"
+                                    }_${analysis.id.slice(-8)}`}
+                                </span>
+                              </div>
+                              <div className="col-span-3">
+                                <span className="text-sm text-gray-600">
+                                  {formatDate(analysis.createdAt)}
+                                </span>
+                              </div>
+                              <div className="col-span-2">
+                                <span
+                                  className={getStatusBadge(analysis.result)}
+                                >
+                                  {analysis.result || "Unknown"}
+                                </span>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {getConfidence(analysis)}
+                                </span>
+                              </div>
+                              <div className="col-span-1 flex justify-end">
+                                <button className="p-1 hover:bg-gray-100 rounded">
                                   <MoreHorizontal className="w-4 h-4 text-gray-400" />
                                 </button>
                               </div>
-                              <div className="flex items-center justify-between mt-3">
-                                <span
-                                  className={getStatusBadge(analysis.status)}
-                                >
-                                  {analysis.status}
-                                </span>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {analysis.confidence}%
-                                </span>
+                            </div>
+
+                            {/* Mobile View */}
+                            <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
+                              <div className="flex items-start space-x-3">
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
+                                  {getFileTypeIcon(analysis.type)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-gray-900 truncate">
+                                        {analysis.fileName ||
+                                          `${
+                                            analysis.type || "Media"
+                                          }_${analysis.id.slice(-8)}`}
+                                      </p>
+                                      <p className="text-xs text-gray-600 mt-1">
+                                        {formatDate(analysis.createdAt)}
+                                      </p>
+                                    </div>
+                                    <button className="p-1 hover:bg-gray-200 rounded ml-2">
+                                      <MoreHorizontal className="w-4 h-4 text-gray-400" />
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center justify-between mt-3">
+                                    <span
+                                      className={getStatusBadge(
+                                        analysis.result
+                                      )}
+                                    >
+                                      {analysis.result || "Unknown"}
+                                    </span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {getConfidence(analysis)}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      }
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
-                    <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
-                      <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                    </button>
-                    {[1, 2, 3, 4, 5].map((page) => (
-                      <button
-                        key={page}
-                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium ${
-                          currentPage === page
-                            ? "bg-[#0F2FA3] text-white"
-                            : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
+                  {/* Pagination - Show only if there are many analyses */}
+                  {userData.data.user.analysisHistory.length > 5 && (
+                    <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
+                      <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
+                        <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                       </button>
-                    ))}
-                    <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
-                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                    </button>
-                  </div>
+                      {[1, 2, 3, 4, 5].map((page) => (
+                        <button
+                          key={page}
+                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium ${
+                            currentPage === page
+                              ? "bg-[#0F2FA3] text-white"
+                              : "text-gray-600 hover:bg-gray-100"
+                          }`}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
+                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <>
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="flex justify-center items-center mb-4">
-                      <NoAnalysisYet />
-                    </div>
-                    <h4 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                      No Analyses Yet!
-                    </h4>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                      Upload your first video, audio, or image file to check for
-                      manipulation.
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-600">
-                      Our model will provide a quick and clear assessment.
-                    </p>
+                // No Analyses Yet - Show when analysisHistory is empty or undefined
+                <div className="text-center py-8 sm:py-12">
+                  <div className="flex justify-center items-center mb-4">
+                    <NoAnalysisYet />
                   </div>
-                </>
+                  <h4 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                    No Analyses Yet!
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
+                    Upload your first video, audio, or image file to check for
+                    manipulation.
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Our model will provide a quick and clear assessment.
+                  </p>
+                </div>
               )}
             </div>
           </div>

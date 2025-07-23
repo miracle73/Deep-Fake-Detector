@@ -174,17 +174,55 @@ const VideoScreen = () => {
                 <LayoutGrid className="w-6 h-6" />
                 <span className="text-sm">Dashboard</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-400 cursor-pointer"
+                onClick={() => {
+                  navigate("/audio-detection");
+                  setSidebarOpen(false);
+                }}
+              >
                 <AudioLines className="w-6 h-6" />
                 <span className="text-sm">Audio</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-400  cursor-pointer"
+                onClick={() => {
+                  navigate("/video-detection");
+                  setSidebarOpen(false);
+                }}
+              >
                 <Video className="w-6 h-6" />
                 <span className="text-sm">Video</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400  cursor-pointer">
+              <div
+                className="flex items-center space-x-3 text-gray-400  cursor-pointer"
+                onClick={() => {
+                  navigate("/image-detection");
+                  setSidebarOpen(false);
+                }}
+              >
                 <ImageIcon className="w-6 h-6" />
                 <span className="text-sm">Image</span>
+              </div>
+              <div
+                className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+                onClick={() => {
+                  navigate("/settings");
+                  setSidebarOpen(false);
+                }}
+              >
+                <ImageIcon className="w-6 h-6" />
+                <span className="text-xs">Settings</span>
+              </div>
+              <div
+                className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+                onClick={() => {
+                  navigate("/notifications");
+                  setSidebarOpen(false);
+                }}
+              >
+                <Bell className="w-6 h-6" />
+                <span className="text-xs">Notifications</span>
               </div>
             </div>
           </div>
@@ -204,17 +242,50 @@ const VideoScreen = () => {
             <LayoutGrid className="w-6 h-6" />
             <span className="text-xs">Dashboard</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            onClick={() => {
+              navigate("/audio-detection");
+            }}
+          >
             <AudioLines className="w-6 h-6" />
             <span className="text-xs">Audio</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            onClick={() => {
+              navigate("/video-detection");
+            }}
+          >
             <Video className="w-6 h-6" />
             <span className="text-xs">Video</span>
           </div>
-          <div className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer">
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            onClick={() => {
+              navigate("/image-detection");
+            }}
+          >
             <ImageIcon className="w-6 h-6" />
             <span className="text-xs">Image</span>
+          </div>
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            onClick={() => {
+              navigate("/settings");
+            }}
+          >
+            <ImageIcon className="w-6 h-6" />
+            <span className="text-xs">Settings</span>
+          </div>
+          <div
+            className="flex flex-col items-center space-y-2 text-gray-400  cursor-pointer"
+            onClick={() => {
+              navigate("/notifications");
+            }}
+          >
+            <Bell className="w-6 h-6" />
+            <span className="text-xs">Notifications</span>
           </div>
         </div>
 

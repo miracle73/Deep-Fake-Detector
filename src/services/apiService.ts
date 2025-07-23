@@ -75,12 +75,13 @@ interface UserResponse {
   billingContact?: BillingContact;
 }
 
-interface AnalysisHistory {
+export interface AnalysisHistory {
   id: string;
   type: string;
   result: string;
   createdAt: string;
   fileName?: string;
+  confidence?: number; // Add this line
 }
 
 interface BillingHistory {

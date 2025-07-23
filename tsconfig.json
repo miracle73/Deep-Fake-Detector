@@ -6,6 +6,8 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
+    "jsx": "react-jsx", // or "react"
+    "lib": ["DOM", "DOM.Iterable", "ES6"],
     "paths": {
       "@/*": ["./src/*"]
     }
