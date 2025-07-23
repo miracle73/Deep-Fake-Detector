@@ -83,7 +83,8 @@ export const formatUserResponse = (user: IUser): UserResponse => {
     id: user._id.toString(),
     email: user.email,
     userType: user.userType,
-    plan: user.plan,
+    plan: user.plan ?? 'SafeGuard_Free',
+    phoneNumber: user.phoneNumber ?? '',
   };
 
   if (user.userType === 'individual') {

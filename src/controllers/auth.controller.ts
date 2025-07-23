@@ -11,7 +11,7 @@ import {
   generateVerificationEmail,
   generateWelcomeEmail,
 } from '../utils/email.templates.js';
-import { AppError } from '../utils/error.js';
+import { AppError, AuthenticationError } from '../utils/error.js';
 import { generateToken } from '../utils/generateToken.js';
 import logger from '../utils/logger.js';
 import {
@@ -43,6 +43,7 @@ type UserData = {
   plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
   isEmailVerified: boolean;
   stripeCustomerId?: string;
+  phoneNumber: string;
 } & (
   | {
       userType: 'individual';
@@ -77,6 +78,7 @@ export const register = async (
       agreedToTerms,
       userType,
       plan = 'SafeGuard_Free',
+      phoneNumber,
     } = req.body as RegisterInput;
 
     if (!agreedToTerms) {
@@ -87,9 +89,19 @@ export const register = async (
       );
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phoneNumber: phoneNumber.replace(/\s+/g, '') }],
+    });
+
     if (existingUser) {
-      throw new AppError(400, 'User with this email already exists', null);
+      const conflictField =
+        existingUser.email === email ? 'email' : 'phoneNumber';
+
+      throw new AppError(
+        400,
+        `User with this ${conflictField} already exists`,
+        { conflictField }
+      );
     }
 
     let userData: UserData = {
@@ -100,6 +112,7 @@ export const register = async (
       termsAgreedAt: new Date(),
       plan,
       isEmailVerified: false,
+      phoneNumber,
     } as UserData;
 
     if (userType === 'individual') {
@@ -143,7 +156,11 @@ export const register = async (
 
     userData.stripeCustomerId = stripeCustomer.id;
     const user = await User.create(userData);
+    if (!user) {
+      throw new AppError(500, 'Failed to create user', null);
+    }
 
+    // push to queue
     const createdNotification = await Notification.create({
       userId: user._id,
       type: 'system',
@@ -155,7 +172,7 @@ export const register = async (
     user.notifications.push(createdNotification._id.toString());
     await user.save();
 
-    const token = generateToken(user._id.toString());
+    // const token = generateToken(user._id.toString());
 
     const emailToken = generateEmailVerificationToken(user._id.toString());
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailToken}`;
@@ -165,6 +182,7 @@ export const register = async (
       verificationUrl,
     });
 
+    // push to queue
     await emailQueue.add('verification-email', {
       to: email,
       subject: 'Welcome to SafeGuard Media – Verify Your Email',
@@ -173,7 +191,6 @@ export const register = async (
 
     const response: AuthResponse = {
       success: true,
-      token,
       user: formatUserResponse(user),
     };
 
@@ -200,6 +217,12 @@ export const login = async (
         message: 'User not found',
         details: null,
       });
+    }
+
+    if (!user.isEmailVerified) {
+      throw new AuthenticationError(
+        'Email is not verified. Check your email for verification link or request for a new one.'
+      );
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);

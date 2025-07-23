@@ -105,6 +105,7 @@ const UserSchema: Schema = new Schema(
     },
     phoneNumber: {
       type: String,
+      required: true,
       unique: true,
     },
     paymentMethods: [PaymentMethodSchema],
@@ -203,6 +204,8 @@ UserSchema.pre('save', function (next) {
 UserSchema.methods.matchPassword = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+UserSchema.index({ phoneNumber: 1 }, { unique: true });
 
 UserSchema.index({
   isActive: 1,
