@@ -4,7 +4,11 @@ const userRouter = Router();
 import * as UserController from '../controllers/user.controller.js';
 import { protect } from '../middlewares/auth.js';
 import { validateInput } from '../middlewares/validate.js';
-import { updateUserSchema } from '../lib/schemas/user.schema.js';
+import {
+  updateMediaConsentSchema,
+  updateSubscriptionSchema,
+  updateUserSchema,
+} from '../lib/schemas/user.schema.js';
 
 userRouter.get('/', protect, UserController.getCurrentUser);
 
@@ -15,6 +19,20 @@ userRouter.patch(
   protect,
   validateInput(updateUserSchema),
   UserController.UpdateUser
+);
+
+userRouter.patch(
+  '/subscription',
+  protect,
+  validateInput(updateSubscriptionSchema),
+  UserController.updateSubscription
+);
+
+userRouter.patch(
+  '/consent',
+  protect,
+  validateInput(updateMediaConsentSchema),
+  UserController.updateMediaConsent
 );
 
 userRouter.delete('/delete', protect, UserController.DeleteUser);

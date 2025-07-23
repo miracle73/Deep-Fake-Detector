@@ -6,6 +6,10 @@ import logger from '../utils/logger.js';
 
 import type { NextFunction, Request, Response } from 'express';
 import type { AuthRequest } from '../middlewares/auth.js';
+import type {
+  VerifyMediaConsentInput,
+  VerifySubUpdateInput,
+} from '../lib/schemas/user.schema.js';
 
 export async function getCurrentUser(
   req: AuthRequest,
@@ -153,6 +157,69 @@ export const getAnalysisHistory = async (
     });
   } catch (error) {
     console.error('Failed to fetch analysis history:', error);
+    next(error);
+  }
+};
+
+export const updateSubscription = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { emailSubscribed } = req.body as VerifySubUpdateInput;
+
+    const userId = req.user.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { emailSubscribed },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription updated successfully',
+      data: {
+        newStatus: user?.emailSubscribed,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to update user subscription', error);
+    next(error);
+  }
+};
+
+export const updateMediaConsent = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { allowStorage } = req.body as VerifyMediaConsentInput;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    user.consent = {
+      storeMedia: allowStorage,
+      updatedAt: new Date(),
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Media consent updated successfully',
+      data: {
+        consent: user?.consent,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to update media consent:', error);
     next(error);
   }
 };

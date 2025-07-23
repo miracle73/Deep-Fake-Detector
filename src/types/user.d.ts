@@ -88,6 +88,11 @@ export interface BaseUserFields {
   lastLogin?: Date;
   role: string;
   notifications: string[];
+  emailSubscribed: boolean;
+  consent: {
+    storeMedia: boolean;
+    updatedAt: Date;
+  };
   usageQuota: {
     monthlyAnalysis: number;
     remainingAnalysis: number;
