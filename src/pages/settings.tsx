@@ -41,6 +41,9 @@ const Settings = () => {
   const [deleteUser] = useDeleteUserMutation();
   const [isUpdatingPersonalInfo, setIsUpdatingPersonalInfo] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [otherReason, setOtherReason] = useState("");
   const [errors, setErrors] = useState({
     personalInfo: "",
     deleteAccount: "",
@@ -158,15 +161,21 @@ const Settings = () => {
     }
   };
 
+  const handleDeleteModalSubmit = () => {
+    if (!deleteReason && !otherReason) {
+      alert("Please select a reason before proceeding.");
+      return;
+    }
+
+    const finalReason = deleteReason === "other" ? otherReason : deleteReason;
+    console.log("Delete reason:", finalReason);
+
+    handleDeleteAccount();
+  };
+
   const handleDeleteAccount = async () => {
     // Clear previous messages
     setErrors((prev) => ({ ...prev, deleteAccount: "" }));
-
-    const confirmed = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data."
-    );
-
-    if (!confirmed) return;
 
     setIsDeletingAccount(true);
 
@@ -176,7 +185,6 @@ const Settings = () => {
       console.log("Account deleted successfully:", result);
 
       // Redirect to signin page or home page after successful deletion
-      // You might want to clear any stored tokens/user data here
       navigate("/signup");
     } catch (error) {
       console.error("Delete account failed:", error);
@@ -217,6 +225,7 @@ const Settings = () => {
       }
     } finally {
       setIsDeletingAccount(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -714,10 +723,9 @@ const Settings = () => {
                   )}
 
                   {/* Delete Account Button */}
-
                   <div className="flex justify-start">
                     <button
-                      onClick={handleDeleteAccount}
+                      onClick={() => setShowDeleteModal(true)}
                       disabled={isDeletingAccount}
                       className="bg-red-50 border border-red-300 hover:bg-red-100 disabled:bg-gray-100 disabled:cursor-not-allowed text-red-700 px-10 py-2 rounded-full text-sm font-medium transition-colors flex items-center"
                     >
@@ -766,6 +774,146 @@ const Settings = () => {
                   </div>
                 </div>
               </div>
+
+              {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div
+                    className="fixed inset-0 bg-black bg-opacity-50"
+                    onClick={() => setShowDeleteModal(false)}
+                  />
+                  <div className="relative bg-white rounded-lg max-w-md w-full p-6 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Account Deletion Request
+                      </h3>
+                      <button
+                        onClick={() => setShowDeleteModal(false)}
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <p className="text-sm text-gray-600">
+                      We're sorry to see you go! Please help us understand your
+                      reason for deleting your account:
+                    </p>
+
+                    <div className="space-y-4">
+                      <p className="text-sm font-medium text-gray-700">
+                        Select a reason:
+                      </p>
+
+                      <div className="space-y-3">
+                        {[
+                          {
+                            value: "no-longer-need",
+                            label: "I no longer need the service",
+                          },
+                          {
+                            value: "privacy-concerns",
+                            label: "I have privacy concerns",
+                          },
+                          {
+                            value: "better-alternative",
+                            label: "I found a better alternative",
+                          },
+                          {
+                            value: "features-not-met",
+                            label: "The features did not meet my expectations",
+                          },
+                        ].map((reason) => (
+                          <label
+                            key={reason.value}
+                            className="flex items-center space-x-3 cursor-pointer"
+                          >
+                            <input
+                              type="radio"
+                              name="deleteReason"
+                              value={reason.value}
+                              checked={deleteReason === reason.value}
+                              onChange={(e) => setDeleteReason(e.target.value)}
+                              className="w-4 h-4 text-[#0F2FA3] border-gray-300 focus:ring-[#0F2FA3]"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {reason.label}
+                            </span>
+                          </label>
+                        ))}
+
+                        <label className="flex items-start space-x-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="deleteReason"
+                            value="other"
+                            checked={deleteReason === "other"}
+                            onChange={(e) => setDeleteReason(e.target.value)}
+                            className="w-4 h-4 text-[#0F2FA3] border-gray-300 focus:ring-[#0F2FA3] mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm text-gray-700">
+                              Other:
+                            </span>
+                            {deleteReason === "other" && (
+                              <input
+                                type="text"
+                                value={otherReason}
+                                onChange={(e) => setOtherReason(e.target.value)}
+                                placeholder="Please specify..."
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F2FA3] focus:border-transparent text-sm"
+                              />
+                            )}
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-start space-x-2">
+                        <svg
+                          className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <p className="text-xs text-blue-800">
+                          By submitting this form, your account and associated
+                          data will be permanently deleted in accordance with
+                          our Privacy Policy.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-3 pt-4">
+                      <button
+                        onClick={() => setShowDeleteModal(false)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleDeleteModalSubmit}
+                        disabled={isDeletingAccount}
+                        className="flex-1 px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                      >
+                        {isDeletingAccount ? (
+                          <>
+                            <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                            Deleting...
+                          </>
+                        ) : (
+                          "Delete Account"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
