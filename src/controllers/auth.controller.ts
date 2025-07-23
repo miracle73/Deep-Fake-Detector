@@ -33,6 +33,7 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
+import notificationQueue from 'queues/notificationQueue.js';
 
 type UserData = {
   email: string;
@@ -160,17 +161,14 @@ export const register = async (
       throw new AppError(500, 'Failed to create user', null);
     }
 
-    // push to queue
-    const createdNotification = await Notification.create({
+    await notificationQueue.add('Welcome-Notification', {
       userId: user._id,
       type: 'system',
       title: 'Welcome to SafeGuard Media',
-      message: 'Lorem ipsum dolor elistir',
+      message:
+        'Go ahead and instantly analyze media for AI manipulation with our robust and easy-to-use platform',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-
-    user.notifications.push(createdNotification._id.toString());
-    await user.save();
 
     // const token = generateToken(user._id.toString());
 
@@ -182,7 +180,6 @@ export const register = async (
       verificationUrl,
     });
 
-    // push to queue
     await emailQueue.add('verification-email', {
       to: email,
       subject: 'Welcome to SafeGuard Media – Verify Your Email',

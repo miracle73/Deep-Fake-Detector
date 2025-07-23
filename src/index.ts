@@ -47,7 +47,7 @@ app.use(requestLogger);
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', async (req: Request, res: Response) => {
   res.status(200).json({
     message: 'Welcome to the image detection API',
     version: '1.0.0',
