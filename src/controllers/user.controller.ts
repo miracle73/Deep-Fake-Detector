@@ -156,3 +156,34 @@ export const getAnalysisHistory = async (
     next(error);
   }
 };
+
+export const updateSubscription = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { emailSubscribed } = req.body;
+
+    const userId = req.user.id;
+
+    if (typeof emailSubscribed !== 'boolean') {
+      throw new ValidationError('Invalid subscription status');
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { emailSubscribed },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription updated successfully',
+      newStatus: user?.emailSubscribed,
+    });
+  } catch (error) {
+    console.error('Failed to update user subscription', error);
+    next(error);
+  }
+};

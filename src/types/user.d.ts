@@ -88,6 +88,7 @@ export interface BaseUserFields {
   lastLogin?: Date;
   role: string;
   notifications: string[];
+  emailSubscribed: boolean;
   usageQuota: {
     monthlyAnalysis: number;
     remainingAnalysis: number;

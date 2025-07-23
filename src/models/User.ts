@@ -160,6 +160,10 @@ const UserSchema: Schema = new Schema(
         index: true,
       },
     ],
+    emailSubscribed: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
