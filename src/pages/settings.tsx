@@ -778,7 +778,7 @@ const Settings = () => {
               {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                   <div
-                    className="fixed inset-0 bg-black bg-opacity-50"
+                    className="fixed inset-0 backdrop-blur-sm bg-black bg-opacity-50"
                     onClick={() => setShowDeleteModal(false)}
                   />
                   <div className="relative bg-white rounded-lg max-w-md w-full p-6 space-y-6">
@@ -897,8 +897,8 @@ const Settings = () => {
                         Cancel
                       </button>
                       <button
-                        onClick={handleDeleteModalSubmit}
-                        disabled={isDeletingAccount}
+                        // onClick={handleDeleteModalSubmit}
+                        // disabled={isDeletingAccount}
                         className="flex-1 px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                       >
                         {isDeletingAccount ? (
