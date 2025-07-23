@@ -89,6 +89,10 @@ export const updateSubscriptionSchema = z.object({
   emailSubscribed: z.boolean(),
 });
 
+export const updateMediaConsentSchema = z.object({
+  allowStorage: z.boolean(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
@@ -98,3 +102,7 @@ export type ResendVerificationEmailInput = z.infer<
   typeof resendVerificationEmailSchema
 >;
 export type VerifyEmailQueryInput = z.infer<typeof verifyEmailQuerySchema>;
+
+export type VerifySubUpdateInput = z.infer<typeof updateSubscriptionSchema>;
+
+export type VerifyMediaConsentInput = z.infer<typeof updateMediaConsentSchema>;

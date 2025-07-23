@@ -164,6 +164,17 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: true,
     },
+    consent: {
+      storeMedia: {
+        type: Boolean,
+        default: false,
+        required: true,
+      },
+      updatedAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,
