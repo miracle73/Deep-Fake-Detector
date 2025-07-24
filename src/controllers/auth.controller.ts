@@ -2,9 +2,9 @@ import bcrypt from 'bcryptjs';
 import crypto from 'node:crypto';
 
 import { formatUserResponse } from '../lib/helpers.js';
-import { Notification } from '../models/Notification.js';
 import User from '../models/User.js';
 import emailQueue from '../queues/emailQueue.js';
+import notificationQueue from '../queues/notificationQueue.js';
 import { stripe } from '../services/stripeService.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
 import {
@@ -33,7 +33,6 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
-import notificationQueue from 'queues/notificationQueue.js';
 
 type UserData = {
   email: string;
@@ -437,8 +436,7 @@ export const resetPassword = async (
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    user.password = password;
     user.resetPasswordExpire = undefined;
     user.resetPasswordToken = undefined;
     user.passwordChangedAt = new Date();

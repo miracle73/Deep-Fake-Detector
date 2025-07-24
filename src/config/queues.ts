@@ -1,8 +1,9 @@
-import { emailWorker } from '../workers/emailWorker.js';
+import notificationQueue from '../queues/notificationQueue.js';
+import { notificationWorker } from '../workers/notificationWorker.js';
+
 import emailQueue, { emailQueueEvent } from '../queues/emailQueue.js';
 import logger from '../utils/logger.js';
-import notificationQueue from 'queues/notificationQueue.js';
-import { notificationWorker } from 'workers/notificationWorker.js';
+import { emailWorker } from '../workers/emailWorker.js';
 
 export const startQueues = async () => {
   await emailQueue.waitUntilReady();

@@ -2,10 +2,11 @@ import { Worker } from 'bullmq';
 
 import { redisConnection } from '../config/redis.js';
 import { Notification } from '../models/Notification.js';
+import User from '../models/User.js';
 import logger from '../utils/logger.js';
 
 import type { NotificationJob } from '../types/queues.d.js';
-import User from 'models/User.js';
+
 logger.info('🚀 Notification worker is running...');
 
 const mainWorkerOptions = {
