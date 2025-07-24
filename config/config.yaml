@@ -1,18 +1,18 @@
 # Model Configuration
 model:
-  name: "efficientnet-b4"
+  name: "efficientnet_b4"
   num_classes: 2
   pretrained: true
   dropout: 0.3
 
-# Training Configuration
+# Training Configuration (Optimized for 5.4GB memory)
 training:
-  batch_size: 32
-  epochs: 50
+  batch_size: 8          # Reduced from 32 to fit memory
+  epochs: 30             # Reduced from 50 for faster completion
   learning_rate: 0.001
   weight_decay: 0.0001
-  patience: 10
-  
+  patience: 8            # Reduced patience
+
 # Data Configuration
 data:
   input_size: 224
@@ -20,7 +20,7 @@ data:
   val_split: 0.2
   test_split: 0.1
   augmentation: true
-  
+
 # Paths
 paths:
   data_dir: "data/"

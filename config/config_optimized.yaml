@@ -1,6 +1,6 @@
 # Model Configuration
 model:
-  name: "efficientnet-b4"
+  name: "efficientnet_b4"
   num_classes: 2
   pretrained: true
   dropout: 0.3

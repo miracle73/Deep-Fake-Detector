@@ -93,7 +93,7 @@ def main():
             data_dir=args.data_dir,
             preprocessor=preprocessor,
             batch_size=training_config.batch_size,
-            num_workers=4,
+            num_workers=2,
             balance_classes=True
         )
         
