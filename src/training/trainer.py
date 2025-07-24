@@ -198,7 +198,7 @@ class DeepfakeTrainer:
         
         # Resume from checkpoint if provided
         if resume_from_checkpoint and Path(resume_from_checkpoint).exists():
-            start_epoch = self.load_checkpoint(resume_from_checkpoint)
+            start_epoch = self.load_checkpoint(resume_from_checkpoint) + 1
             print(f"Resumed training from epoch {start_epoch}")
         
         print(f"\nStarting training for {self.epochs} epochs...")
