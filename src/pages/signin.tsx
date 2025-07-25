@@ -10,6 +10,8 @@ import { useDispatch } from "react-redux";
 import { loginUser } from "../store/slices/authSlices";
 import { setUserInfo } from "../store/slices/userSlices";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 interface FormData {
   email: string;
@@ -35,6 +37,7 @@ function Signin() {
   const [googleLogin] = useGoogleLoginMutation();
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const storedUser = useSelector((state: RootState) => state.user.user);
 
   const [login] = useLoginMutation();
   useEffect(() => {
@@ -435,14 +438,16 @@ function Signin() {
                 </div>
 
                 {/* Forgot Password Link */}
-                <div className="text-right cursor-pointer">
-                  <a
-                    onClick={() => navigate("/forgot-password")}
-                    className="text-sm text-blue-600 hover:text-blue-500 hover:underline"
-                  >
-                    Forgot Password?
-                  </a>
-                </div>
+                {!storedUser.isGoogleUser && (
+                  <div className="text-right cursor-pointer">
+                    <a
+                      onClick={() => navigate("/forgot-password")}
+                      className="text-sm text-blue-600 hover:text-blue-500 hover:underline"
+                    >
+                      Forgot Password?
+                    </a>
+                  </div>
+                )}
 
                 {/* Sign In Button */}
                 <button
