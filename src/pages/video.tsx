@@ -20,16 +20,18 @@ import FourthImage from "../assets/images/fourthImage.png";
 import { BackIcon } from "../assets/svg";
 import FifthImage from "../assets/images/fifthImage.png";
 import { useNavigate } from "react-router-dom";
-import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
+
 const VideoScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration] = useState(531); // 8:51 in seconds
-  const { data: userData } = useGetUserQuery();
+  const [duration] = useState(531);
+  const storedUser = useSelector((state: RootState) => state.user.user);
   const handleBack = () => {
     // Handle back navigation
     console.log("Going back...");
@@ -134,13 +136,13 @@ const VideoScreen = () => {
             <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  {userData?.data?.user?.firstName
-                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                  {storedUser.firstName
+                    ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
               <span className="hidden sm:inline text-sm text-gray-700">
-                {userData?.data?.user?.firstName || "Username"}
+                {storedUser.firstName || "Username"}
               </span>
             </div>
           </div>

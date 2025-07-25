@@ -15,9 +15,10 @@ import {
   useDeleteUserMutation,
 } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
-import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 const Settings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -53,7 +54,7 @@ const Settings = () => {
     emailSettings: "",
   });
   const [showUnsubscribeModal, setShowUnsubscribeModal] = useState(false);
-  const { data: userData } = useGetUserQuery();
+  const storedUser = useSelector((state: RootState) => state.user.user);
   useEffect(() => {
     if (errors.personalInfo) {
       const timer = setTimeout(() => {
@@ -360,13 +361,13 @@ const Settings = () => {
             >
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  {userData?.data?.user?.firstName
-                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                  {storedUser.firstName
+                    ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
               <span className="hidden sm:inline text-sm text-gray-700">
-                {userData?.data?.user?.firstName || "Username"}
+                {storedUser.firstName || "Username"}
               </span>
             </div>
           </div>
@@ -528,7 +529,7 @@ const Settings = () => {
               </h2>
               <p className="text-sm sm:text-base text-gray-600 mb-6">
                 {/* Welcome back, Username */}
-                Welcome back {userData?.data?.user?.firstName || "Username"}
+                Welcome back {storedUser.firstName || "Username"}
               </p>
             </div>
 
