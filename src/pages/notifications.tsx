@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 import { NoAnalysisYet } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
-import { useGetUserQuery } from "../services/apiService";
 import { CiSettings } from "react-icons/ci";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 // Mock notifications data - replace with your actual data source
 const mockNotifications = [
@@ -45,9 +46,9 @@ const mockNotifications = [
 const Notifications = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const { data: userData } = useGetUserQuery();
   const [selectedNotification, setSelectedNotification] =
     useState<Notification | null>(null);
+  const storedUser = useSelector((state: RootState) => state.user.user);
   // Toggle this to show/hide notifications for testing
   const [hasNotifications] = useState(true);
 
@@ -153,13 +154,13 @@ const Notifications = () => {
             >
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  {userData?.data?.user?.firstName
-                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                  {storedUser.firstName
+                    ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
               <span className="hidden sm:inline text-sm text-gray-700">
-                {userData?.data?.user?.firstName || "Username"}
+                {storedUser.firstName || "Username"}
               </span>
             </div>
           </div>

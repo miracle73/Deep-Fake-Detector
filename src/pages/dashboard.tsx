@@ -24,6 +24,8 @@ import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import type { AnalysisHistory } from "../services/apiService";
 import { CiSettings } from "react-icons/ci";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ const Dashboard = () => {
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const { data: userData } = useGetUserQuery();
+  const storedUser = useSelector((state: RootState) => state.user.user);
   // Modify the handleUploadMedia function
 
   const handleUploadMedia = () => {
@@ -302,13 +305,13 @@ const Dashboard = () => {
             >
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  {userData?.data?.user?.firstName
-                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                  {storedUser.firstName
+                    ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
               <span className="hidden sm:inline text-sm text-gray-700">
-                {userData?.data?.user?.firstName || "Username"}
+                {storedUser.firstName || "Username"}
               </span>
             </div>
           </div>
