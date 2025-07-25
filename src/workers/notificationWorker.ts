@@ -52,6 +52,5 @@ const pushNotification = async (job: NotificationJob) => {
   user.notifications.push(notification._id.toString());
   await user.save();
 
-  console.log(notification, user.notifications);
   return;
 };

@@ -43,7 +43,7 @@ type UserData = {
   plan: 'SafeGuard_Free' | 'SafeGuard_Pro' | 'SafeGuard_Max';
   isEmailVerified: boolean;
   stripeCustomerId?: string;
-  phoneNumber: string;
+  phoneNumber?: string;
 } & (
   | {
       userType: 'individual';
@@ -78,7 +78,7 @@ export const register = async (
       agreedToTerms,
       userType,
       plan = 'SafeGuard_Free',
-      phoneNumber,
+      phoneNumber = '',
     } = req.body as RegisterInput;
 
     if (!agreedToTerms) {
@@ -89,9 +89,7 @@ export const register = async (
       );
     }
 
-    const existingUser = await User.findOne({
-      $or: [{ email }, { phoneNumber: phoneNumber.replace(/\s+/g, '') }],
-    });
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       const conflictField =
@@ -215,6 +213,10 @@ export const login = async (
       });
     }
 
+    if (user.isGoogleUser) {
+      throw new AuthenticationError('Error. Please sign in with Google');
+    }
+
     if (!user.isEmailVerified) {
       throw new AuthenticationError(
         'Email is not verified. Check your email for verification link or request for a new one.'
@@ -273,6 +275,7 @@ export const googleLogin = async (
       if (!user.googleId) {
         user.googleId = googleId;
         user.isGoogleUser = true;
+        user.isEmailVerified = true;
 
         if (user.userType === 'individual') {
           if (!user.firstName) user.firstName = firstName || 'Unknown';
@@ -283,7 +286,7 @@ export const googleLogin = async (
       } else if (user.googleId !== googleId) {
         return res.status(400).json({
           success: false,
-          message: 'Email already associated with different Google account',
+          message: 'Email already associated with different account',
         });
       }
     } else {
