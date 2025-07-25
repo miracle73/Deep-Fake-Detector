@@ -62,7 +62,6 @@ function Signin() {
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (token) => {
-      console.log("Google token received:", token);
       setIsGoogleLoading(true);
       try {
         const response = await googleLogin({
@@ -72,8 +71,6 @@ function Signin() {
         }).unwrap();
 
         // Handle successful Google login
-
-        console.log("Google login successful:", response);
 
         if (response.success) {
           // Dispatch user data to Redux store
@@ -203,7 +200,6 @@ function Signin() {
       const result = await login(loginData).unwrap();
 
       // Handle successful login
-      console.log("Login successful:", result);
 
       // Dispatch user data to Redux store
       dispatch(

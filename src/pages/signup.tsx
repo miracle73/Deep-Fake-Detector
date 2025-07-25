@@ -97,7 +97,6 @@ function SignUp() {
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (token) => {
-      console.log("Google token received:", token);
       setIsGoogleLoading(true);
       try {
         const response = await googleLogin({
@@ -107,8 +106,6 @@ function SignUp() {
         }).unwrap();
 
         // Handle successful Google login
-
-        console.log("Google login successful:", response);
 
         if (response.success) {
           // Dispatch user data to Redux store
@@ -267,7 +264,6 @@ function SignUp() {
       const result = await register(registrationData).unwrap();
 
       // Handle successful registration
-      console.log("Registration successful:", result);
 
       // Dispatch user data to Redux store
       dispatch(

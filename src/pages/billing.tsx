@@ -10,9 +10,10 @@ import {
   Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useGetUserQuery } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 const Billing = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,7 +23,8 @@ const Billing = () => {
     "Basic customer support",
     "Basic customer support",
   ];
-  const { data: userData } = useGetUserQuery();
+
+  const storedUser = useSelector((state: RootState) => state.user.user);
   return (
     <div className={`min-h-screen bg-gray-50`}>
       {/* Full Width Header */}
@@ -97,13 +99,13 @@ const Billing = () => {
             >
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  {userData?.data?.user?.firstName
-                    ? userData.data.user.firstName.charAt(0).toUpperCase()
+                  {storedUser.firstName
+                    ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
               <span className="hidden sm:inline text-sm text-gray-700">
-                {userData?.data?.user?.firstName || "Username"}
+                {storedUser.firstName || "Username"}
               </span>
             </div>
           </div>
