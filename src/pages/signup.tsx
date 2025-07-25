@@ -5,7 +5,7 @@ import "../App.css";
 // import BackgroundImage from "../assets/images/signin-2.png";
 import { useNavigate } from "react-router-dom";
 import { useRegisterMutation } from "../services/apiService";
-import PhoneInput from "react-phone-number-input";
+// import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useGoogleLoginMutation } from "../services/apiService";
@@ -261,7 +261,7 @@ function SignUp() {
         phone: formData.phone,
         agreedToTerms: formData.agreeTerms,
         userType: accountType,
-        phoneNumber: formData.phone,
+        // phoneNumber: formData.phone,
       };
 
       const result = await register(registrationData).unwrap();
@@ -569,7 +569,7 @@ function SignUp() {
                     </div>
 
                     {/* Phone Field */}
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <label
                         htmlFor="phone"
                         className="block text-sm font-medium text-gray-700"
@@ -619,7 +619,7 @@ function SignUp() {
                       {errors.phone && (
                         <p className="text-sm text-red-600">{errors.phone}</p>
                       )}
-                    </div>
+                    </div> */}
 
                     {/* Password Field */}
                     <div className="space-y-2">

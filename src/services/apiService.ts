@@ -7,7 +7,7 @@ interface RegisterRequest {
   lastName: string;
   agreedToTerms: boolean;
   userType: string;
-  phoneNumber: string; // Optional phone number field
+  // phoneNumber: string;
 }
 
 interface RootState {
@@ -291,7 +291,6 @@ export const apiService = createApi({
         lastName,
         agreedToTerms,
         userType,
-        phoneNumber,
       }) => ({
         url: "auth/register",
         method: "POST",
@@ -302,7 +301,6 @@ export const apiService = createApi({
           lastName,
           agreedToTerms,
           userType,
-          phoneNumber,
         },
       }),
     }),
