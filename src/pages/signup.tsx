@@ -79,12 +79,12 @@ function SignUp() {
     return emailRegex.test(email);
   };
 
-  const validatePhone = (phone: string): boolean => {
-    // Basic phone validation
-    const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+  // const validatePhone = (phone: string): boolean => {
+  //   // Basic phone validation
+  //   const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
 
-    return phoneRegex.test(phone.replace(/[\s\-()]/g, ""));
-  };
+  //   return phoneRegex.test(phone.replace(/[\s\-()]/g, ""));
+  // };
 
   const validatePassword = (password: string): boolean => {
     // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
@@ -192,11 +192,11 @@ function SignUp() {
     }
 
     // Phone validation
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!validatePhone(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
-    }
+    // if (!formData.phone.trim()) {
+    //   newErrors.phone = "Phone number is required";
+    // } else if (!validatePhone(formData.phone)) {
+    //   newErrors.phone = "Please enter a valid phone number";
+    // }
 
     // Password validation
     if (!formData.password) {
