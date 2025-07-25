@@ -328,7 +328,7 @@ function ResetPassword() {
                   {isSubmitting ? (
                     <>
                       <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                      Reseting...
+                      Resetting...
                     </>
                   ) : (
                     "Reset Password"
