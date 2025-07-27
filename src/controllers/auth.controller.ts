@@ -158,18 +158,8 @@ export const register = async (
       throw new AppError(500, 'Failed to create user', null);
     }
 
-    await notificationQueue.add('Welcome-Notification', {
-      userId: user._id,
-      type: 'system',
-      title: 'Welcome to SafeGuard Media',
-      message:
-        'Go ahead and instantly analyze media for AI manipulation with our robust and easy-to-use platform',
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
-
-    // const token = generateToken(user._id.toString());
-
     const emailToken = generateEmailVerificationToken(user._id.toString());
+
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailToken}`;
 
     const verificationEmail = generateVerificationEmail({
@@ -182,6 +172,17 @@ export const register = async (
       subject: 'Welcome to SafeGuard Media – Verify Your Email',
       html: verificationEmail,
     });
+
+    await notificationQueue.add('Welcome-Notification', {
+      userId: user._id,
+      type: 'system',
+      title: 'Welcome to SafeGuard Media',
+      message:
+        'Go ahead and instantly analyze media for AI manipulation with our robust and easy-to-use platform',
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    // const token = generateToken(user._id.toString());
 
     const response: AuthResponse = {
       success: true,
@@ -270,6 +271,12 @@ export const googleLogin = async (
     }
 
     let user = await User.findOne({ email });
+
+    if (user && !user.isGoogleUser) {
+      throw new AuthenticationError(
+        'This email is already registered with email/password. Please login using your password.'
+      );
+    }
 
     if (user) {
       if (!user.googleId) {
