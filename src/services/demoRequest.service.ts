@@ -1,5 +1,8 @@
+import User from '../models/User.js';
 import DemoRequest from '../models/DemoRequest.js';
 import { AppError } from '../utils/error.js';
+import emailQueue from '../queues/emailQueue.js';
+import { generateEarlyAccessLiveEmail } from '../utils/email.templates.js';
 
 interface UserData {
   firstName: string;
@@ -13,16 +16,39 @@ interface UserData {
 }
 
 export const createDemoUser = async (userdata: UserData) => {
-  const existingUser = await DemoRequest.findOne({ email: userdata.email });
+  const existingDemoUser = await DemoRequest.findOne({ email: userdata.email });
 
-  if (existingUser) {
+  if (existingDemoUser) {
     throw new AppError(400, 'Demo user with this email already exists');
   }
+
+  const existingUser = await User.findOne({ email: userdata.email });
+
+  if (existingUser) {
+    throw new AppError(
+      400,
+      'User exists already. Please sign in with email and password'
+    );
+  }
+
   const user = await DemoRequest.create(userdata);
 
   if (!user) {
     throw new AppError(400, 'Failed to create demo user');
   }
+
+  const activationUrl = `${process.env.FRONTEND_URL}/create-password?email=${userdata.email}`;
+
+  const createPasswordEmail = generateEarlyAccessLiveEmail({
+    name: userdata.firstName,
+    activationUrl,
+  });
+
+  await emailQueue.add('verification-email', {
+    to: userdata.email,
+    subject: 'Welcome to SafeGuard Media – Create your password',
+    html: createPasswordEmail,
+  });
 
   return user;
 };

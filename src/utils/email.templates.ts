@@ -560,3 +560,107 @@ export const generateBusinessIntegrationEmail = () => {
 </html>
 `;
 };
+
+export const generateEarlyAccessLiveEmail = ({
+  name,
+  activationUrl,
+}: {
+  name: string;
+  activationUrl: string;
+}) => {
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <title>You're In – Set Your Password</title>
+      <style>
+        body {
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f4f6f8;
+          padding: 20px;
+          color: #333;
+        }
+        .container {
+          max-width: 600px;
+          margin: auto;
+          background-color: #ffffff;
+          padding: 40px 30px;
+          border-radius: 10px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .header h1 {
+          color: #1a73e8;
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        .content p {
+          font-size: 15px;
+          line-height: 1.6;
+          color: #444;
+        }
+        .button {
+          display: inline-block;
+          background-color: #1a73e8;
+          color: #ffffff !important;
+          padding: 14px 26px;
+          margin: 30px 0;
+          text-decoration: none;
+          border-radius: 6px;
+          font-weight: bold;
+          font-size: 15px;
+        }
+        .link-text {
+          font-size: 14px;
+          color: #888;
+          margin-top: 20px;
+          line-height: 1.5;
+          word-break: break-word;
+        }
+        .footer {
+          margin-top: 40px;
+          font-size: 13px;
+          color: #aaa;
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>You're In, ${name || 'there'} 🎉</h1>
+        </div>
+
+        <div class="content">
+          <p>Welcome to <strong>SafeGuardMedia</strong> — we’re officially live and you're first in line to explore it.</p>
+          
+          <p>All that’s left is to set your password so you can start verifying your media, detecting deepfakes, and staying ahead.</p>
+
+          <p style="text-align: center;">
+            <a href="${activationUrl}" class="button">Set Your Password</a>
+          </p>
+
+          <p class="link-text">
+            If the button above doesn’t work, you can copy and paste this link into your browser:
+            <br />
+            <a href="${activationUrl}" style="color: #1a73e8;">${activationUrl}</a>
+          </p>
+
+          <p>We're excited to have you on board. Let’s keep the internet real.</p>
+
+          <p>— The SafeGuardMedia Team</p>
+        </div>
+
+        <div class="footer">
+          You’re receiving this email because you requested early access to SafeGuardMedia.
+          If this wasn’t you, you can safely ignore this message.
+        </div>
+      </div>
+    </body>
+  </html>
+`;
+};

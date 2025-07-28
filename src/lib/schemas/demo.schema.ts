@@ -70,4 +70,13 @@ export const demoRequestSchema = z.object({
   metadata: z.string().default('').optional(),
 });
 
+export const demoUserSchema = z.object({
+  password: z
+    .string()
+    .min(8, { message: 'Password must be at least 8 characters long' }),
+  email: emailSchema,
+});
+
 export type DemoRequest = z.infer<typeof demoRequestSchema>;
+
+export type DemoUser = z.infer<typeof demoUserSchema>;

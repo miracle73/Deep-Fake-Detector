@@ -34,7 +34,7 @@ import type {
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
 
-type UserData = {
+export type UserData = {
   email: string;
   password: string;
   userType: 'individual' | 'enterprise';
