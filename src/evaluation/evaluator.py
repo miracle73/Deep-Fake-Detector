@@ -251,7 +251,8 @@ class ModelEvaluator:
         # Save metrics separately for easy access
         metrics_path = self.results_dir / "metrics" / f"{dataset_name}_metrics.json"
         with open(metrics_path, 'w') as f:
-            json.dump(metrics, f, indent=2)
+            # json.dump(metrics, f, indent=2)
+            json.dump(results, f, indent=2, default=lambda o: float(o) if isinstance(o, np.floating) else int(o) if isinstance(o, np.integer) else str(o))
     
     def _generate_visualizations(self, metrics: DeepfakeMetrics, dataset_name: str):
         """Generate evaluation visualizations"""
