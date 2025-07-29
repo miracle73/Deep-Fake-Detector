@@ -1,0 +1,30 @@
+# Replace the current .gcloudignore with this:
+cat > .gcloudignore << 'EOF'
+# Git and IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+README.md
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# Large datasets (exclude only root data directory, not src/data/)
+/data/
+/datasets/
+/training_data/
+*.mp4
+*.avi
+*.mov
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+EOF
