@@ -1,4 +1,4 @@
-import { stripe } from 'services/stripeService.js';
+import { stripe } from '../services/stripeService.js';
 
 import { formatUserResponse } from '../lib/helpers.js';
 import DemoRequest from '../models/DemoRequest.js';
