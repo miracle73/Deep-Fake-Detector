@@ -16,8 +16,14 @@ import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
 import type { AuthRequest } from '../middlewares/auth.js';
+import FormData from 'form-data';
+import axios from 'axios';
 
 const pubsub = new PubSub();
+
+const MODEL_API_URL =
+  process.env.MODEL_API_URL ||
+  'https://image-deepfake-detector-pe26zhcr6q-uc.a.run.app/predict';
 
 export const analyze = async (
   req: AuthRequest,
@@ -40,43 +46,62 @@ export const analyze = async (
       return;
     }
 
-    const filename = `${uuidv4()}-${file.originalname}`;
-    const blob = bucket.file(filename);
+    const formData = new FormData();
+    formData.append('image', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
 
-    const blobStream = blob.createWriteStream({
-      resumable: false,
-      metadata: {
-        contentType: file.mimetype,
-        metadata: {
-          originalName: file.originalname,
-          uploadedAt: new Date().toISOString(),
-        },
+    const response = await axios.post(MODEL_API_URL, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
     });
 
-    await new Promise((resolve, reject) => {
-      blobStream.on('error', (err) => {
-        console.error('Upload error:', err);
-        reject(new Error('Failed to upload file to storage'));
-      });
+    console.log(response.data);
 
-      blobStream.on('finish', resolve);
-      blobStream.end(file.buffer);
-    });
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+    // const filename = `${uuidv4()}-${file.originalname}`;
+    // const blob = bucket.file(filename);
 
-    const predictions = await callVertexAI(publicUrl);
-    if (!predictions) {
-      res.status(500).json({
-        statusCode: 500,
-        status: 'error',
-        success: false,
-        message: 'No predictions found',
-        errorCode: 'NO_PREDICTIONS',
-        details: 'No predictions were returned from the model',
-      });
-      return;
-    }
+    // console.log('FILENAME >>.||<', filename);
+
+    // const blobStream = blob.createWriteStream({
+    //   resumable: false,
+    //   metadata: {
+    //     contentType: file.mimetype,
+    //     metadata: {
+    //       originalName: file.originalname,
+    //       uploadedAt: new Date().toISOString(),
+    //     },
+    //   },
+    // });
+    // console.log('THIS IS BLOB STREAM: ', blobStream);
+
+    // await new Promise((resolve, reject) => {
+    //   blobStream.on('error', (err) => {
+    //     console.error('Upload error:', err);
+    //     reject(new Error('Failed to upload file to storage'));
+    //   });
+
+    //   blobStream.on('finish', resolve);
+    //   blobStream.end(file.buffer);
+    // });
+    // const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+
+    // logger.info(publicUrl);
+
+    // const predictions = await callVertexAI(publicUrl);
+    // if (!predictions) {
+    //   res.status(500).json({
+    //     statusCode: 500,
+    //     status: 'error',
+    //     success: false,
+    //     message: 'No predictions found',
+    //     errorCode: 'NO_PREDICTIONS',
+    //     details: 'No predictions were returned from the model',
+    //   });
+    //   return;
+    // }
 
     await pushMetric({ type: 'detection_count', value: 1 });
 
@@ -89,39 +114,26 @@ export const analyze = async (
       status: 'success',
       success: true,
       message: 'Image analysis complete',
-      data: {
-        uploadedTo: publicUrl,
-        result: {
-          isDeepfake: predictions.isDeepfake,
-          confidence: predictions.confidence,
-          message: predictions.message,
-          // more metadata later
-          fileInfo: {
-            originalName: file.originalname,
-            size: file.size,
-            mimetype: file.mimetype,
-          },
-        },
-        links: {
-          status: `/jobs/${predictions.jobId}/status`,
-          results: `/jobs/${predictions.jobId}/results`,
-        },
-      },
-      // Mock response for testing
       // data: {
       //   uploadedTo: publicUrl,
       //   result: {
-      //     isDeepfake: true,
-      //     confidence: '94%',
-      //     message: 'Mock detection complete',
-      //     // Add more metadata as needed
+      //     isDeepfake: predictions.isDeepfake,
+      //     confidence: predictions.confidence,
+      //     message: predictions.message,
+      //     // more metadata later
       //     fileInfo: {
       //       originalName: file.originalname,
       //       size: file.size,
       //       mimetype: file.mimetype,
       //     },
       //   },
+      //   links: {
+      //     status: `/jobs/${predictions.jobId}/status`,
+      //     results: `/jobs/${predictions.jobId}/results`,
+      //   },
       // },
+
+      data: response.data,
     });
   } catch (error) {
     logger.info('Failed to upload image', error);
