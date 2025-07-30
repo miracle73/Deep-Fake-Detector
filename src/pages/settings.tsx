@@ -56,6 +56,7 @@ const Settings = () => {
   });
   const [showUnsubscribeModal, setShowUnsubscribeModal] = useState(false);
   const storedUser = useSelector((state: RootState) => state.user.user);
+
   useEffect(() => {
     if (errors.personalInfo) {
       const timer = setTimeout(() => {
@@ -825,32 +826,34 @@ const Settings = () => {
               </div>
 
               {/* Forgot Password Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
-                {/* Left Column - Section Info and Button */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Forgot Password
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-6">
-                      Reset your password if you've forgotten it or want to
-                      change it for security reasons
-                    </p>
-                  </div>
+              {!storedUser.isGoogleUser && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
+                  {/* Left Column - Section Info and Button */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Forgot Password
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-6">
+                        Reset your password if you've forgotten it or want to
+                        change it for security reasons
+                      </p>
+                    </div>
 
-                  {/* Sign Out Button */}
-                  <div className="flex justify-start">
-                    <button
-                      onClick={() => {
-                        navigate("/forgot-password");
-                      }}
-                      className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors"
-                    >
-                      Forgot Password
-                    </button>
+                    {/* Sign Out Button */}
+                    <div className="flex justify-start">
+                      <button
+                        onClick={() => {
+                          navigate("/forgot-password");
+                        }}
+                        className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors"
+                      >
+                        Forgot Password
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
                 {/* Left Column - Section Info and Button */}
