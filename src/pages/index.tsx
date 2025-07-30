@@ -115,7 +115,7 @@ export default function DeepfakeDetector() {
                 FAQ
               </a>
               <a
-                href="mailto:info@safeguardmedia.org"
+                href="https://www.safeguardmedia.org/get-started"
                 className="text-gray-600 hover:text-gray-900"
               >
                 Support
