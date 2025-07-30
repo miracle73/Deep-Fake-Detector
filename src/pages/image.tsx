@@ -62,7 +62,7 @@ const ImageScreen = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div
+            {/* <div
               className="hidden sm:flex  bg-[#FBFBEF] gap-2 justify-between items-center"
               onClick={() => {
                 navigate("/plans");
@@ -71,17 +71,17 @@ const ImageScreen = () => {
               <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[30px] text-sm font-medium">
                 Upgrade
               </button>
-            </div>
+            </div> */}
 
             {/* Mobile upgrade button */}
-            <button
+            {/* <button
               className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium"
               onClick={() => {
                 navigate("/plans");
               }}
             >
               Upgrade
-            </button>
+            </button> */}
 
             <button
               className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] max-lg:hidden"

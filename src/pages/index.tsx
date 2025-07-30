@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Card } from "../components/ui/card";
+// import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Check, Plus, X } from "lucide-react";
+import {
+  // Check,
+  Plus,
+  X,
+} from "lucide-react";
 // import { Headphones, Play } from "lucide-react";
 // import { DownwardArrow } from "../assets/svg";
 import { FaArrowDownLong } from "react-icons/fa6";
@@ -14,8 +18,8 @@ import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 export default function DeepfakeDetector() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("individual");
-  const [selectedPlan, setSelectedPlan] = useState("pro");
+  // const [activeTab, setActiveTab] = useState("individual");
+  // const [selectedPlan, setSelectedPlan] = useState("pro");
   const imageRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLHeadingElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -95,12 +99,12 @@ export default function DeepfakeDetector() {
               </span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <a
+              {/* <a
                 className="text-gray-600 hover:text-gray-900"
                 onClick={() => navigate("/plans")}
               >
                 Pricing
-              </a>
+              </a> */}
               <a
                 href="#faq-section"
                 className="text-gray-600 hover:text-gray-900"
@@ -556,13 +560,13 @@ export default function DeepfakeDetector() {
             </div>
           </div>
 
-          {/* Pricing Section */}
+          {/* Pricing Section
           <div className="text-center mb-16 mt-40 max-md:mt-20">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
               Explore Plans
             </h2>
 
-            {/* Toggle Buttons */}
+            Toggle Buttons
             <div className="flex justify-center mb-12">
               <div className="bg-gray-100 rounded-full p-1 flex">
                 <button
@@ -588,9 +592,9 @@ export default function DeepfakeDetector() {
               </div>
             </div>
             {activeTab === "individual" && (
-              // Pricing Cards
+              Pricing Cards
               <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                {/* Free Plan */}
+                Free Plan
                 <Card
                   className={`p-6 rounded-2xl flex flex-col h-full cursor-pointer transition-all ${
                     selectedPlan === "free"
@@ -630,7 +634,7 @@ export default function DeepfakeDetector() {
                   </Button>
                 </Card>
 
-                {/* Pro Plan */}
+                Pro Plan
                 <Card
                   className={`p-6 rounded-2xl relative flex flex-col h-full cursor-pointer transition-all ${
                     selectedPlan === "pro"
@@ -676,7 +680,7 @@ export default function DeepfakeDetector() {
                   </Button>
                 </Card>
 
-                {/* Max Plan */}
+                Max Plan
                 <Card
                   className={`p-6 rounded-2xl flex flex-col h-full cursor-pointer transition-all ${
                     selectedPlan === "max"
@@ -723,7 +727,7 @@ export default function DeepfakeDetector() {
                 </Card>
               </div>
             )}
-            {/* Teams & Enterprises Coming Soon */}
+            Teams & Enterprises Coming Soon
             {activeTab === "teams" && (
               <div className="max-w-2xl mx-auto text-center py-6">
                 <div className=" rounded-2xl p-12">
@@ -738,7 +742,7 @@ export default function DeepfakeDetector() {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* FAQ Section */}
           <div

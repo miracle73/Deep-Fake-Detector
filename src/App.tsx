@@ -21,6 +21,7 @@ import type { RootState } from "./store/store";
 import { Navigate } from "react-router-dom";
 import TermsOfService from "./pages/termsAndCondition";
 import PrivacyPolicy from "./pages/privacypolicy";
+import CreatePassword from "./pages/createPassword";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -48,7 +49,7 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-
+          <Route path="/create-password" element={<CreatePassword />} />
           <Route path="/" element={<DeepfakeDetector />} />
 
           {/* Protected Routes */}

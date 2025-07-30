@@ -253,6 +253,58 @@ interface CheckoutResponse {
   };
 }
 
+interface UpdateSubscriptionRequest {
+  emailSubscribed: boolean;
+}
+
+interface UpdateSubscriptionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    newStatus: boolean;
+  };
+}
+
+interface MarkNotificationReadResponse {
+  success: boolean;
+  message?: string;
+}
+
+interface UpdateMediaConsentRequest {
+  allowStorage: boolean;
+}
+
+interface UpdateMediaConsentResponse {
+  success: boolean;
+  message: string;
+  data: {
+    consent: {
+      storeMedia: boolean;
+      updatedAt: string;
+    };
+  };
+}
+
+interface Notification {
+  _id: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  id: string;
+}
+
+interface GetNotificationsResponse {
+  success: boolean;
+  message: string;
+  notifications: Notification[];
+}
+
 export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
@@ -400,6 +452,41 @@ export const apiService = createApi({
         body: { priceId },
       }),
     }),
+    updateEmailSubscription: builder.mutation<
+      UpdateSubscriptionResponse,
+      UpdateSubscriptionRequest
+    >({
+      query: ({ emailSubscribed }) => ({
+        url: "user/subscription",
+        method: "PATCH",
+        body: { emailSubscribed },
+      }),
+    }),
+    markNotificationRead: builder.mutation<
+      MarkNotificationReadResponse,
+      string
+    >({
+      query: (notificationId) => ({
+        url: `notifications/${notificationId}/read`,
+        method: "PATCH",
+      }),
+    }),
+    updateMediaConsent: builder.mutation<
+      UpdateMediaConsentResponse,
+      UpdateMediaConsentRequest
+    >({
+      query: ({ allowStorage }) => ({
+        url: "user/consent",
+        method: "PATCH",
+        body: { allowStorage },
+      }),
+    }),
+    getNotifications: builder.query<GetNotificationsResponse, void>({
+      query: () => ({
+        url: "notifications",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -416,4 +503,8 @@ export const {
   useDeleteUserMutation,
   useSubscriptionPlansQuery,
   useCheckoutMutation,
+  useUpdateEmailSubscriptionMutation,
+  useMarkNotificationReadMutation,
+  useUpdateMediaConsentMutation,
+  useGetNotificationsQuery,
 } = apiService;

@@ -20,7 +20,10 @@ import { NoAnalysisYet, UploadIcon } from "../assets/svg";
 // import SecondImage from "../assets/images/secondImage.png";
 import ThirdImage from "../assets/images/thirdImage.png";
 import { useNavigate } from "react-router-dom";
-import { useGetUserQuery } from "../services/apiService";
+import {
+  useGetUserQuery,
+  useUpdateMediaConsentMutation,
+} from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import type { AnalysisHistory } from "../services/apiService";
 import { CiSettings } from "react-icons/ci";
@@ -46,6 +49,7 @@ const Dashboard = () => {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const { data: userData } = useGetUserQuery();
   const storedUser = useSelector((state: RootState) => state.user.user);
+  const [updateMediaConsent] = useUpdateMediaConsentMutation();
   // Modify the handleUploadMedia function
 
   const handleUploadMedia = () => {
@@ -60,12 +64,23 @@ const Dashboard = () => {
     fileInput?.click();
   };
 
-  const handleConsentSubmit = () => {
+  const handleConsentSubmit = async () => {
     // Store the consent choice regardless of what user selected
     localStorage.setItem("safeguardmedia_consent", hasConsented.toString());
     localStorage.setItem("safeguardmedia_uploaded", "true");
     setIsFirstTimeUser(false);
     setShowConsentModal(false);
+
+    // Call API with inverted logic:
+    // hasConsented = true means user does NOT consent = allowStorage: false
+    // hasConsented = false means user consents = allowStorage: true
+    try {
+      await updateMediaConsent({
+        allowStorage: !hasConsented,
+      }).unwrap();
+    } catch (error) {
+      console.error("Failed to update media consent:", error);
+    }
 
     // Always proceed with file upload regardless of consent choice
     const fileInput = document.getElementById(
@@ -256,7 +271,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div
+            {/* <div
               className="hidden sm:flex  bg-[#FBFBEF] gap-2 justify-between items-center"
               onClick={() => {
                 navigate("/plans");
@@ -265,17 +280,17 @@ const Dashboard = () => {
               <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[30px] text-sm font-medium">
                 Upgrade
               </button>
-            </div>
+            </div> */}
 
             {/* Mobile upgrade button */}
-            <button
+            {/* <button
               className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium"
               onClick={() => {
                 navigate("/plans");
               }}
             >
               Upgrade
-            </button>
+            </button> */}
 
             <button
               className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] max-lg:hidden"
@@ -500,7 +515,7 @@ const Dashboard = () => {
                         Drag and drop to upload or browse files
                       </h3>
                       <p className="text-xs sm:text-sm text-red-500 mb-6">
-                        Max file size 1GB
+                        Max file size 10MB
                       </p>
                       {/* <button
                         className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
@@ -551,13 +566,32 @@ const Dashboard = () => {
                             <input
                               type="checkbox"
                               checked={hasConsented}
-                              onChange={(e) => {
-                                setHasConsented(e.target.checked);
+                              onChange={async (e) => {
+                                const newConsentValue = e.target.checked;
+                                setHasConsented(newConsentValue);
+
                                 // Store consent choice when user changes it
                                 localStorage.setItem(
                                   "safeguardmedia_consent",
-                                  e.target.checked.toString()
+                                  newConsentValue.toString()
                                 );
+
+                                // Call API with inverted logic:
+                                // checked = user does NOT consent = allowStorage: false
+                                // unchecked = user consents = allowStorage: true
+                                try {
+                                  await updateMediaConsent({
+                                    allowStorage: !newConsentValue,
+                                  }).unwrap();
+                                } catch (error) {
+                                  console.error(
+                                    "Failed to update media consent:",
+                                    error
+                                  );
+                                  // Optionally revert the state if API call fails
+                                  // setHasConsented(!newConsentValue);
+                                  // localStorage.setItem("safeguardmedia_consent", (!newConsentValue).toString());
+                                }
                               }}
                               className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
@@ -651,6 +685,7 @@ const Dashboard = () => {
                         onChange={(e) => setHasConsented(e.target.checked)}
                         className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
+
                       <span className="text-sm text-gray-700 leading-relaxed">
                         I do not consent to SafeguardMedia using my uploaded
                         media for AI model training or research. My upload

@@ -19,6 +19,7 @@ import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
+import { useUpdateEmailSubscriptionMutation } from "../services/apiService";
 
 const Settings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,7 +27,6 @@ const Settings = () => {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
   });
   const [emailSettings, setEmailSettings] = useState({
     unsubscribeAll: false,
@@ -40,6 +40,7 @@ const Settings = () => {
   };
   const [updateUser] = useUpdateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
+  const [updateEmailSubscription] = useUpdateEmailSubscriptionMutation();
   const [isUpdatingPersonalInfo, setIsUpdatingPersonalInfo] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -65,7 +66,17 @@ const Settings = () => {
     }
   }, [errors.personalInfo]);
 
-  // Add this useEffect to load unsubscribe status from localStorage when component mounts
+  useEffect(() => {
+    if (storedUser) {
+      setPersonalInfo({
+        firstName: storedUser.firstName || "",
+        lastName: storedUser.lastName || "",
+        email: storedUser.email || "",
+      });
+    }
+  }, [storedUser]);
+
+  // this useEffect loads unsubscribe status from localStorage when component mounts
   useEffect(() => {
     const savedUnsubscribeStatus = localStorage.getItem("unsubscribeAll");
     if (savedUnsubscribeStatus) {
@@ -76,48 +87,112 @@ const Settings = () => {
     }
   }, []);
 
-  const handleEmailSettingsSave = () => {
+  const handleEmailSettingsSave = async () => {
     console.log("Saving email settings:", emailSettings);
-    // Save to localStorage to persist the setting
-    localStorage.setItem(
-      "unsubscribeAll",
-      JSON.stringify(emailSettings.unsubscribeAll)
-    );
 
-    // Show success message or handle API call here if needed
-    setSuccessMessages((prev) => ({
-      ...prev,
-      emailSettings: "Email settings updated successfully!",
-    }));
+    try {
+      await updateEmailSubscription({
+        emailSubscribed: !emailSettings.unsubscribeAll,
+      }).unwrap();
 
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
-    }, 3000);
+      localStorage.setItem(
+        "unsubscribeAll",
+        JSON.stringify(emailSettings.unsubscribeAll)
+      );
+
+      setSuccessMessages((prev) => ({
+        ...prev,
+        emailSettings: "Email settings updated successfully!",
+      }));
+
+      setTimeout(() => {
+        setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+      }, 3000);
+    } catch (error) {
+      console.error("Failed to update email subscription:", error);
+
+      setSuccessMessages((prev) => ({
+        ...prev,
+        emailSettings: "Failed to update email settings. Please try again.",
+      }));
+
+      setTimeout(() => {
+        setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+      }, 3000);
+    }
   };
 
-  const handleUnsubscribeChange = (checked: boolean) => {
+  const handleUnsubscribeChange = async (checked: boolean) => {
     if (checked) {
-      // Show modal when user checks unsubscribe
       setShowUnsubscribeModal(true);
     } else {
-      // Directly update when unchecking
-      setEmailSettings((prev) => ({
-        ...prev,
-        unsubscribeAll: false,
-      }));
-      localStorage.setItem("unsubscribeAll", "false");
+      try {
+        await updateEmailSubscription({
+          emailSubscribed: true,
+        }).unwrap();
+
+        setEmailSettings((prev) => ({
+          ...prev,
+          unsubscribeAll: false,
+        }));
+        localStorage.setItem("unsubscribeAll", "false");
+
+        setSuccessMessages((prev) => ({
+          ...prev,
+          emailSettings: "You have successfully subscribed to emails!",
+        }));
+
+        setTimeout(() => {
+          setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+        }, 3000);
+      } catch (error) {
+        console.error("Failed to update email subscription:", error);
+        setSuccessMessages((prev) => ({
+          ...prev,
+          emailSettings: "Failed to update email settings. Please try again.",
+        }));
+
+        setTimeout(() => {
+          setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+        }, 3000);
+      }
     }
   };
 
   // Function to confirm unsubscribe
-  const confirmUnsubscribe = () => {
-    setEmailSettings((prev) => ({
-      ...prev,
-      unsubscribeAll: true,
-    }));
-    localStorage.setItem("unsubscribeAll", "true");
-    setShowUnsubscribeModal(false);
+  const confirmUnsubscribe = async () => {
+    try {
+      await updateEmailSubscription({
+        emailSubscribed: false,
+      }).unwrap();
+
+      setEmailSettings((prev) => ({
+        ...prev,
+        unsubscribeAll: true,
+      }));
+      localStorage.setItem("unsubscribeAll", "true");
+      setShowUnsubscribeModal(false);
+
+      setSuccessMessages((prev) => ({
+        ...prev,
+        emailSettings: "You have successfully unsubscribed from all emails!",
+      }));
+
+      setTimeout(() => {
+        setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+      }, 3000);
+    } catch (error) {
+      console.error("Failed to update email subscription:", error);
+      setSuccessMessages((prev) => ({
+        ...prev,
+        emailSettings: "Failed to unsubscribe. Please try again.",
+      }));
+
+      setTimeout(() => {
+        setSuccessMessages((prev) => ({ ...prev, emailSettings: "" }));
+      }, 3000);
+      setShowUnsubscribeModal(false);
+    }
   };
 
   useEffect(() => {
@@ -165,7 +240,6 @@ const Settings = () => {
         firstName: personalInfo.firstName.trim(),
         lastName: personalInfo.lastName.trim(),
         email: personalInfo.email.trim().toLowerCase(),
-        phone: personalInfo.phone.trim(),
       };
 
       const result = await updateUser(updateData).unwrap();
@@ -287,6 +361,7 @@ const Settings = () => {
     }
   };
 
+  console.log(storedUser.firstName, storedUser.lastName, storedUser.email);
   return (
     <div className={`min-h-screen bg-gray-50`}>
       {/* Full Width Header */}
@@ -312,7 +387,7 @@ const Settings = () => {
             </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <div
+            {/* <div
               className="hidden sm:flex  bg-[#FBFBEF] gap-2 justify-between items-center"
               onClick={() => {
                 navigate("/plans");
@@ -321,17 +396,17 @@ const Settings = () => {
               <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[30px] text-sm font-medium">
                 Upgrade
               </button>
-            </div>
+            </div> */}
 
             {/* Mobile upgrade button */}
-            <button
+            {/* <button
               className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium"
               onClick={() => {
                 navigate("/plans");
               }}
             >
               Upgrade
-            </button>
+            </button> */}
 
             <button
               className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] max-lg:hidden"
@@ -653,26 +728,6 @@ const Settings = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#0F2FA3] focus:border-transparent text-sm"
                     />
                   </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Phone number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      placeholder="placeholder"
-                      value={personalInfo.phone}
-                      onChange={(e) =>
-                        handlePersonalInfoChange("phone", e.target.value)
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#0F2FA3] focus:border-transparent text-sm"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -758,13 +813,40 @@ const Settings = () => {
                   <div className="flex justify-start">
                     <button
                       onClick={() => {
-                        // Add your signout logic here
-                        localStorage.removeItem("authToken"); // or however you handle auth
+                        localStorage.removeItem("authToken");
                         navigate("/signin");
                       }}
                       className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors"
                     >
                       Sign Out
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Forgot Password Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-[#8C8C8C] pt-8">
+                {/* Left Column - Section Info and Button */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Forgot Password
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Reset your password if you've forgotten it or want to
+                      change it for security reasons
+                    </p>
+                  </div>
+
+                  {/* Sign Out Button */}
+                  <div className="flex justify-start">
+                    <button
+                      onClick={() => {
+                        navigate("/forgot-password");
+                      }}
+                      className="bg-[#FBFBEF] border border-[#8C8C8C] hover:bg-gray-200 text-gray-700 px-10 py-2 rounded-full text-sm font-medium transition-colors"
+                    >
+                      Forgot Password
                     </button>
                   </div>
                 </div>
