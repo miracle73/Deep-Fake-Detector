@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { NoAnalysisYet, UploadIcon } from "../assets/svg";
 // import FirstImage from "../assets/images/firstImage.png";
@@ -721,14 +722,17 @@ const Dashboard = () => {
 
                       {analysisError && (
                         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
                           <p className="text-sm text-red-700">
                             {analysisError}
                           </p>
+
                           <button
+                            type="button"
                             onClick={() => setAnalysisError(null)}
-                            className="mt-2 text-xs text-red-600 hover:text-red-800 underline"
+                            className="ml-auto text-red-400 hover:text-red-600"
                           >
-                            Dismiss
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
                       )}
