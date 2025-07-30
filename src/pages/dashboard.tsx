@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import {
   useGetUserQuery,
   useUpdateMediaConsentMutation,
+  useDetectAnalyzeMutation,
 } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import type { AnalysisHistory } from "../services/apiService";
@@ -50,7 +51,14 @@ const Dashboard = () => {
   const { data: userData } = useGetUserQuery();
   const storedUser = useSelector((state: RootState) => state.user.user);
   const [updateMediaConsent] = useUpdateMediaConsentMutation();
-  // Modify the handleUploadMedia function
+  const [detectAnalyze] = useDetectAnalyzeMutation();
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  const generateUniqueToken = (): string => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  };
 
   const handleUploadMedia = () => {
     if (isFirstTimeUser) {
@@ -213,10 +221,55 @@ const Dashboard = () => {
     setUploadedFile(null);
   };
 
-  const handleAnalyseMedia = () => {
-    // Handle analysis logic here
-    console.log("Analysing media...");
-    setUploadedFile(null);
+  const handleAnalyseMedia = async () => {
+    if (!selectedFile) {
+      setAnalysisError("No file selected for analysis");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+
+    try {
+      const response = await detectAnalyze({ image: selectedFile }).unwrap();
+
+      // Generate unique token
+      const token = generateUniqueToken();
+
+      // Store the response data temporarily (you can use localStorage or state management)
+      localStorage.setItem(`analysis_${token}`, JSON.stringify(response));
+
+      // Navigate to image-detection page with token and response
+      navigate(`/image-detection/${token}`, {
+        state: {
+          analysisResult: response,
+          fileName: uploadedFile?.name || selectedFile.name,
+          fileSize:
+            uploadedFile?.size ||
+            `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+        },
+      });
+    } catch (error: unknown) {
+      console.error("Analysis failed:", error);
+
+      if (error && typeof error === "object" && "data" in error) {
+        const apiError = error as {
+          data?: { message?: string };
+        };
+        if (apiError.data?.message) {
+          setAnalysisError(apiError.data.message);
+        } else {
+          setAnalysisError("Failed to analyze the image. Please try again.");
+        }
+      } else if (error && typeof error === "object" && "message" in error) {
+        const messageError = error as { message: string };
+        setAnalysisError(messageError.message);
+      } else {
+        setAnalysisError("Failed to analyze the image. Please try again.");
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
   // const getStatusBadge = (status: string) => {
   //   const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
@@ -660,10 +713,25 @@ const Dashboard = () => {
                       {/* Analyse Button */}
                       <button
                         onClick={handleAnalyseMedia}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors"
+                        disabled={isAnalyzing || !selectedFile}
+                        className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors"
                       >
-                        Analyse Media
+                        {isAnalyzing ? "Analyzing..." : "Analyse Media"}
                       </button>
+
+                      {analysisError && (
+                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-700">
+                            {analysisError}
+                          </p>
+                          <button
+                            onClick={() => setAnalysisError(null)}
+                            className="mt-2 text-xs text-red-600 hover:text-red-800 underline"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

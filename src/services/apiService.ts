@@ -305,6 +305,37 @@ interface GetNotificationsResponse {
   notifications: Notification[];
 }
 
+interface DetectAnalyzeRequest {
+  image: File;
+}
+
+export interface DetectAnalyzeResponse {
+  statusCode: number;
+  status: string;
+  success: boolean;
+  message: string;
+  data: {
+    confidence: number;
+    deepfake_probability: number;
+    is_deepfake: boolean;
+    predicted_class: string;
+    real_probability: number;
+    threshold_used: number;
+  };
+}
+
+interface DemoRequestResponse {
+  success: boolean;
+  user: {
+    id: string;
+    email: string;
+    userType: string;
+    plan: string;
+    phoneNumber: string;
+    firstName: string;
+    lastName: string;
+  };
+}
 export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
@@ -487,6 +518,31 @@ export const apiService = createApi({
         method: "GET",
       }),
     }),
+    detectAnalyze: builder.mutation<
+      DetectAnalyzeResponse,
+      DetectAnalyzeRequest
+    >({
+      query: ({ image }) => {
+        const formData = new FormData();
+        formData.append("image", image);
+
+        return {
+          url: "detect/analyze",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
+    createPassword: builder.mutation<
+      DemoRequestResponse,
+      { token: string; password: string }
+    >({
+      query: ({ token, password }) => ({
+        url: `demo-request/user?token=${token}`,
+        method: "POST",
+        body: { password },
+      }),
+    }),
   }),
 });
 
@@ -507,4 +563,6 @@ export const {
   useMarkNotificationReadMutation,
   useUpdateMediaConsentMutation,
   useGetNotificationsQuery,
+  useDetectAnalyzeMutation,
+  useCreatePasswordMutation,
 } = apiService;

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import "../App.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
-// import { useResetPasswordMutation } from "../services/apiService";
+import { useCreatePasswordMutation } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 
 interface FormData {
@@ -35,7 +35,7 @@ function CreatePassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-
+  const [createPassword] = useCreatePasswordMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -57,11 +57,11 @@ function CreatePassword() {
   //   const [resetPassword] = useResetPasswordMutation();
 
   // Redirect if no token is present
-  //   useEffect(() => {
-  //     if (!token) {
-  //       navigate("/signin");
-  //     }
-  //   }, [token, navigate]);
+  useEffect(() => {
+    if (!token) {
+      navigate("/signin");
+    }
+  }, [token, navigate]);
 
   useEffect(() => {
     if (errors.general) {
@@ -160,7 +160,7 @@ function CreatePassword() {
 
     if (!token) {
       setErrors({
-        general: "Invalid or expired reset token. Please try again.",
+        general: "Invalid or expired token. Please try again.",
       });
       return;
     }
@@ -168,19 +168,21 @@ function CreatePassword() {
     setIsSubmitting(true);
 
     try {
-      //   const result = await resetPassword({
-      //     token: token,
-      //     password: formData.password,
-      //   }).unwrap();
+      await createPassword({
+        token: token,
+        password: formData.password,
+      }).unwrap();
 
-      setSuccessMessage("Password reset successful! Redirecting to sign in...");
+      setSuccessMessage(
+        "Password created successfully! Redirecting to sign in..."
+      );
 
-      // Redirect to signin after successful password reset
+      // Redirect to signin after successful password creation
       setTimeout(() => {
         navigate("/signin");
       }, 2000);
     } catch (error: unknown) {
-      console.error("Password reset failed:", error);
+      console.error("Password creation failed:", error);
 
       if (error && typeof error === "object" && "data" in error) {
         const apiError = error as {
@@ -191,13 +193,13 @@ function CreatePassword() {
         } else if (apiError.data?.errors) {
           setErrors(apiError.data.errors);
         } else {
-          setErrors({ general: "Password reset failed. Please try again." });
+          setErrors({ general: "Password creation failed. Please try again." });
         }
       } else if (error && typeof error === "object" && "message" in error) {
         const messageError = error as { message: string };
         setErrors({ general: messageError.message });
       } else {
-        setErrors({ general: "Password reset failed. Please try again." });
+        setErrors({ general: "Password creation failed. Please try again." });
       }
     } finally {
       setIsSubmitting(false);
@@ -412,10 +414,10 @@ function CreatePassword() {
                   {isSubmitting ? (
                     <>
                       <Loader className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                      Resetting Password...
+                      Creating Password...
                     </>
                   ) : (
-                    "Reset Password"
+                    "Create Password"
                   )}
                 </button>
 

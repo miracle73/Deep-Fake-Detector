@@ -102,7 +102,7 @@ function App() {
             }
           />
           <Route
-            path="/image-detection"
+            path="/image-detection/:token"
             element={
               <ProtectedRoute>
                 <ImageScreen />

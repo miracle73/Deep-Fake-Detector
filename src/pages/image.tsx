@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   LayoutGrid,
@@ -7,36 +7,125 @@ import {
   AudioLines,
   Menu,
   X,
-  Download,
-  Trash2,
+  // Download,
+  // Trash2,
 } from "lucide-react";
 import FourthImage from "../assets/images/fourthImage.png";
 import { BackIcon } from "../assets/svg";
-import { useNavigate } from "react-router-dom";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
+import { useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import type { DetectAnalyzeResponse } from "../services/apiService";
 
 const ImageScreen = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const storedUser = useSelector((state: RootState) => state.user.user);
+  const { token } = useParams<{ token: string }>();
+  const location = useLocation();
+  const [analysisResult, setAnalysisResult] =
+    useState<DetectAnalyzeResponse | null>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [fileSize, setFileSize] = useState<string>("");
+  const [analysisDate, setAnalysisDate] = useState<string>("");
+
+  const getResultStatus = () => {
+    if (!analysisResult)
+      return { text: "Unknown", color: "gray", bgColor: "bg-gray-100" };
+
+    if (analysisResult.data.is_deepfake) {
+      return {
+        text: "Deepfake",
+        color: "red",
+        bgColor: "bg-red-600",
+        textColor: "text-red-600",
+      };
+    } else {
+      return {
+        text: "Authentic",
+        color: "green",
+        bgColor: "bg-green-600",
+        textColor: "text-green-600",
+      };
+    }
+  };
+
+  const getConfidenceScore = () => {
+    if (!analysisResult) return "0";
+    return Math.round(analysisResult.data.confidence).toString();
+  };
+
+  const getResultSummary = () => {
+    if (!analysisResult) return "Analysis results not available.";
+
+    if (analysisResult.data.is_deepfake) {
+      return `Our model analysis found significant indicators in this media file strongly suggesting this media has been manipulated using deepfake techniques. The deepfake probability is ${analysisResult.data.deepfake_probability.toFixed(
+        1
+      )}%.`;
+    } else {
+      return `Our analysis indicates this media appears to be authentic with a ${analysisResult.data.real_probability.toFixed(
+        1
+      )}% probability of being real content.`;
+    }
+  };
   const handleBack = () => {
-    // Handle back navigation
-    console.log("Going back...");
+    // Clean up localStorage
+    if (token) {
+      localStorage.removeItem(`analysis_${token}`);
+    }
+    navigate("/dashboard");
   };
+  // const handleDownloadReport = () => {
+  //   // Handle download report
+  //   console.log("Downloading report...");
+  // };
 
-  const handleDownloadReport = () => {
-    // Handle download report
-    console.log("Downloading report...");
-  };
+  // const handleDeleteReport = () => {
+  //   // Handle delete report
+  //   console.log("Deleting report...");
+  // };
 
-  const handleDeleteReport = () => {
-    // Handle delete report
-    console.log("Deleting report...");
-  };
+  // useEffect(() => {
+  //   if (!token) {
+  //     navigate("/dashboard");
+  //   }
+  // }, [token, navigate]);
 
+  useEffect(() => {
+    if (!token) {
+      navigate("/dashboard");
+      return;
+    }
+
+    // Try to get data from location state first (from navigation)
+    if (location.state?.analysisResult) {
+      setAnalysisResult(location.state.analysisResult);
+      setFileName(location.state.fileName || "Unknown File");
+      setFileSize(location.state.fileSize || "Unknown Size");
+      setAnalysisDate(new Date().toLocaleString());
+    } else {
+      // Fallback: try to get from localStorage
+      const storedResult = localStorage.getItem(`analysis_${token}`);
+      if (storedResult) {
+        try {
+          const result = JSON.parse(storedResult);
+          setAnalysisResult(result);
+          setFileName("Analyzed Image");
+          setFileSize("Unknown Size");
+          setAnalysisDate(new Date().toLocaleString());
+        } catch (error) {
+          console.error("Failed to parse stored analysis result:", error);
+          navigate("/dashboard");
+        }
+      } else {
+        // No data found, redirect to dashboard
+        navigate("/dashboard");
+      }
+    }
+  }, [token, navigate, location.state]);
   return (
     <div className={`min-h-screen bg-gray-50`}>
       {/* Full Width Header */}
@@ -173,7 +262,7 @@ const ImageScreen = () => {
                 <span className="text-sm">Video</span>
               </div>
               <div
-                className="flex items-center space-x-3 text-gray-400  cursor-not-allowed"
+                className="flex items-center space-x-3 text-gray-600 hover:text-blue-600 cursor-pointer"
                 // onClick={() => {
                 //   navigate("/image-detection");
                 //   setSidebarOpen(false);
@@ -240,7 +329,7 @@ const ImageScreen = () => {
             <span className="text-xs">Video</span>
           </div>
           <div
-            className="flex flex-col items-center space-y-2 text-gray-400  cursor-not-allowed"
+            className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
             // onClick={() => {
             //   navigate("/image-detection");
             // }}
@@ -292,19 +381,19 @@ const ImageScreen = () => {
                   </div>
                   <div>
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                      Video_Clip_01.mp4
+                      {fileName}
                     </h2>
                   </div>
                   {/* File details */}
                   <div className="text-sm text-gray-600">
-                    <span>File size: 17.53 MB</span>
+                    <span>File size: {fileSize}</span>
                     <span className="mx-2">•</span>
-                    <span>Date: 9th May, 2025, 10:34 am</span>
+                    <span>Date: {analysisDate}</span>
                   </div>
                 </div>
                 {/* Right side - Action buttons */}
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <button
+                  {/* <button
                     onClick={handleDownloadReport}
                     className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
@@ -312,14 +401,14 @@ const ImageScreen = () => {
                     <span className="text-sm font-medium text-gray-700">
                       Download Report
                     </span>
-                  </button>
-                  <button
+                  </button> */}
+                  {/* <button
                     onClick={handleDeleteReport}
                     className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span className="text-sm font-medium">Delete Report</span>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -342,13 +431,17 @@ const ImageScreen = () => {
             <div className="w-full lg:w-1/3">
               {/* DF Results Card */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full flex flex-col">
-                {/* Header with DF Results and Deepfake badge */}
+                {/* Header with DF Results and status badge */}
                 <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                   <span className="text-sm sm:text-base font-medium">
                     Safeguard Media Results
                   </span>
-                  <span className="bg-white text-red-600 px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
-                    Deepfake
+                  <span
+                    className={`bg-white ${
+                      getResultStatus().textColor
+                    } px-3 py-1 rounded-full text-xs sm:text-sm font-medium`}
+                  >
+                    {getResultStatus().text}
                   </span>
                 </div>
 
@@ -361,7 +454,7 @@ const ImageScreen = () => {
                         Confidence Score
                       </span>
                       <span className="text-2xl sm:text-3xl font-bold text-gray-900">
-                        98%
+                        {getConfidenceScore()}%
                       </span>
                     </div>
                   </div>
@@ -375,11 +468,31 @@ const ImageScreen = () => {
                       Result Summary:
                     </h4>
                     <p className="text-xs sm:text-sm text-[#020717] font-[300] leading-relaxed">
-                      Our model analysis found significant indicators on this
-                      media file strongly suggesting this media has been
-                      manipulated using deepfake techniques.
+                      {getResultSummary()}
                     </p>
                   </div>
+
+                  {/* Additional Analysis Details */}
+                  {analysisResult && (
+                    <div className="border-t border-gray-200 p-4 sm:p-6">
+                      <h4 className="text-sm font-semibold text-[#020717] mb-2">
+                        Analysis Details:
+                      </h4>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <div>
+                          Real Probability:{" "}
+                          {analysisResult.data.real_probability.toFixed(1)}%
+                        </div>
+                        <div>
+                          Deepfake Probability:{" "}
+                          {analysisResult.data.deepfake_probability.toFixed(1)}%
+                        </div>
+                        <div>
+                          Threshold Used: {analysisResult.data.threshold_used}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
