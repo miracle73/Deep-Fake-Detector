@@ -3,6 +3,7 @@ import DemoRequest from '../models/DemoRequest.js';
 import { AppError } from '../utils/error.js';
 import emailQueue from '../queues/emailQueue.js';
 import { generateEarlyAccessLiveEmail } from '../utils/email.templates.js';
+import { generateEmailVerificationToken } from '../utils/token.js';
 
 interface UserData {
   firstName: string;
@@ -37,7 +38,9 @@ export const createDemoUser = async (userdata: UserData) => {
     throw new AppError(400, 'Failed to create demo user');
   }
 
-  const activationUrl = `${process.env.FRONTEND_URL}/create-password?email=${userdata.email}`;
+  const emailToken = generateEmailVerificationToken(user._id.toString());
+
+  const activationUrl = `${process.env.FRONTEND_URL}/create-password?email=${userdata.email}&token=${emailToken}`;
 
   const createPasswordEmail = generateEarlyAccessLiveEmail({
     name: userdata.firstName,

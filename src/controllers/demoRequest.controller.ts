@@ -1,12 +1,12 @@
-import { stripe } from '../services/stripeService.js';
-
 import { formatUserResponse } from '../lib/helpers.js';
 import DemoRequest from '../models/DemoRequest.js';
 import User from '../models/User.js';
 import notificationQueue from '../queues/notificationQueue.js';
 import { createDemoUser } from '../services/demoRequest.service.js';
+import { stripe } from '../services/stripeService.js';
 import { AppError, NotFoundError } from '../utils/error.js';
 import logger from '../utils/logger.js';
+import { verifyEmailVerificationToken } from '../utils/token.js';
 
 import type { Request, NextFunction, Response } from 'express';
 import type {
@@ -49,16 +49,27 @@ export const completeProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body as DemoUser;
+    const { token } = req.query;
+    const { password } = req.body as DemoUser;
 
-    const existingUser = await DemoRequest.findOne({ email });
+    if (!token || typeof token !== 'string') {
+      throw new AppError(400, 'Invalid or missing verification token', null);
+    }
+
+    const { userId } = verifyEmailVerificationToken(token);
+
+    if (!userId) {
+      throw new AppError(400, 'Invalid or expired verification token', null);
+    }
+
+    const existingUser = await DemoRequest.findById(userId);
 
     if (!existingUser) {
       throw new NotFoundError('User not found. Please sign up');
     }
 
     const userData: UserData = {
-      email,
+      email: existingUser.email,
       password,
       userType: 'individual',
       agreedToTerms: true,
@@ -70,7 +81,7 @@ export const completeProfile = async (
     } as UserData;
 
     const stripeCustomer = await stripe.customers.create({
-      email,
+      email: existingUser.email,
       name: `${existingUser.firstName} ${existingUser.lastName}`,
       metadata: {
         appuserType: 'individual',

@@ -74,7 +74,6 @@ export const demoUserSchema = z.object({
   password: z
     .string()
     .min(8, { message: 'Password must be at least 8 characters long' }),
-  email: emailSchema,
 });
 
 export type DemoRequest = z.infer<typeof demoRequestSchema>;

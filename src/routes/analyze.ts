@@ -14,8 +14,8 @@ const router = express.Router();
 router.post(
   '/analyze',
   protect,
-  // validateAndDecrementQuota,
   imageUploadMiddleware,
+  validateAndDecrementQuota,
   DetectController.analyze
 );
 

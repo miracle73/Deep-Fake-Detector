@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "deep-fake-detector-465915",
+  "private_key_id": "26b503940796a310fd4ac25c0676fdf1cf861652",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDBAtSXuAl13Ct5\nGhErjvO8AuOZs62jPxFiZuLejDUKmJKkfPAk32JzVsD7GM+Mw2/rh3pl47bdkJL3\nDbDAdCo5ZA0On9ox0NPe1ZGaqEmptMRn3VQQ4uvJhBUEyBFmWa5KAMpcWZZQiS3u\nO3vbcFF0YvOQg6RGGEID3HxumSWGTd7Kr7b/i+CsWRfERxGd8Y3SSCrz44dpWEsw\n7V5RndOWDMx4+K9crMJnACC07OfZ6gdLdl+clxQ1F57OLyDbW7trjqu3qBJw0+PW\n+i6uc0ywAUZ4dQ24QYgIP9UVyiLJ5laRg+UsTgvB0A4deFqdTyjhm6sRXRGFJ7nd\n4fRFf2hNAgMBAAECggEACqhKvdcDI5rxW1qpLQzT1bw2b9dKv1p0UXOZdzsqIX97\nxWbQ5jdt6RCWwW3FAk0o/maHDrOMdm0pf2SmEwQo05hRaV0lschfEo04RGAwz797\nH0hnDmxPeM1AGIdTx/ad18rLDF7uqs3eiTjc12/lwGeAVjcTEW3EBvRxekKQrNA0\nEKtX9wz0qWLA3py2/hvV6g2gdcAaDiHyqdf4cEWDvHwomjNHmWM3W7aibaIQxKid\ngngm+h5kGsV+reOvmb5wHcT1E5s0M7Gcy5mKN1E6IJb0Q8FSFb+w2x+ErAQUpm2b\nOpiTqn2XjJzLSBCguBaPTLGLmzi7Q3FfApAmECyPjwKBgQDy9M46hbd3M1Ne6am2\nzgbUk/vGB9WW3qE02fRxsmbYWWi0raUL5vtgeoCSu21J/j8WTxEN+YObBqmeWvZ4\nJRm/I564GqvgYzQSTyiG1kvcpAKPkhXT3JWlQ0m/lOWRn6/m9R3BmMwTLuCdvcaq\nOQhfzqGBdM0qalypWyLd8tSQpwKBgQDLX5O94q5CL6TiU6yEjyjitu+uLnJOeOVB\n+LqgciGOtH3Ig0x/8VNmBCSJkM+QPWhgNTj5fM80wt2QN2DQeoAnsd67jHVjZV7r\nk5f5QZzUAhfQpLpgzh/Ojs7yMT3gX4HiYKF7WhnalIG1QZdnT3xcmVlioJ8mIuVF\nNA6V9MlJ6wKBgEZo/g9lyzrHbCT4kM/Cu6YF0RSeFp9nm86GT9pXeoi+uKKMJGXj\npfxa5EIiAVVNUpkzhtzG8AYQkz2qXP2KuwBy4T+3sxIPjfq0aClTl561BWz4SE0j\nA1dmvcvA6hse7UqAxQPjNVll34C3jAivCKdDafjrkb32Hy6Rk/RAuKvHAoGBAJNq\nr3w34Rqm0H0iK+5Wm0tjUW9PyZmqNnxQoG8G6942ZOrAieY/9rT/EcEJz/r9GDiM\nu8TUvJnBGrub+LiF43lijFIkaT7oTxqx/Lo33kcrUTny/gqHvzSJ/eY+3VxTvqFq\nbAMu94iilzbc2bOQQVQZ8Fn2lgYdy1UTe/Mk4feLAoGAThgu7z0ZaHxP2sgegta1\nH4axzaDasjWS2CSamly0ZSosg13oxV4HhuRxjZyX66tudMEcKfknP3Dn+4JbVWRv\n1UsK/xH4/MVq1liA97pRYf2JatViMS5Z3tRaW1sJdiQ6iUAeTPrsUKaNMDY0rO80\nNaEEY76gJd/Ih3hgBwUkLC8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "monitoring-logger@deep-fake-detector-465915.iam.gserviceaccount.com",
+  "client_id": "115767228866679920497",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/monitoring-logger%40deep-fake-detector-465915.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -103,36 +103,17 @@ export const analyze = async (
     //   return;
     // }
 
-    await pushMetric({ type: 'detection_count', value: 1 });
+    // await pushMetric({ type: 'detection_count', value: 1 });
 
-    await cloudLogger.info({
-      message: `User ${req.user._id} performed detection`,
-    }); // { detectionId });
+    // await cloudLogger.info({
+    //   message: `User ${req.user._id} performed detection`,
+    // }); // { detectionId });
 
     res.status(200).json({
       statusCode: 200,
       status: 'success',
       success: true,
       message: 'Image analysis complete',
-      // data: {
-      //   uploadedTo: publicUrl,
-      //   result: {
-      //     isDeepfake: predictions.isDeepfake,
-      //     confidence: predictions.confidence,
-      //     message: predictions.message,
-      //     // more metadata later
-      //     fileInfo: {
-      //       originalName: file.originalname,
-      //       size: file.size,
-      //       mimetype: file.mimetype,
-      //     },
-      //   },
-      //   links: {
-      //     status: `/jobs/${predictions.jobId}/status`,
-      //     results: `/jobs/${predictions.jobId}/results`,
-      //   },
-      // },
-
       data: response.data,
     });
   } catch (error) {
