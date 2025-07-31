@@ -54,10 +54,66 @@ const Dashboard = () => {
   const storedUser = useSelector((state: RootState) => state.user.user);
   const [updateMediaConsent] = useUpdateMediaConsentMutation();
   const [detectAnalyze] = useDetectAnalyzeMutation();
-
+  const [itemsPerPage] = useState(10);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
+  const getPaginatedData = () => {
+    if (!historyData?.analysisHistory) return [];
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return historyData.analysisHistory.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    if (!historyData?.analysisHistory) return 0;
+    return Math.ceil(historyData.analysisHistory.length / itemsPerPage);
+  };
+
+  const getPageNumbers = () => {
+    const totalPages = getTotalPages();
+    const pages = [];
+
+    if (totalPages <= 7) {
+      // ShowING all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // ShowING smart pagination with ellipsis
+      if (currentPage <= 4) {
+        // ShowING 1, 2, 3, 4, 5, ..., last
+        for (let i = 1; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        // ShowING 1, ..., last-4, last-3, last-2, last-1, last
+        pages.push(1);
+        pages.push("ellipsis");
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // ShowING 1, ..., current-1, current, current+1, ..., last
+        pages.push(1);
+        pages.push("ellipsis");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [historyData]);
   const generateUniqueToken = (): string => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   };
@@ -760,7 +816,7 @@ const Dashboard = () => {
             />
 
             {/* Right Sidebar */}
-            <div className="w-full xl:w-1/3 p-4 sm:p-6 min-w-0">
+            <div className="w-full xl:w-1/3 p-4 sm:p-6 min-w-0 xl:pt-[100px]">
               {/* Combined Subscription and How it Works Card */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col w-full h-[300px]">
                 {/* Subscription Header */}
@@ -834,7 +890,7 @@ const Dashboard = () => {
 
                   {/* Analysis History Items */}
                   <div className="space-y-3 mt-4 w-full">
-                    {historyData.analysisHistory.map((analysis) => {
+                    {getPaginatedData().map((analysis) => {
                       // Helper function to get file type icon
                       const getFileTypeIcon = (
                         fileName: string | undefined
@@ -991,33 +1047,71 @@ const Dashboard = () => {
                   </div>
 
                   {/* Pagination */}
-                  {historyData.analysisHistory.length > 5 && (
-                    <div className="flex items-center justify-center mt-6 pt-4 border-t border-gray-200">
+                  {getTotalPages() > 1 && (
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                      {/* Items per page info */}
+                      <div className="text-sm text-gray-600">
+                        Showing{" "}
+                        {Math.min(
+                          (currentPage - 1) * itemsPerPage + 1,
+                          historyData?.analysisHistory?.length || 0
+                        )}{" "}
+                        to{" "}
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          historyData?.analysisHistory?.length || 0
+                        )}{" "}
+                        of {historyData?.analysisHistory?.length || 0} analyses
+                      </div>
+
+                      {/* Pagination controls */}
                       <div className="flex items-center space-x-1 sm:space-x-2">
+                        {/* Previous button */}
                         <button
-                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded flex-shrink-0 transition-colors"
+                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
                           disabled={currentPage === 1}
                         >
                           <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                         </button>
+
+                        {/* Dynamic page numbers */}
                         <div className="flex space-x-1 overflow-x-auto">
-                          {[1, 2, 3, 4, 5].map((page) => (
-                            <button
-                              key={page}
-                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium flex-shrink-0 transition-colors ${
-                                currentPage === page
-                                  ? "bg-[#0F2FA3] text-white"
-                                  : "text-gray-600 hover:bg-gray-100"
-                              }`}
-                              onClick={() => setCurrentPage(page)}
-                            >
-                              {page}
-                            </button>
-                          ))}
+                          {getPageNumbers().map((page, index) =>
+                            page === "ellipsis" ? (
+                              <span
+                                key={`ellipsis-${index}`}
+                                className="px-2 py-1 text-gray-400"
+                              >
+                                ...
+                              </span>
+                            ) : (
+                              <button
+                                key={page}
+                                className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium flex-shrink-0 transition-colors ${
+                                  currentPage === page
+                                    ? "bg-[#0F2FA3] text-white"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
+                                onClick={() => setCurrentPage(page as number)}
+                              >
+                                {page}
+                              </button>
+                            )
+                          )}
                         </div>
+
+                        {/* Next button */}
                         <button
-                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded flex-shrink-0 transition-colors"
-                          disabled={currentPage === 5}
+                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(getTotalPages(), currentPage + 1)
+                            )
+                          }
+                          disabled={currentPage === getTotalPages()}
                         >
                           <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                         </button>
