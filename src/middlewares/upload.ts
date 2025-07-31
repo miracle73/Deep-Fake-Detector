@@ -65,6 +65,7 @@ export const imageUploadMiddleware = (
 ) => {
   const upload = imageUpload.single('image'); // Field name is 'image'
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   upload(req, res, (err: any) => {
     if (err) {
       // Handle different error types
@@ -112,6 +113,7 @@ export const multipleImageUploadMiddleware = (
   // Now using array() instead of single()
   const upload = imageUpload.array('media', 10); // 'media' field name, max 10 files
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   upload(req, res, (err: any) => {
     if (err) {
       // Handle different error types (same as before)

@@ -146,11 +146,35 @@ export const getAnalysisHistory = async (
   try {
     const userId = req.user.id;
 
-    const analyses = await Analysis.find({ userId }).lean();
+    const page = Number.parseInt(req.query.page as string) || 1;
+    const limit = Number.parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await Analysis.countDocuments({ userId });
+
+    const analyses = await Analysis.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
 
     res.status(200).json({
       success: true,
-      analysisHistory: analyses,
+      pagination: {
+        totalItems: totalCount,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+        hasNextPage,
+        hasPreviousPage,
+        nextPage: hasNextPage ? page + 1 : null,
+        previousPage: hasPreviousPage ? page - 1 : null,
+      },
+      data: analyses,
     });
   } catch (error) {
     console.error('Failed to fetch analysis history:', error);

@@ -21,6 +21,13 @@ import axios from 'axios';
 import User from '../models/User.js';
 import Analysis from '../models/Analysis.js';
 import { AppError } from '../utils/error.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { generateAndUploadThumbnail } from '../services/media.service.js';
+import { storeAnalysis } from '../services/analysis.media.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const pubsub = new PubSub();
 
@@ -35,7 +42,6 @@ export const analyze = async (
 ): Promise<void> => {
   try {
     const file = req.file;
-
     if (!file) {
       res.status(400).json({
         statusCode: 400,
@@ -49,16 +55,17 @@ export const analyze = async (
       return;
     }
 
-    const user = await User.findById(req.user._id);
+    console.log('uploading thumbnail rn...');
 
-    //   {
-    //     "confidence": 94.11,
-    //     "deepfake_probability": 5.89,
-    //     "is_deepfake": false,
-    //     "predicted_class": "real",
-    //     "real_probability": 94.11,
-    //     "threshold_used": 0.5
-    // }
+    const thumbnailUrl = await generateAndUploadThumbnail({
+      buffer: file.buffer,
+      originalName: file.originalname,
+      mimetype: file.mimetype,
+    });
+
+    console.log('Thumbnail uploaded to:', thumbnailUrl);
+
+    const user = await User.findById(req.user._id);
 
     const formData = new FormData();
     formData.append('image', file.buffer, {
@@ -74,75 +81,20 @@ export const analyze = async (
 
     const { confidence } = response.data;
 
-    const newAnalysis = await Analysis.create({
-      userId: req.user._id,
-      fileName: req.file?.originalname,
-      thumbnailUrl: 'https://',
-      uploadDate: Date.now(),
-      status: 'authentic',
-      confidenceScore: confidence,
+    await storeAnalysis({
+      user,
+      confidence,
+      file,
+      thumbnailUrl,
     });
 
-    if (!newAnalysis) {
-      throw new AppError(400, 'Failed to store analysis data');
-    }
+    await pushMetric({ type: 'detection_count', value: 1 });
 
-    user?.analysisHistory.push(newAnalysis._id);
-
-    await user?.save();
-
-    // const filename = `${uuidv4()}-${file.originalname}`;
-    // const blob = bucket.file(filename);
-
-    // console.log('FILENAME >>.||<', filename);
-
-    // const blobStream = blob.createWriteStream({
-    //   resumable: false,
-    //   metadata: {
-    //     contentType: file.mimetype,
-    //     metadata: {
-    //       originalName: file.originalname,
-    //       uploadedAt: new Date().toISOString(),
-    //     },
-    //   },
-    // });
-    // console.log('THIS IS BLOB STREAM: ', blobStream);
-
-    // await new Promise((resolve, reject) => {
-    //   blobStream.on('error', (err) => {
-    //     console.error('Upload error:', err);
-    //     reject(new Error('Failed to upload file to storage'));
-    //   });
-
-    //   blobStream.on('finish', resolve);
-    //   blobStream.end(file.buffer);
-    // });
-    // const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-
-    // logger.info(publicUrl);
-
-    // const predictions = await callVertexAI(publicUrl);
-    // if (!predictions) {
-    //   res.status(500).json({
-    //     statusCode: 500,
-    //     status: 'error',
-    //     success: false,
-    //     message: 'No predictions found',
-    //     errorCode: 'NO_PREDICTIONS',
-    //     details: 'No predictions were returned from the model',
-    //   });
-    //   return;
-    // }
-
-    // await pushMetric({ type: 'detection_count', value: 1 });
-
-    // await cloudLogger.info({
-    //   message: `User ${req.user._id} performed detection`,
-    // }); // { detectionId });
+    await cloudLogger.info({
+      message: `User ${req.user._id} performed detection`,
+    });
 
     res.status(200).json({
-      statusCode: 200,
-      status: 'success',
       success: true,
       message: 'Image analysis complete',
       data: response.data,
