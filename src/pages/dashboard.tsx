@@ -9,7 +9,7 @@ import {
   // FileText,
   // HelpCircle,
   AudioLines,
-  MoreHorizontal,
+  // MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -22,12 +22,12 @@ import { NoAnalysisYet, UploadIcon } from "../assets/svg";
 import ThirdImage from "../assets/images/thirdImage.png";
 import { useNavigate } from "react-router-dom";
 import {
-  useGetUserQuery,
+  // useGetUserQuery,
   useUpdateMediaConsentMutation,
   useDetectAnalyzeMutation,
+  useGetAnalysisHistoryQuery,
 } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
-import type { AnalysisHistory } from "../services/apiService";
 import { CiSettings } from "react-icons/ci";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
@@ -49,7 +49,8 @@ const Dashboard = () => {
   const [hasConsented, setHasConsented] = useState(true);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
-  const { data: userData } = useGetUserQuery();
+  // const { data: userData } = useGetUserQuery();
+  const { data: historyData } = useGetAnalysisHistoryQuery();
   const storedUser = useSelector((state: RootState) => state.user.user);
   const [updateMediaConsent] = useUpdateMediaConsentMutation();
   const [detectAnalyze] = useDetectAnalyzeMutation();
@@ -301,53 +302,32 @@ const Dashboard = () => {
     }
   }, []);
   return (
-    <div className={`min-h-screen bg-gray-50`}>
+    <div className={`min-h-screen bg-gray-50 overflow-x-hidden`}>
       {/* Full Width Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 w-full">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between min-w-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2 text-gray-400 hover:text-gray-600"
+              className="lg:hidden p-2 text-gray-400 hover:text-gray-600 flex-shrink-0"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0">
               <img
                 src={SafeguardMediaLogo}
                 alt="Safeguardmedia Logo"
-                className="h-12 w-auto"
+                className="h-8 sm:h-12 w-auto flex-shrink-0"
               />
-              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
+              <span className="text-base sm:text-xl font-bold text-gray-900 ml-2 truncate">
                 Safeguardmedia
               </span>
             </div>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* <div
-              className="hidden sm:flex  bg-[#FBFBEF] gap-2 justify-between items-center"
-              onClick={() => {
-                navigate("/plans");
-              }}
-            >
-              <button className="bg-[#0F2FA3] hover:bg-blue-700 text-white px-4 py-2 rounded-[30px] text-sm font-medium">
-                Upgrade
-              </button>
-            </div> */}
-
-            {/* Mobile upgrade button */}
-            {/* <button
-              className="sm:hidden bg-[#0F2FA3] hover:bg-blue-700 text-white px-3 py-1.5 rounded-[20px] text-xs font-medium"
-              onClick={() => {
-                navigate("/plans");
-              }}
-            >
-              Upgrade
-            </button> */}
-
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <button
-              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] max-lg:hidden"
+              className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]"
               onClick={() => {
                 navigate("/notifications");
               }}
@@ -355,31 +335,20 @@ const Dashboard = () => {
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* <div className="flex items-center space-x-2 cursor-pointer rounded-[30px]">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-xs sm:text-sm font-medium text-gray-600">
-                  U
-                </span>
-              </div>
-              <span className="hidden sm:inline text-sm text-gray-700">
-                Username
-              </span>
-            
-            </div> */}
             <div
-              className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
+              className="flex items-center space-x-2 cursor-pointer rounded-[30px] min-w-0"
               onClick={() => {
                 navigate("/settings");
               }}
             >
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
                   {storedUser.firstName
                     ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
-              <span className="hidden sm:inline text-sm text-gray-700">
+              <span className="hidden sm:inline text-sm text-gray-700 truncate">
                 {storedUser.firstName || "Username"}
               </span>
             </div>
@@ -472,9 +441,9 @@ const Dashboard = () => {
       )}
 
       {/* Content Area with Sidebar */}
-      <div className="flex">
+      <div className="flex min-h-0 overflow-x-hidden">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:flex w-24 bg-white border-r border-gray-200 flex-col items-center py-6 space-y-8 min-h-[calc(100vh-73px)]">
+        <div className="hidden lg:flex w-24 bg-white border-r border-gray-200 flex-col items-center py-6 space-y-8 min-h-[calc(100vh-73px)] flex-shrink-0">
           <div
             className="flex flex-col items-center space-y-2 text-gray-600 hover:text-blue-600 cursor-pointer"
             onClick={() => {
@@ -532,13 +501,13 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content Container */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
           {/* Upper Section: Upload Area + Right Sidebar */}
-          <div className="flex flex-col lg:flex-row">
+          <div className="flex flex-col xl:flex-row min-h-0">
             {/* Main Content Area */}
-            <div className="w-full lg:w-2/3 p-4 sm:p-6">
+            <div className="w-full xl:w-2/3 p-4 sm:p-6 min-w-0">
               {/* Getting Started Section */}
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
                   Let's get started!
                 </h2>
@@ -549,7 +518,7 @@ const Dashboard = () => {
 
                 {/* Upload Area */}
                 <div
-                  className={`border-2 border-dashed rounded-xl p-6 sm:p-12 text-center transition-colors h-full ${
+                  className={`border-2 border-dashed rounded-xl p-4 sm:p-6 lg:p-12 text-center transition-colors w-full ${
                     dragActive
                       ? "border-blue-400 bg-blue-50"
                       : "border-gray-300 bg-white"
@@ -560,7 +529,7 @@ const Dashboard = () => {
                   onDrop={handleDrop}
                 >
                   {!uploadedFile ? (
-                    <>
+                    <div className="w-full">
                       <div className="flex justify-center items-center mb-4">
                         <UploadIcon />
                       </div>
@@ -571,41 +540,32 @@ const Dashboard = () => {
                       <p className="text-xs sm:text-sm text-red-500 mb-6">
                         Max file size 10MB
                       </p>
-                      {/* <button
-                        className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
-                        onClick={() => {
-                          setHasAnalyses(!hasAnalyses);
-                          handleUploadMedia();
-                        }}
-                        disabled={isUploading}
-                      >
-                        Upload Media
-                      </button> */}
+
                       {/* Supported Formats Section */}
-                      <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-6 text-left max-w-full overflow-hidden">
                         <h4 className="text-sm font-medium text-gray-700 mb-3">
                           Currently, SafeguardMedia supports the following
                           formats:
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                          <div>
-                            <span className="font-medium text-gray-800">
+                          <div className="min-w-0">
+                            <span className="font-medium text-gray-800 block">
                               Videos:
                             </span>
                             <div className="text-gray-600 mt-1">
                               MP4, AVI, MOV
                             </div>
                           </div>
-                          <div>
-                            <span className="font-medium text-gray-800">
+                          <div className="min-w-0">
+                            <span className="font-medium text-gray-800 block">
                               Images:
                             </span>
                             <div className="text-gray-600 mt-1">
                               JPEG, PNG, WEBP
                             </div>
                           </div>
-                          <div>
-                            <span className="font-medium text-gray-800">
+                          <div className="min-w-0">
+                            <span className="font-medium text-gray-800 block">
                               Audio:
                             </span>
                             <div className="text-gray-600 mt-1">
@@ -614,8 +574,9 @@ const Dashboard = () => {
                           </div>
                         </div>
                       </div>
+
                       {!isFirstTimeUser && (
-                        <div className="mb-4">
+                        <div className="mb-4 max-w-full">
                           <label className="flex items-start space-x-3 cursor-pointer text-left">
                             <input
                               type="checkbox"
@@ -624,15 +585,11 @@ const Dashboard = () => {
                                 const newConsentValue = e.target.checked;
                                 setHasConsented(newConsentValue);
 
-                                // Store consent choice when user changes it
                                 localStorage.setItem(
                                   "safeguardmedia_consent",
                                   newConsentValue.toString()
                                 );
 
-                                // Call API with inverted logic:
-                                // checked = user does NOT consent = allowStorage: false
-                                // unchecked = user consents = allowStorage: true
                                 try {
                                   await updateMediaConsent({
                                     allowStorage: !newConsentValue,
@@ -642,14 +599,11 @@ const Dashboard = () => {
                                     "Failed to update media consent:",
                                     error
                                   );
-                                  // Optionally revert the state if API call fails
-                                  // setHasConsented(!newConsentValue);
-                                  // localStorage.setItem("safeguardmedia_consent", (!newConsentValue).toString());
                                 }
                               }}
-                              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
                             />
-                            <span className="text-xs text-gray-600 leading-relaxed">
+                            <span className="text-xs text-gray-600 leading-relaxed break-words">
                               I do not consent to SafeguardMedia using my
                               uploaded media for AI model training or research.
                               My upload should be used only for analysis and
@@ -660,20 +614,20 @@ const Dashboard = () => {
                       )}
 
                       <button
-                        className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium"
+                        className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium w-full sm:w-auto max-w-xs"
                         onClick={() => {
                           setHasAnalyses(!hasAnalyses);
                           handleUploadMedia();
                         }}
                         disabled={isUploading}
                       >
-                        Upload Media
+                        {isUploading ? "Uploading..." : "Upload Media"}
                       </button>
-                    </>
+                    </div>
                   ) : (
-                    <div className="flex flex-col items-center space-y-4">
+                    <div className="flex flex-col items-center space-y-4 w-full max-w-full">
                       {/* Video Thumbnail */}
-                      <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200">
+                      <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                         {filePreview ? (
                           <img
                             src={filePreview}
@@ -694,18 +648,19 @@ const Dashboard = () => {
                       </div>
 
                       {/* File Info */}
-                      <div className="flex items-center space-x-2">
-                        <div className=" flex items-center gap-4">
-                          <p className="text-sm sm:text-base font-medium text-gray-900">
+                      <div className="flex flex-col sm:flex-row items-center justify-center w-full min-w-0 space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-2 min-w-0 max-w-full">
+                          <p className="text-sm sm:text-base font-medium text-gray-900 truncate max-w-full text-center sm:text-left">
                             {uploadedFile.name}
                           </p>
-                          <p className="text-xs sm:text-sm text-gray-500">
+                          <p className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
                             ({uploadedFile.size})
                           </p>
                         </div>
                         <button
                           onClick={handleRemoveFile}
-                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
+                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full flex-shrink-0"
+                          title="Remove file"
                         >
                           <X className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
@@ -715,25 +670,29 @@ const Dashboard = () => {
                       <button
                         onClick={handleAnalyseMedia}
                         disabled={isAnalyzing || !selectedFile}
-                        className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors"
+                        className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors w-full sm:w-auto max-w-xs"
                       >
                         {isAnalyzing ? "Analyzing..." : "Analyse Media"}
                       </button>
 
                       {analysisError && (
-                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                          <p className="text-sm text-red-700">
-                            {analysisError}
-                          </p>
-
-                          <button
-                            type="button"
-                            onClick={() => setAnalysisError(null)}
-                            className="ml-auto text-red-400 hover:text-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg w-full max-w-full">
+                          <div className="flex items-start">
+                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-red-500" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-red-700 break-words">
+                                {analysisError}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setAnalysisError(null)}
+                              className="ml-2 text-red-400 hover:text-red-600 flex-shrink-0"
+                              title="Dismiss error"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -741,10 +700,11 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
+
             {/* Consent Modal */}
             {showConsentModal && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-xl max-w-md w-full p-6">
+                <div className="bg-white rounded-xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Processing Consent
                   </h3>
@@ -755,10 +715,9 @@ const Dashboard = () => {
                         type="checkbox"
                         checked={hasConsented}
                         onChange={(e) => setHasConsented(e.target.checked)}
-                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
                       />
-
-                      <span className="text-sm text-gray-700 leading-relaxed">
+                      <span className="text-sm text-gray-700 leading-relaxed break-words">
                         I do not consent to SafeguardMedia using my uploaded
                         media for AI model training or research. My upload
                         should be used only for analysis and detection.
@@ -766,16 +725,16 @@ const Dashboard = () => {
                     </label>
                   </div>
 
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => setShowConsentModal(false)}
-                      className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConsentSubmit}
-                      className="flex-1 px-4 py-2 text-white rounded-lg font-medium bg-[#0F2FA3] hover:bg-blue-700"
+                      className="flex-1 px-4 py-2 text-white rounded-lg font-medium bg-[#0F2FA3] hover:bg-blue-700 transition-colors"
                     >
                       Continue
                     </button>
@@ -783,6 +742,7 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
+
             {/* Hidden file input */}
             <input
               type="file"
@@ -798,43 +758,46 @@ const Dashboard = () => {
               style={{ display: "none" }}
               id="file-upload-input"
             />
-            {/* Right Sidebar */}
 
-            <div className="w-full lg:w-1/3 p-4 sm:p-6 lg:mt-22">
+            {/* Right Sidebar */}
+            <div className="w-full xl:w-1/3 p-4 sm:p-6 min-w-0">
               {/* Combined Subscription and How it Works Card */}
-              <div
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col"
-                style={{ height: "300px" }}
-              >
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col w-full h-[300px]">
                 {/* Subscription Header */}
                 <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-                  <span className="text-xs sm:text-sm font-medium">
+                  <span className="text-xs sm:text-sm font-medium leading-tight">
                     Upgrade to Max plan for unlimited analysis
                   </span>
                 </div>
 
                 {/* How it Works Content */}
-                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-start">
+                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-start overflow-y-auto">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
                     How it Works
                   </h3>
                   <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-start gap-4">
-                      <div>→</div>
-                      <p className="text-xs sm:text-sm text-gray-600">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 text-gray-600 font-medium">
+                        →
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         Upload your media
                       </p>
                     </div>
-                    <div className="flex items-center justify-start gap-4">
-                      <div>→</div>
-                      <p className="text-xs sm:text-sm text-gray-600">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 text-gray-600 font-medium">
+                        →
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         Our model automatically processes the media to determine
                         whether it is AI generated or not.
                       </p>
                     </div>
-                    <div className="flex items-center justify-start gap-4">
-                      <div>→</div>
-                      <p className="text-xs sm:text-sm text-gray-600">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 text-gray-600 font-medium">
+                        →
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         Get instant and clear results with confidence.
                       </p>
                     </div>
@@ -845,22 +808,23 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Analyses Section - Full Width */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 min-w-0">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 w-full overflow-hidden">
               <div className="mb-6">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                   Your Recent Analyses
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                   Review the results of your recently uploaded media files.
                   Results are stored for 30 days.
                 </p>
               </div>
 
-              {userData?.data?.user?.analysisHistory &&
-              userData.data.user.analysisHistory.length > 0 ? (
-                <div>
-                  <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500">
+              {historyData?.analysisHistory &&
+              historyData.analysisHistory.length > 0 ? (
+                <div className="w-full">
+                  {/* Desktop Table Header */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500 min-w-0">
                     <div className="col-span-4">File name/thumbnail</div>
                     <div className="col-span-3">Upload date/time</div>
                     <div className="col-span-2">Status</div>
@@ -868,202 +832,217 @@ const Dashboard = () => {
                     <div className="col-span-1"></div>
                   </div>
 
-                  <div className="space-y-3 mt-4">
-                    {userData.data.user.analysisHistory.map(
-                      (analysis: AnalysisHistory) => {
-                        // Helper function to get file type icon
-                        const getFileTypeIcon = (type: string | undefined) => {
-                          switch (type?.toLowerCase()) {
-                            case "video":
-                              return (
-                                <Video className="w-6 h-6 text-gray-600" />
-                              );
-                            case "audio":
-                              return (
-                                <AudioLines className="w-6 h-6 text-gray-600" />
-                              );
-                            case "image":
-                              return (
-                                <ImageIcon className="w-6 h-6 text-gray-600" />
-                              );
-                            default:
-                              return (
-                                <ImageIcon className="w-6 h-6 text-gray-600" />
-                              );
-                          }
-                        };
+                  {/* Analysis History Items */}
+                  <div className="space-y-3 mt-4 w-full">
+                    {historyData.analysisHistory.map((analysis) => {
+                      // Helper function to get file type icon
+                      const getFileTypeIcon = (
+                        fileName: string | undefined
+                      ) => {
+                        if (!fileName)
+                          return (
+                            <ImageIcon className="w-6 h-6 text-gray-600" />
+                          );
 
-                        // Helper function to format date
-                        const formatDate = (dateString: string): string => {
-                          const date = new Date(dateString);
-                          return date.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          });
-                        };
+                        const extension = fileName
+                          .split(".")
+                          .pop()
+                          ?.toLowerCase();
+                        switch (extension) {
+                          case "mp4":
+                          case "avi":
+                          case "mov":
+                            return <Video className="w-6 h-6 text-gray-600" />;
+                          case "mp3":
+                          case "wav":
+                          case "aac":
+                            return (
+                              <AudioLines className="w-6 h-6 text-gray-600" />
+                            );
+                          case "jpg":
+                          case "jpeg":
+                          case "png":
+                          case "webp":
+                          default:
+                            return (
+                              <ImageIcon className="w-6 h-6 text-gray-600" />
+                            );
+                        }
+                      };
 
-                        // Helper function to get status badge
-                        const getStatusBadge = (
-                          result: string | undefined
-                        ): string => {
-                          const baseClasses =
-                            "px-3 py-1 rounded-full text-xs font-medium";
-                          switch (result?.toLowerCase()) {
-                            case "authentic":
-                            case "real":
-                              return `${baseClasses} bg-green-100 text-green-800`;
-                            case "uncertain":
-                            case "inconclusive":
-                              return `${baseClasses} bg-yellow-100 text-yellow-800`;
-                            case "deepfake":
-                            case "fake":
-                            case "synthetic":
-                              return `${baseClasses} bg-red-100 text-red-800`;
-                            default:
-                              return `${baseClasses} bg-gray-100 text-gray-800`;
-                          }
-                        };
+                      // Helper function to format date
+                      const formatDate = (dateString: string): string => {
+                        const date = new Date(dateString);
+                        return date.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        });
+                      };
 
-                        // Helper function to extract confidence from result if available
-                        const getConfidence = (
-                          analysis: AnalysisHistory
-                        ): string => {
-                          // If there's a separate confidence field, use it
-                          if (analysis.confidence !== undefined) {
-                            return `${analysis.confidence}%`;
-                          }
-                          // Otherwise, return a placeholder or extract from result if it contains confidence info
-                          return "N/A";
-                        };
+                      // Helper function to get status badge
+                      const getStatusBadge = (
+                        status: string | undefined
+                      ): string => {
+                        const baseClasses =
+                          "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap";
+                        switch (status?.toLowerCase()) {
+                          case "authentic":
+                          case "real":
+                            return `${baseClasses} bg-green-100 text-green-800`;
+                          case "uncertain":
+                          case "inconclusive":
+                            return `${baseClasses} bg-yellow-100 text-yellow-800`;
+                          case "deepfake":
+                          case "fake":
+                          case "synthetic":
+                            return `${baseClasses} bg-red-100 text-red-800`;
+                          default:
+                            return `${baseClasses} bg-gray-100 text-gray-800`;
+                        }
+                      };
 
-                        return (
-                          <div key={analysis.id}>
-                            {/* Desktop View */}
-                            <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg">
-                              <div className="col-span-4 flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-                                  {getFileTypeIcon(analysis.type)}
-                                </div>
-                                <span className="text-sm font-medium text-gray-900 truncate">
-                                  {analysis.fileName ||
-                                    `${
-                                      analysis.type || "Media"
-                                    }_${analysis.id.slice(-8)}`}
-                                </span>
+                      return (
+                        <div key={analysis._id} className="w-full">
+                          {/* Desktop View */}
+                          <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg min-w-0 transition-colors">
+                            <div className="col-span-4 flex items-center space-x-3 min-w-0">
+                              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
+                                {getFileTypeIcon(analysis.fileName)}
                               </div>
-                              <div className="col-span-3">
-                                <span className="text-sm text-gray-600">
-                                  {formatDate(analysis.createdAt)}
-                                </span>
-                              </div>
-                              <div className="col-span-2">
-                                <span
-                                  className={getStatusBadge(analysis.result)}
-                                >
-                                  {analysis.result || "Unknown"}
-                                </span>
-                              </div>
-                              <div className="col-span-2">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {getConfidence(analysis)}
-                                </span>
-                              </div>
-                              <div className="col-span-1 flex justify-end">
-                                <button className="p-1 hover:bg-gray-100 rounded">
-                                  <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                                </button>
-                              </div>
+                              <span
+                                className="text-sm font-medium text-gray-900 truncate"
+                                title={
+                                  analysis.fileName ||
+                                  `Media_${analysis._id.slice(-8)}`
+                                }
+                              >
+                                {analysis.fileName ||
+                                  `Media_${analysis._id.slice(-8)}`}
+                              </span>
                             </div>
+                            <div className="col-span-3 min-w-0">
+                              <span className="text-sm text-gray-600 break-words">
+                                {formatDate(analysis.uploadDate)}
+                              </span>
+                            </div>
+                            <div className="col-span-2 min-w-0">
+                              <span className={getStatusBadge(analysis.status)}>
+                                {analysis.status || "Unknown"}
+                              </span>
+                            </div>
+                            <div className="col-span-2 min-w-0">
+                              <span className="text-sm font-medium text-gray-900">
+                                {analysis.confidenceScore
+                                  ? `${analysis.confidenceScore}%`
+                                  : "N/A"}
+                              </span>
+                            </div>
+                            <div className="col-span-1"></div>
+                          </div>
 
-                            {/* Mobile View */}
-                            <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100">
-                              <div className="flex items-start space-x-3">
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
-                                  {getFileTypeIcon(analysis.type)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-gray-900 truncate">
-                                        {analysis.fileName ||
-                                          `${
-                                            analysis.type || "Media"
-                                          }_${analysis.id.slice(-8)}`}
-                                      </p>
-                                      <p className="text-xs text-gray-600 mt-1">
-                                        {formatDate(analysis.createdAt)}
-                                      </p>
-                                    </div>
-                                    <button className="p-1 hover:bg-gray-200 rounded ml-2">
-                                      <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                                    </button>
+                          {/* Mobile View */}
+                          <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100 w-full transition-colors">
+                            <div className="flex items-start space-x-3 min-w-0">
+                              <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
+                                {getFileTypeIcon(analysis.fileName)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col space-y-2">
+                                  <div className="min-w-0">
+                                    <p
+                                      className="text-sm font-medium text-gray-900 truncate"
+                                      title={
+                                        analysis.fileName ||
+                                        `Media_${analysis._id.slice(-8)}`
+                                      }
+                                    >
+                                      {analysis.fileName ||
+                                        `Media_${analysis._id.slice(-8)}`}
+                                    </p>
+                                    <p className="text-xs text-gray-600 mt-1 break-words">
+                                      {formatDate(analysis.uploadDate)}
+                                    </p>
                                   </div>
-                                  <div className="flex items-center justify-between mt-3">
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
                                     <span
                                       className={getStatusBadge(
-                                        analysis.result
+                                        analysis.status
                                       )}
                                     >
-                                      {analysis.result || "Unknown"}
+                                      {analysis.status || "Unknown"}
                                     </span>
-                                    <span className="text-sm font-medium text-gray-900">
-                                      {getConfidence(analysis)}
+                                    <span className="text-sm font-medium text-gray-900 flex-shrink-0">
+                                      {analysis.confidenceScore
+                                        ? `${analysis.confidenceScore}%`
+                                        : "N/A"}
                                     </span>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        );
-                      }
-                    )}
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Pagination - Show only if there are many analyses */}
-                  {userData.data.user.analysisHistory.length > 5 && (
-                    <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 pt-4 border-t border-gray-200">
-                      <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
-                        <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                      </button>
-                      {[1, 2, 3, 4, 5].map((page) => (
+                  {/* Pagination */}
+                  {historyData.analysisHistory.length > 5 && (
+                    <div className="flex items-center justify-center mt-6 pt-4 border-t border-gray-200">
+                      <div className="flex items-center space-x-1 sm:space-x-2">
                         <button
-                          key={page}
-                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium ${
-                            currentPage === page
-                              ? "bg-[#0F2FA3] text-white"
-                              : "text-gray-600 hover:bg-gray-100"
-                          }`}
-                          onClick={() => setCurrentPage(page)}
+                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded flex-shrink-0 transition-colors"
+                          disabled={currentPage === 1}
                         >
-                          {page}
+                          <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                         </button>
-                      ))}
-                      <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded">
-                        <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                      </button>
+                        <div className="flex space-x-1 overflow-x-auto">
+                          {[1, 2, 3, 4, 5].map((page) => (
+                            <button
+                              key={page}
+                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium flex-shrink-0 transition-colors ${
+                                currentPage === page
+                                  ? "bg-[#0F2FA3] text-white"
+                                  : "text-gray-600 hover:bg-gray-100"
+                              }`}
+                              onClick={() => setCurrentPage(page)}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded flex-shrink-0 transition-colors"
+                          disabled={currentPage === 5}
+                        >
+                          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
               ) : (
-                // No Analyses Yet - Show when analysisHistory is empty or undefined
-                <div className="text-center py-8 sm:py-12">
+                // No Analyses Yet - Empty State
+                <div className="text-center py-8 sm:py-12 w-full">
                   <div className="flex justify-center items-center mb-4">
                     <NoAnalysisYet />
                   </div>
                   <h4 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                     No Analyses Yet!
                   </h4>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Upload your first video, audio, or image file to check for
-                    manipulation.
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    Our model will provide a quick and clear assessment.
-                  </p>
+                  <div className="space-y-1 max-w-md mx-auto">
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Upload your first video, audio, or image file to check for
+                      manipulation.
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Our model will provide a quick and clear assessment.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

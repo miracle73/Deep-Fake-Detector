@@ -336,6 +336,22 @@ interface DemoRequestResponse {
     lastName: string;
   };
 }
+
+interface AnalysisHistoryItem {
+  _id: string;
+  userId: string;
+  fileName: string;
+  thumbnailUrl: string;
+  uploadDate: string;
+  status: string;
+  confidenceScore: number;
+  __v: number;
+}
+
+interface GetAnalysisHistoryResponse {
+  success: boolean;
+  analysisHistory: AnalysisHistoryItem[];
+}
 export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
@@ -543,6 +559,12 @@ export const apiService = createApi({
         body: { password },
       }),
     }),
+    getAnalysisHistory: builder.query<GetAnalysisHistoryResponse, void>({
+      query: () => ({
+        url: "user/analysis-history",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -565,4 +587,5 @@ export const {
   useGetNotificationsQuery,
   useDetectAnalyzeMutation,
   useCreatePasswordMutation,
+  useGetAnalysisHistoryQuery,
 } = apiService;
