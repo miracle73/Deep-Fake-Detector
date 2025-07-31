@@ -15,7 +15,7 @@ router.post(
   '/analyze',
   protect,
   imageUploadMiddleware,
-  validateAndDecrementQuota,
+  // validateAndDecrementQuota,
   DetectController.analyze
 );
 

@@ -10,6 +10,7 @@ import type {
   VerifyMediaConsentInput,
   VerifySubUpdateInput,
 } from '../lib/schemas/user.schema.js';
+import Analysis from '../models/Analysis.js';
 
 export async function getCurrentUser(
   req: AuthRequest,
@@ -145,15 +146,11 @@ export const getAnalysisHistory = async (
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId).select('analysisHistory').lean();
-
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
+    const analyses = await Analysis.find({ userId }).lean();
 
     res.status(200).json({
       success: true,
-      analysisHistory: user.analysisHistory,
+      analysisHistory: analyses,
     });
   } catch (error) {
     console.error('Failed to fetch analysis history:', error);

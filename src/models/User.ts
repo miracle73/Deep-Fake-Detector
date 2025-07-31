@@ -64,7 +64,12 @@ const UserSchema: Schema = new Schema(
       required: true,
       default: 'SafeGuard_Free',
     },
-    analysisHistory: [AnalysisHistorySchema],
+    analysisHistory: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: 'Analysis',
+      },
+    ],
     billingHistory: [BillingHistorySchema],
     agreedToTerms: {
       type: Boolean,

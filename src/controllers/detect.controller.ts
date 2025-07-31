@@ -18,6 +18,9 @@ import type { DetectionJob } from '../services/detectionQueue.js';
 import type { AuthRequest } from '../middlewares/auth.js';
 import FormData from 'form-data';
 import axios from 'axios';
+import User from '../models/User.js';
+import Analysis from '../models/Analysis.js';
+import { AppError } from '../utils/error.js';
 
 const pubsub = new PubSub();
 
@@ -46,6 +49,17 @@ export const analyze = async (
       return;
     }
 
+    const user = await User.findById(req.user._id);
+
+    //   {
+    //     "confidence": 94.11,
+    //     "deepfake_probability": 5.89,
+    //     "is_deepfake": false,
+    //     "predicted_class": "real",
+    //     "real_probability": 94.11,
+    //     "threshold_used": 0.5
+    // }
+
     const formData = new FormData();
     formData.append('image', file.buffer, {
       filename: file.originalname,
@@ -58,7 +72,24 @@ export const analyze = async (
       },
     });
 
-    console.log(response.data);
+    const { confidence } = response.data;
+
+    const newAnalysis = await Analysis.create({
+      userId: req.user._id,
+      fileName: req.file?.originalname,
+      thumbnailUrl: 'https://',
+      uploadDate: Date.now(),
+      status: 'authentic',
+      confidenceScore: confidence,
+    });
+
+    if (!newAnalysis) {
+      throw new AppError(400, 'Failed to store analysis data');
+    }
+
+    user?.analysisHistory.push(newAnalysis._id);
+
+    await user?.save();
 
     // const filename = `${uuidv4()}-${file.originalname}`;
     // const blob = bucket.file(filename);

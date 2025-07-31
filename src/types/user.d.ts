@@ -133,7 +133,7 @@ export interface EnterpriseUser extends BaseUserFields {
 export type IUser = Document &
   (IndividualUser | EnterpriseUser) & {
     _id: Types.ObjectId;
-    analysisHistory: AnalysisHistoryItem[];
+    analysisHistory: Types.ObjectId[];
     billingHistory: BillingHistoryItem[];
     createdAt: Date;
     updatedAt: Date;
