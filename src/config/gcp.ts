@@ -1,23 +1,23 @@
 import { Logging } from '@google-cloud/logging';
 import { MetricServiceClient } from '@google-cloud/monitoring';
 import { config } from 'dotenv';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 config();
 
-config({ path: path.resolve(process.cwd(), '.env') });
+if (!process.env.GOOGLE_CREDENTIALS_JSON) {
+  throw new Error('GOOGLE_CREDENTIALS_JSON environment variable is required');
+}
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
 
-// const __dirname = path.resolve();
-process.env.GOOGLE_APPLICATION_CREDENTIALS = path.resolve(
-  __dirname,
-  'gcp-key.json'
-);
+const logging = new Logging({
+  projectId: credentials.project_id,
+  credentials,
+});
 
-const logging = new Logging();
-const metricClient = new MetricServiceClient();
+const metricClient = new MetricServiceClient({
+  projectId: credentials.project_id,
+  credentials,
+});
 
 export { logging, metricClient };
