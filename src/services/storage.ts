@@ -3,16 +3,11 @@ import { config } from 'dotenv';
 
 config();
 
-if (!process.env.GOOGLE_CREDENTIALS_JSON) {
-  throw new Error('GOOGLE_CREDENTIALS_JSON environment variable is required');
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  throw new Error('GOOGLE_APPLICATION_CREDENTIALS env var is required');
 }
 
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-
-const storage = new Storage({
-  projectId: credentials.project_id,
-  credentials,
-});
+const storage = new Storage();
 
 export const bucket = storage.bucket('deepfake-backend-bucket');
 

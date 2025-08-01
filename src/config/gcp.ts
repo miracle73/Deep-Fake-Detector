@@ -4,20 +4,18 @@ import { config } from 'dotenv';
 
 config();
 
-if (!process.env.GOOGLE_CREDENTIALS_JSON) {
-  throw new Error('GOOGLE_CREDENTIALS_JSON environment variable is required');
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  throw new Error('GOOGLE_APPLICATION_CREDENTIALS env var is required');
 }
 
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+console.log(
+  '✅ GOOGLE_APPLICATION_CREDENTIALS loaded:',
+  process.env.GOOGLE_APPLICATION_CREDENTIALS
+);
 
-const logging = new Logging({
-  projectId: credentials.project_id,
-  credentials,
-});
+const logging = new Logging();
+const metricClient = new MetricServiceClient();
 
-const metricClient = new MetricServiceClient({
-  projectId: credentials.project_id,
-  credentials,
-});
+console.log('✅ Google Cloud Logging and Monitoring clients initialized');
 
 export { logging, metricClient };
