@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
-import { bucket } from './storage';
+import { bucket } from './storage.js';
 
 export async function generateAndUploadThumbnail({
   buffer,
@@ -14,10 +14,23 @@ export async function generateAndUploadThumbnail({
   console.log('this is bucket name', bucket.name);
   const thumbFilename = `thumbnails/${uuidv4()}-${originalName}.jpg`;
 
-  const resized = await sharp(buffer)
-    .resize(300)
-    .jpeg({ quality: 80 })
-    .toBuffer();
+  let resized: Buffer;
+
+  try {
+    resized = await sharp(buffer).resize(300).jpeg({ quality: 80 }).toBuffer();
+
+    if (!resized || !Buffer.isBuffer(resized)) {
+      throw new Error('Thumbnail buffer is invalid or empty');
+    }
+  } catch (err) {
+    console.error('Sharp resize failed:', err);
+    throw new Error('Failed to generate thumbnail');
+  }
+
+  //   const resized = await sharp(buffer)
+  //     .resize(300)
+  //     .jpeg({ quality: 80 })
+  //     .toBuffer();
 
   console.log('bucket upload starting', thumbFilename);
 
