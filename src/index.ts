@@ -91,11 +91,11 @@ app.listen(port, async () => {
       `API Documentation available at http://localhost:${port}/api-docs`
     );
 
-    // cloudLogger.info({
-    //   message: 'This is a test log from the deepfake detector backend',
-    //   context: { endpoint: '/health' },
-    //   userId: 'system',
-    // });
+    cloudLogger.info({
+      message: 'This is a test log from the deepfake detector backend',
+      context: { endpoint: '/health' },
+      userId: 'system',
+    });
 
     // cloudLogger.info({
     //   message: 'Detection event',
