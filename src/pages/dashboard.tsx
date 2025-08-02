@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   // const { data: userData } = useGetUserQuery();
-  const { data: historyData } = useGetAnalysisHistoryQuery();
+  // const { data: historyData } = useGetAnalysisHistoryQuery();
   const storedUser = useSelector((state: RootState) => state.user.user);
   const [updateMediaConsent] = useUpdateMediaConsentMutation();
   const [detectAnalyze] = useDetectAnalyzeMutation();
@@ -58,46 +58,30 @@ const Dashboard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-  const getPaginatedData = () => {
-    if (!historyData?.analysisHistory) return [];
-
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return historyData.analysisHistory.slice(startIndex, endIndex);
-  };
-
-  const getTotalPages = () => {
-    if (!historyData?.analysisHistory) return 0;
-    return Math.ceil(historyData.analysisHistory.length / itemsPerPage);
-  };
-
   const getPageNumbers = () => {
-    const totalPages = getTotalPages();
+    if (!historyData?.pagination) return [];
+
+    const totalPages = historyData.pagination.totalPages;
     const pages = [];
 
     if (totalPages <= 7) {
-      // ShowING all pages if 7 or fewer
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // ShowING smart pagination with ellipsis
       if (currentPage <= 4) {
-        // ShowING 1, 2, 3, 4, 5, ..., last
         for (let i = 1; i <= 5; i++) {
           pages.push(i);
         }
         pages.push("ellipsis");
         pages.push(totalPages);
       } else if (currentPage >= totalPages - 3) {
-        // ShowING 1, ..., last-4, last-3, last-2, last-1, last
         pages.push(1);
         pages.push("ellipsis");
         for (let i = totalPages - 4; i <= totalPages; i++) {
           pages.push(i);
         }
       } else {
-        // ShowING 1, ..., current-1, current, current+1, ..., last
         pages.push(1);
         pages.push("ellipsis");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
@@ -111,9 +95,34 @@ const Dashboard = () => {
     return pages;
   };
 
+  const {
+    data: historyData,
+    isLoading: isHistoryLoading,
+    error: historyError,
+  } = useGetAnalysisHistoryQuery();
+
+  const getPaginatedData = () => {
+    if (!historyData?.data) return [];
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return historyData.data.slice(startIndex, endIndex);
+  };
+
+  // const getTotalPages = () => {
+  //   if (!historyData?.data) return 0;
+  //   return Math.ceil(historyData.data.length / itemsPerPage);
+  // };
+
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [historyData]);
   useEffect(() => {
-    setCurrentPage(1);
-  }, [historyData]);
+    if (historyData?.pagination?.currentPage !== currentPage) {
+      setCurrentPage(historyData?.pagination?.currentPage || 1);
+    }
+  }, [historyData, currentPage]);
+
   const generateUniqueToken = (): string => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   };
@@ -875,9 +884,34 @@ const Dashboard = () => {
                   Results are stored for 30 days.
                 </p>
               </div>
+              {/* Loading State */}
+              {isHistoryLoading && (
+                <div className="text-center py-8 sm:py-12 w-full">
+                  <div className="flex justify-center items-center mb-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Loading your analysis history...
+                  </p>
+                </div>
+              )}
 
-              {historyData?.analysisHistory &&
-              historyData.analysisHistory.length > 0 ? (
+              {/* Error State */}
+              {historyError && (
+                <div className="text-center py-8 sm:py-12 w-full">
+                  <div className="flex justify-center items-center mb-4">
+                    <AlertCircle className="w-8 h-8 text-red-500" />
+                  </div>
+                  <h4 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                    Error Loading History
+                  </h4>
+                  <p className="text-xs sm:text-sm text-red-600">
+                    Unable to load your analysis history. Please try refreshing
+                    the page.
+                  </p>
+                </div>
+              )}
+              {historyData?.data && historyData.data.length > 0 ? (
                 <div className="w-full">
                   {/* Desktop Table Header */}
                   <div className="hidden md:grid grid-cols-12 gap-4 pb-3 border-b border-gray-200 text-sm font-medium text-gray-500 min-w-0">
@@ -967,7 +1001,29 @@ const Dashboard = () => {
                           <div className="hidden md:grid grid-cols-12 gap-4 items-center py-3 hover:bg-gray-50 rounded-lg min-w-0 transition-colors">
                             <div className="col-span-4 flex items-center space-x-3 min-w-0">
                               <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
-                                {getFileTypeIcon(analysis.fileName)}
+                                {analysis.thumbnailUrl ? (
+                                  <img
+                                    src={analysis.thumbnailUrl}
+                                    alt="File thumbnail"
+                                    className="w-full h-full object-cover rounded-lg"
+                                    onError={(e) => {
+                                      // Fallback to icon if thumbnail fails to load
+                                      const target =
+                                        e.target as HTMLImageElement;
+                                      target.style.display = "none";
+                                      target.nextElementSibling?.classList.remove(
+                                        "hidden"
+                                      );
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className={
+                                    analysis.thumbnailUrl ? "hidden" : ""
+                                  }
+                                >
+                                  {getFileTypeIcon(analysis.fileName)}
+                                </div>
                               </div>
                               <span
                                 className="text-sm font-medium text-gray-900 truncate"
@@ -993,7 +1049,7 @@ const Dashboard = () => {
                             <div className="col-span-2 min-w-0">
                               <span className="text-sm font-medium text-gray-900">
                                 {analysis.confidenceScore
-                                  ? `${analysis.confidenceScore}%`
+                                  ? `${Math.round(analysis.confidenceScore)}%`
                                   : "N/A"}
                               </span>
                             </div>
@@ -1004,7 +1060,29 @@ const Dashboard = () => {
                           <div className="md:hidden bg-gray-50 rounded-lg p-4 hover:bg-gray-100 w-full transition-colors">
                             <div className="flex items-start space-x-3 min-w-0">
                               <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 flex-shrink-0">
-                                {getFileTypeIcon(analysis.fileName)}
+                                {analysis.thumbnailUrl ? (
+                                  <img
+                                    src={analysis.thumbnailUrl}
+                                    alt="File thumbnail"
+                                    className="w-full h-full object-cover rounded-lg"
+                                    onError={(e) => {
+                                      // Fallback to icon if thumbnail fails to load
+                                      const target =
+                                        e.target as HTMLImageElement;
+                                      target.style.display = "none";
+                                      target.nextElementSibling?.classList.remove(
+                                        "hidden"
+                                      );
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className={
+                                    analysis.thumbnailUrl ? "hidden" : ""
+                                  }
+                                >
+                                  {getFileTypeIcon(analysis.fileName)}
+                                </div>
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-col space-y-2">
@@ -1033,7 +1111,9 @@ const Dashboard = () => {
                                     </span>
                                     <span className="text-sm font-medium text-gray-900 flex-shrink-0">
                                       {analysis.confidenceScore
-                                        ? `${analysis.confidenceScore}%`
+                                        ? `${Math.round(
+                                            analysis.confidenceScore
+                                          )}%`
                                         : "N/A"}
                                     </span>
                                   </div>
@@ -1046,78 +1126,92 @@ const Dashboard = () => {
                     })}
                   </div>
 
-                  {/* Pagination */}
-                  {getTotalPages() > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                      {/* Items per page info */}
-                      <div className="text-sm text-gray-600">
-                        Showing{" "}
-                        {Math.min(
-                          (currentPage - 1) * itemsPerPage + 1,
-                          historyData?.analysisHistory?.length || 0
-                        )}{" "}
-                        to{" "}
-                        {Math.min(
-                          currentPage * itemsPerPage,
-                          historyData?.analysisHistory?.length || 0
-                        )}{" "}
-                        of {historyData?.analysisHistory?.length || 0} analyses
-                      </div>
-
-                      {/* Pagination controls */}
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        {/* Previous button */}
-                        <button
-                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                          onClick={() =>
-                            setCurrentPage(Math.max(1, currentPage - 1))
-                          }
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                        </button>
-
-                        {/* Dynamic page numbers */}
-                        <div className="flex space-x-1 overflow-x-auto">
-                          {getPageNumbers().map((page, index) =>
-                            page === "ellipsis" ? (
-                              <span
-                                key={`ellipsis-${index}`}
-                                className="px-2 py-1 text-gray-400"
-                              >
-                                ...
-                              </span>
-                            ) : (
-                              <button
-                                key={page}
-                                className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium flex-shrink-0 transition-colors ${
-                                  currentPage === page
-                                    ? "bg-[#0F2FA3] text-white"
-                                    : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                                onClick={() => setCurrentPage(page as number)}
-                              >
-                                {page}
-                              </button>
-                            )
-                          )}
+                  {/* Pagination - Show pagination info using API response */}
+                  {historyData.pagination &&
+                    historyData.pagination.totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                        {/* Items per page info - Using API pagination data */}
+                        <div className="text-sm text-gray-600">
+                          Showing{" "}
+                          {(historyData.pagination.currentPage - 1) *
+                            historyData.pagination.itemsPerPage +
+                            1}{" "}
+                          to{" "}
+                          {Math.min(
+                            historyData.pagination.currentPage *
+                              historyData.pagination.itemsPerPage,
+                            historyData.pagination.totalItems
+                          )}{" "}
+                          of {historyData.pagination.totalItems} analyses
                         </div>
 
-                        {/* Next button */}
-                        <button
-                          className="p-1.5 sm:p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                          onClick={() =>
-                            setCurrentPage(
-                              Math.min(getTotalPages(), currentPage + 1)
-                            )
-                          }
-                          disabled={currentPage === getTotalPages()}
-                        >
-                          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                        </button>
+                        {/* Pagination controls */}
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          {/* Previous button */}
+                          <button
+                            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => {
+                              // For now, just update local state since API doesn't accept query params yet
+                              if (historyData.pagination.hasPreviousPage) {
+                                setCurrentPage(
+                                  historyData.pagination.previousPage ||
+                                    currentPage - 1
+                                );
+                              }
+                            }}
+                            disabled={!historyData.pagination.hasPreviousPage}
+                          >
+                            <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                          </button>
+
+                          {/* Dynamic page numbers */}
+                          <div className="flex space-x-1 overflow-x-auto">
+                            {getPageNumbers().map((page, index) =>
+                              page === "ellipsis" ? (
+                                <span
+                                  key={`ellipsis-${index}`}
+                                  className="px-2 py-1 text-gray-400"
+                                >
+                                  ...
+                                </span>
+                              ) : (
+                                <button
+                                  key={page}
+                                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded text-xs sm:text-sm font-medium flex-shrink-0 transition-colors ${
+                                    historyData.pagination.currentPage === page
+                                      ? "bg-[#0F2FA3] text-white"
+                                      : "text-gray-600 hover:bg-gray-100"
+                                  }`}
+                                  onClick={() => {
+                                    // For now, just update local state since API doesn't accept query params yet
+                                    setCurrentPage(page as number);
+                                  }}
+                                >
+                                  {page}
+                                </button>
+                              )
+                            )}
+                          </div>
+
+                          {/* Next button */}
+                          <button
+                            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => {
+                              // For now, just update local state since API doesn't accept query params yet
+                              if (historyData.pagination.hasNextPage) {
+                                setCurrentPage(
+                                  historyData.pagination.nextPage ||
+                                    currentPage + 1
+                                );
+                              }
+                            }}
+                            disabled={!historyData.pagination.hasNextPage}
+                          >
+                            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               ) : (
                 // No Analyses Yet - Empty State

@@ -348,9 +348,21 @@ interface AnalysisHistoryItem {
   __v: number;
 }
 
+interface Pagination {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  nextPage: number | null;
+  previousPage: number | null;
+}
+
 interface GetAnalysisHistoryResponse {
   success: boolean;
-  analysisHistory: AnalysisHistoryItem[];
+  pagination: Pagination;
+  data: AnalysisHistoryItem[];
 }
 export const apiService = createApi({
   reducerPath: "apiService",

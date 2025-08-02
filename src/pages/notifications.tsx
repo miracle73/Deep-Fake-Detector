@@ -60,17 +60,20 @@ const Notifications = () => {
   const handleNotificationClick: NotificationClickHandler = async (
     notification
   ) => {
-    setSelectedNotification(notification);
-
     // Mark notification as read if it's unread
     if (!notification.read) {
       try {
         await markNotificationRead(notification._id).unwrap();
-        // Updating the local state to reflect the read status immediately
-        // This will prevent the notification from appearing unread until page refresh
+        // Update the selectedNotification with the read status immediately
+        setSelectedNotification({ ...notification, read: true });
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
+        // If marking as read fails, still show the notification details
+        setSelectedNotification(notification);
       }
+    } else {
+      // If already read, just set the selected notification
+      setSelectedNotification(notification);
     }
   };
 
