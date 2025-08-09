@@ -1,27 +1,30 @@
-FROM python:3.9-slim
 
-WORKDIR /app
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# System dependencies including OpenGL for opencv-python-headless
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    curl \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    timm==0.9.12 \
+    google-cloud-storage==2.10.0 \
+    google-cloud-aiplatform==1.38.0 \
+    pillow==10.1.0 \
+    tqdm==4.66.1 \
+    numpy==1.24.4 \
+    torchmetrics==1.2.0
 
-COPY . .
-RUN mkdir -p checkpoints models src config results
+# Copy training script
+COPY vertex_training_script.py /app/train.py
+WORKDIR /app
 
-ENV PYTHONPATH=/app
-ENV PORT=8080
-EXPOSE 8080
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV BUCKET_NAME=first-bucket-deep-fake-detector
+ENV JOB_NAME=deepfake-detector-20250809_175159
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--timeout", "120", "--workers", "1", "--threads", "2", "app:app"]
+# Run training
+CMD ["python", "train.py"]

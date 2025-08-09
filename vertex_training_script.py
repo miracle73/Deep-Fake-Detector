@@ -1,0 +1,355 @@
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset, random_split
+from torch.cuda.amp import autocast, GradScaler
+import torchvision.transforms as transforms
+from torchvision import models
+import timm
+from google.cloud import storage
+import json
+import os
+import time
+from pathlib import Path
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
+import io
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class GCSImageDataset(Dataset):
+    """Dataset that loads images directly from GCS"""
+    
+    def __init__(self, bucket_name, categories=['real', 'fake'], transform=None, max_files_per_category=None):
+        self.bucket_name = bucket_name
+        self.transform = transform
+        
+        # Initialize GCS client
+        self.storage_client = storage.Client()
+        self.bucket = self.storage_client.bucket(bucket_name)
+        
+        # Load file list
+        self.samples = []
+        for category in categories:
+            # Updated path to match your upload script structure
+            prefix = f"deepfake_dataset/{category}/"
+            blobs = list(self.bucket.list_blobs(prefix=prefix))
+            
+            label = 0 if category == 'real' else 1
+            
+            # Filter for image files
+            image_blobs = [blob for blob in blobs if blob.name.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            
+            # Limit files per category if specified
+            if max_files_per_category:
+                image_blobs = image_blobs[:max_files_per_category]
+            
+            for blob in image_blobs:
+                self.samples.append((blob.name, label))
+            
+            logger.info(f"Loaded {len(image_blobs)} {category} images")
+        
+        logger.info(f"Total dataset size: {len(self.samples)} samples")
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, idx):
+        blob_name, label = self.samples[idx]
+        
+        try:
+            # Download image from GCS
+            blob = self.bucket.blob(blob_name)
+            image_bytes = blob.download_as_bytes()
+            
+            # Load image
+            image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+            
+            if self.transform:
+                image = self.transform(image)
+            
+            return image, label
+        
+        except Exception as e:
+            logger.error(f"Error loading {blob_name}: {e}")
+            # Return a black image as fallback
+            if self.transform:
+                fallback = self.transform(Image.new('RGB', (224, 224), color='black'))
+            else:
+                fallback = torch.zeros(3, 224, 224)
+            return fallback, label
+
+class EfficientNetDeepfakeDetector(nn.Module):
+    """EfficientNet-based deepfake detector"""
+    
+    def __init__(self, model_name="efficientnet_b4", num_classes=2, dropout=0.3):
+        super().__init__()
+        self.backbone = timm.create_model(
+            model_name,
+            pretrained=True,
+            num_classes=0,
+            global_pool='avg'
+        )
+        self.feature_dim = self.backbone.num_features
+        
+        self.classifier = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(self.feature_dim, 512),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(512),
+            nn.Dropout(dropout * 0.5),
+            nn.Linear(512, 128),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(128),
+            nn.Dropout(dropout * 0.25),
+            nn.Linear(128, num_classes)
+        )
+    
+    def forward(self, x):
+        features = self.backbone(x)
+        return self.classifier(features)
+
+def train_on_vertex():
+    """Main training function for Vertex AI"""
+    
+    # Load config from environment
+    config_str = os.environ.get('TRAINING_CONFIG', '{}')
+    config = json.loads(config_str)
+    bucket_name = os.environ.get('BUCKET_NAME')
+    job_name = os.environ.get('JOB_NAME')
+    
+    logger.info(f"Starting training job: {job_name}")
+    logger.info(f"Using bucket: {bucket_name}")
+    
+    # Setup device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    logger.info(f"Using device: {device}")
+    if torch.cuda.is_available():
+        logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
+        logger.info(f"GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+    
+    # Data transforms
+    train_transform = transforms.Compose([
+        transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        transforms.RandomRotation(10),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    
+    val_transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    
+    # Create full dataset
+    full_dataset = GCSImageDataset(bucket_name, transform=None)
+    
+    # Split dataset
+    total_size = len(full_dataset)
+    train_size = int(config['data']['train_split'] * total_size)
+    val_size = int(config['data']['val_split'] * total_size)
+    test_size = total_size - train_size - val_size
+    
+    train_dataset, val_dataset, test_dataset = random_split(
+        full_dataset, [train_size, val_size, test_size],
+        generator=torch.Generator().manual_seed(42)
+    )
+    
+    # Apply transforms
+    train_dataset.dataset.transform = train_transform
+    val_dataset.dataset.transform = val_transform
+    
+    logger.info(f"Dataset splits - Train: {len(train_dataset)}, Val: {len(val_dataset)}, Test: {len(test_dataset)}")
+    
+    # Create data loaders
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=config['training']['batch_size'],
+        shuffle=True,
+        num_workers=config['training']['num_workers'],
+        pin_memory=True,
+        drop_last=True
+    )
+    
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=config['training']['batch_size'],
+        shuffle=False,
+        num_workers=config['training']['num_workers'],
+        pin_memory=True
+    )
+    
+    # Create model
+    model = EfficientNetDeepfakeDetector(
+        model_name=config['model']['name'],
+        num_classes=config['model']['num_classes'],
+        dropout=config['model']['dropout']
+    ).to(device)
+    
+    # Setup training
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)  # Add label smoothing
+    optimizer = optim.AdamW(
+        model.parameters(),
+        lr=config['training']['learning_rate'],
+        weight_decay=config['training']['weight_decay'],
+        betas=config['optimizer']['betas'],
+        eps=config['optimizer']['eps']
+    )
+    
+    scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer,
+        T_0=config['scheduler']['T_0'],
+        T_mult=config['scheduler']['T_mult'],
+        eta_min=config['scheduler']['eta_min']
+    )
+    
+    # Mixed precision training
+    scaler = GradScaler() if config['training']['mixed_precision'] else None
+    
+    # Training loop
+    best_val_acc = 0.0
+    patience_counter = 0
+    
+    for epoch in range(config['training']['epochs']):
+        start_time = time.time()
+        
+        # Training phase
+        model.train()
+        train_loss = 0.0
+        train_correct = 0
+        train_total = 0
+        
+        train_pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{config['training']['epochs']} [Train]")
+        
+        for batch_idx, (inputs, labels) in enumerate(train_pbar):
+            inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+            
+            optimizer.zero_grad()
+            
+            if scaler and config['training']['mixed_precision']:
+                with autocast():
+                    outputs = model(inputs)
+                    loss = criterion(outputs, labels)
+                
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+            
+            train_loss += loss.item()
+            _, predicted = outputs.max(1)
+            train_total += labels.size(0)
+            train_correct += predicted.eq(labels).sum().item()
+            
+            # Update progress bar
+            train_pbar.set_postfix({
+                'Loss': f'{loss.item():.4f}',
+                'Acc': f'{100. * train_correct / train_total:.2f}%'
+            })
+        
+        # Validation phase
+        model.eval()
+        val_loss = 0.0
+        val_correct = 0
+        val_total = 0
+        
+        with torch.no_grad():
+            val_pbar = tqdm(val_loader, desc=f"Epoch {epoch+1}/{config['training']['epochs']} [Val]")
+            for inputs, labels in val_pbar:
+                inputs, labels = inputs.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                
+                val_loss += loss.item()
+                _, predicted = outputs.max(1)
+                val_total += labels.size(0)
+                val_correct += predicted.eq(labels).sum().item()
+                
+                val_pbar.set_postfix({
+                    'Loss': f'{loss.item():.4f}',
+                    'Acc': f'{100. * val_correct / val_total:.2f}%'
+                })
+        
+        # Calculate metrics
+        train_acc = 100. * train_correct / train_total
+        val_acc = 100. * val_correct / val_total
+        train_loss_avg = train_loss / len(train_loader)
+        val_loss_avg = val_loss / len(val_loader)
+        
+        epoch_time = time.time() - start_time
+        
+        logger.info(f"Epoch {epoch+1}/{config['training']['epochs']} ({epoch_time:.1f}s):")
+        logger.info(f"  Train - Loss: {train_loss_avg:.4f}, Acc: {train_acc:.2f}%")
+        logger.info(f"  Val   - Loss: {val_loss_avg:.4f}, Acc: {val_acc:.2f}%")
+        
+        # Save best model
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            patience_counter = 0
+            
+            # Save to local temp file first
+            model_path = "/tmp/best_model.pth"
+            torch.save({
+                'epoch': epoch + 1,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
+                'best_val_acc': best_val_acc,
+                'config': config
+            }, model_path)
+            
+            # Upload to GCS
+            try:
+                client = storage.Client()
+                bucket = client.bucket(bucket_name)
+                blob = bucket.blob(f"models/{job_name}/best_model.pth")
+                blob.upload_from_filename(model_path)
+                logger.info(f"Model saved to GCS with validation accuracy: {best_val_acc:.2f}%")
+            except Exception as e:
+                logger.error(f"Failed to upload model to GCS: {e}")
+        else:
+            patience_counter += 1
+            
+        # Early stopping
+        if patience_counter >= config['training']['patience']:
+            logger.info(f"Early stopping triggered after {epoch + 1} epochs")
+            break
+        
+        scheduler.step()
+    
+    logger.info(f"Training complete! Best validation accuracy: {best_val_acc:.2f}%")
+    
+    # Save final training stats
+    stats = {
+        'best_val_acc': best_val_acc,
+        'total_epochs': epoch + 1,
+        'total_samples': total_size,
+        'train_samples': len(train_dataset),
+        'val_samples': len(val_dataset),
+        'config': config
+    }
+    
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+        stats_blob = bucket.blob(f"results/{job_name}/training_stats.json")
+        stats_blob.upload_from_string(json.dumps(stats, indent=2))
+        logger.info("Training stats saved to GCS")
+    except Exception as e:
+        logger.error(f"Failed to save stats to GCS: {e}")
+
+if __name__ == "__main__":
+    train_on_vertex()

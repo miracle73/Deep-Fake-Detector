@@ -20,6 +20,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+image-deep-fake-detector-cb75e9899f2d.json
+service_keys
 
 # PyTorch
 *.pth
