@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-vertex_ai_training.py - Train deepfake detector on Vertex AI with 297K images
-FIXED: Properly handle custom GOOGLE_VERTEX_AI_APPLICATION_CREDENTIALS environment variable
+vertex_ai_training_fixed.py - Train deepfake detector on Vertex AI with 297K images
+FIXED: Properly handle job submission and resource creation + CPU-only support
 """
 
 import os
@@ -15,7 +15,7 @@ from google.oauth2 import service_account
 from datetime import datetime
 import yaml
 import subprocess
-import re
+import time
 
 class VertexAIDeepfakeTrainer:
     def __init__(self, project_id: str, bucket_name: str, region: str, credentials_path: str = None):
@@ -24,16 +24,11 @@ class VertexAIDeepfakeTrainer:
         self.bucket_name = bucket_name
         self.region = region
         
-        # Handle authentication - check multiple sources
+        # Handle authentication
         self.credentials = None
         credentials_file = None
         
-        # Priority order for credentials:
-        # 1. Explicit credentials path parameter
-        # 2. GOOGLE_VERTEX_AI_APPLICATION_CREDENTIALS environment variable
-        # 3. GOOGLE_APPLICATION_CREDENTIALS environment variable
-        # 4. Default credentials
-        
+        # Priority order for credentials
         if credentials_path and os.path.exists(credentials_path):
             credentials_file = credentials_path
             print(f"🔐 Using explicit credentials: {credentials_path}")
@@ -85,11 +80,9 @@ class VertexAIDeepfakeTrainer:
     def test_authentication(self):
         """Test if authentication is working"""
         try:
-            # Try to list something from the bucket
             client = storage.Client(credentials=self.credentials, project=self.project_id)
             bucket = client.bucket(self.bucket_name)
             
-            # Just check if bucket exists
             if bucket.exists():
                 print(f"✅ Authentication test passed - can access bucket: {self.bucket_name}")
                 return True
@@ -105,71 +98,7 @@ class VertexAIDeepfakeTrainer:
             print("   3. Run 'gcloud auth application-default login'")
             return False
 
-    def list_existing_images(self):
-        """List existing Docker images in the registry"""
-        try:
-            cmd = f"gcloud container images list-tags gcr.io/{self.project_id}/deepfake-detector --limit=10 --sort-by=timestamp --format=json"
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                images = json.loads(result.stdout)
-                if images:
-                    print(f"\n📋 Found {len(images)} existing Docker images:")
-                    for i, img in enumerate(images[:5]):  # Show last 5 images
-                        tags = img.get('tags', ['<untagged>'])
-                        timestamp = img.get('timestamp', 'unknown')
-                        print(f"   {i+1}. Tag: {tags[0]}, Created: {timestamp[:19]}")
-                    return images
-                else:
-                    print("📋 No existing Docker images found")
-                    return []
-            else:
-                print(f"❌ Failed to list images: {result.stderr}")
-                return []
-        except Exception as e:
-            print(f"❌ Error listing images: {e}")
-            return []
-
-    def get_image_choice(self, existing_images):
-        """Ask user whether to reuse existing image or build new one"""
-        if not existing_images:
-            return None, True  # No existing images, must build new
-        
-        print(f"\n🤔 You have {len(existing_images)} existing Docker images.")
-        print("Options:")
-        print("1. Build new image (recommended for code changes)")
-        print("2. Reuse most recent image (faster, good if no changes)")
-        
-        for i, img in enumerate(existing_images[:3]):
-            tags = img.get('tags', ['<untagged>'])
-            timestamp = img.get('timestamp', 'unknown')
-            print(f"   Option {i+3}. Reuse image: {tags[0]} (created: {timestamp[:19]})")
-        
-        while True:
-            try:
-                choice = input("\nEnter your choice (1-5): ").strip()
-                
-                if choice == "1":
-                    return None, True  # Build new
-                elif choice == "2":
-                    # Use most recent image
-                    latest_img = existing_images[0]
-                    tag = latest_img.get('tags', ['latest'])[0]
-                    return f"gcr.io/{self.project_id}/deepfake-detector:{tag}", False
-                elif choice in ["3", "4", "5"]:
-                    idx = int(choice) - 3
-                    if idx < len(existing_images):
-                        img = existing_images[idx]
-                        tag = img.get('tags', ['latest'])[0]
-                        return f"gcr.io/{self.project_id}/deepfake-detector:{tag}", False
-                    else:
-                        print("Invalid option. Please try again.")
-                else:
-                    print("Invalid choice. Please enter 1-5.")
-            except (ValueError, KeyboardInterrupt):
-                print("Invalid input. Please try again.")
-
-    def create_training_config(self):
+    def create_training_config(self, use_gpu: bool = True):
         """Create optimized training configuration for large dataset"""
         config = {
             'model': {
@@ -179,14 +108,15 @@ class VertexAIDeepfakeTrainer:
                 'dropout': 0.3
             },
             'training': {
-                'batch_size': 32,
+                'batch_size': 16 if not use_gpu else 32,  # Smaller batch for CPU
                 'epochs': 50,
                 'learning_rate': 0.0001,
                 'weight_decay': 0.0001,
                 'patience': 10,
-                'gradient_accumulation_steps': 2,
-                'mixed_precision': True,
-                'num_workers': 4
+                'gradient_accumulation_steps': 4 if not use_gpu else 2,  # More accumulation for CPU
+                'mixed_precision': use_gpu,  # Only use mixed precision with GPU
+                'num_workers': 2 if not use_gpu else 4,
+                'device': 'cuda' if use_gpu else 'cpu'
             },
             'data': {
                 'input_size': 224,
@@ -219,87 +149,141 @@ class VertexAIDeepfakeTrainer:
     
     def submit_training_job(self, machine_type: str = "n1-highmem-8", 
                            accelerator_type: str = "NVIDIA_TESLA_T4",
-                           accelerator_count: int = 1,
-                           reuse_image: bool = False):
-        """Submit training job to Vertex AI"""
+                           accelerator_count: int = 1):
+        """Submit training job to Vertex AI - FIXED VERSION with CPU support"""
         
-        print(f"🚀 Submitting training job: {self.job_name}")
+        print(f"\n🚀 Submitting training job: {self.job_name}")
         
         # Test authentication first
         if not self.test_authentication():
             print("❌ Authentication test failed. Please check your credentials.")
             return None
         
-        # Create training config
-        config = self.create_training_config()
+        # Determine if using GPU
+        use_gpu = accelerator_count > 0
         
-        # Use existing successful Docker image from previous build
+        # Create training config
+        config = self.create_training_config(use_gpu=use_gpu)
+        
+        # Use existing Docker image
         image_uri = f"gcr.io/{self.project_id}/deepfake-detector:20250809_175159"
         print(f"♻️  Using existing Docker image: {image_uri}")
-        print("   (Skipping Docker build - using successful build from previous run)")
         
-        # Create custom job
+        # Create machine spec - conditionally include GPU settings
+        machine_spec = {
+            "machine_type": machine_type,
+        }
+        
+        # Only add GPU settings if we're using GPU
+        if use_gpu:
+            machine_spec["accelerator_type"] = accelerator_type
+            machine_spec["accelerator_count"] = accelerator_count
+            print(f"🔥 Using GPU: {accelerator_count}x {accelerator_type}")
+        else:
+            print(f"💻 Using CPU-only training")
+        
+        # Define worker pool specs
+        worker_pool_specs = [
+            {
+                "machine_spec": machine_spec,
+                "replica_count": 1,
+                "container_spec": {
+                    "image_uri": image_uri,
+                    "command": ["python", "scripts/train_model.py"],
+                    "args": [
+                        "--config", "/app/config/config.yaml",
+                        "--data-dir", "/gcs/deepfake_dataset"
+                    ],
+                    "env": [
+                        {"name": "TRAINING_CONFIG", "value": json.dumps(config)},
+                        {"name": "BUCKET_NAME", "value": self.bucket_name},
+                        {"name": "JOB_NAME", "value": self.job_name},
+                        {"name": "PYTHONUNBUFFERED", "value": "1"},
+                        {"name": "USE_GPU", "value": str(use_gpu).lower()},
+                    ],
+                },
+            }
+        ]
+        
         try:
+            print(f"📊 Creating custom training job...")
+            print(f"   Machine: {machine_type}")
+            if use_gpu:
+                print(f"   GPU: {accelerator_count}x {accelerator_type}")
+            else:
+                print(f"   GPU: None (CPU-only)")
+            print(f"   Dataset: ~297K images from GCS bucket")
+            
+            # Create the custom job
             job = aiplatform.CustomJob(
                 display_name=self.job_name,
-                worker_pool_specs=[
-                    {
-                        "machine_spec": {
-                            "machine_type": machine_type,
-                            "accelerator_type": accelerator_type,
-                            "accelerator_count": accelerator_count,
-                        },
-                        "replica_count": 1,
-                        "container_spec": {
-                            "image_uri": image_uri,
-                            "env": [
-                                {"name": "TRAINING_CONFIG", "value": json.dumps(config)},
-                                {"name": "BUCKET_NAME", "value": self.bucket_name},
-                                {"name": "JOB_NAME", "value": self.job_name},
-                            ],
-                        },
-                    }
-                ],
+                worker_pool_specs=worker_pool_specs,
                 staging_bucket=f"gs://{self.bucket_name}/vertex_ai_staging",
             )
             
-            # Run the job
-            print(f"📊 Starting training job on Vertex AI...")
-            print(f"   Machine: {machine_type}")
-            print(f"   GPU: {accelerator_count}x {accelerator_type}")
-            print(f"   Dataset: ~297K images from GCS bucket")
+            print(f"✅ Job created, now submitting...")
             
-            job.run(
-                sync=False,  # Run asynchronously
-                restart_job_on_worker_restart=False
-            )
+            # Submit the job - using the simple submit() without extra parameters
+            job.submit()
             
-            print(f"✅ Job submitted successfully!")
-            print(f"   Job Name: {job.resource_name}")
-            print(f"   Monitor at: https://console.cloud.google.com/vertex-ai/training/custom-jobs")
+            # Wait a moment for the job to be fully created
+            print("⏳ Waiting for job to initialize...")
+            time.sleep(5)
+            
+            # Now the job should be created and we can access its properties
+            print(f"\n✅ Job submitted successfully!")
+            print(f"   Job Name: {job.display_name}")
+            print(f"   Job ID: {job.name}")
+            print(f"   State: {job.state}")
+            print(f"\n📊 Monitor your job at:")
+            print(f"   https://console.cloud.google.com/vertex-ai/training/custom-jobs?project={self.project_id}")
+            print(f"\n💡 To check job status from command line:")
+            print(f"   gcloud ai custom-jobs describe {job.name.split('/')[-1]} --region={self.region}")
+            print(f"\n📁 Output will be saved to:")
+            print(f"   gs://{self.bucket_name}/models/{self.job_name}/")
+            
+            if not use_gpu:
+                print(f"\n⚠️  CPU-only training will be MUCH slower than GPU training.")
+                print(f"   Consider requesting T4 GPU quota increase for faster training.")
             
             return job
             
         except Exception as e:
             print(f"❌ Failed to submit job: {e}")
+            print(f"\n🔍 Debugging info:")
+            print(f"   Error type: {type(e).__name__}")
+            print(f"   Error details: {str(e)}")
+            
+            # Try to provide more specific guidance based on the error
+            if "not enabled" in str(e).lower():
+                print(f"\n💡 Make sure Vertex AI API is enabled:")
+                print(f"   gcloud services enable aiplatform.googleapis.com --project={self.project_id}")
+            elif "permission" in str(e).lower() or "forbidden" in str(e).lower():
+                print(f"\n💡 Check that your service account has the required permissions:")
+                print(f"   - Vertex AI User")
+                print(f"   - Storage Object Admin")
+                print(f"   - Service Account User")
+            elif "quota" in str(e).lower():
+                print(f"\n💡 You may have exceeded your quota. Check:")
+                print(f"   https://console.cloud.google.com/iam-admin/quotas?project={self.project_id}")
+            
             return None
 
 def main():
-    """Main function with better credential handling"""
+    """Main function"""
     parser = argparse.ArgumentParser(description='Train Deepfake Detector on Vertex AI')
     parser.add_argument('--machine-type', default='n1-highmem-8', help='Machine type')
     parser.add_argument('--gpu-type', default='NVIDIA_TESLA_T4', help='GPU type')
-    parser.add_argument('--gpu-count', type=int, default=1, help='Number of GPUs')
+    parser.add_argument('--gpu-count', type=int, default=1, help='Number of GPUs (set to 0 for CPU-only)')
     parser.add_argument('--project-id', required=True, help='GCP Project ID')
     parser.add_argument('--bucket-name', required=True, help='GCS Bucket name')
     parser.add_argument('--region', default='us-central1', help='GCP Region')
     parser.add_argument('--credentials-path', help='Path to service account JSON key file')
-    parser.add_argument('--build-new-image', action='store_true', 
-                       help='Force build new Docker image instead of using existing one')
     
     args = parser.parse_args()
     
-    print(f"🚀 Training Deepfake Detector on Vertex AI")
+    print(f"🚀 VERTEX AI DEEPFAKE DETECTOR TRAINING")
+    print(f"=" * 50)
     print(f"   Project: {args.project_id}")
     print(f"   Bucket: {args.bucket_name}")
     print(f"   Region: {args.region}")
@@ -319,7 +303,7 @@ def main():
     if not os.getenv('GOOGLE_VERTEX_AI_APPLICATION_CREDENTIALS') and not os.getenv('GOOGLE_APPLICATION_CREDENTIALS') and not args.credentials_path:
         print(f"   ⚠️  No credentials found. Will try default credentials.")
     
-    # Initialize trainer with credentials
+    # Initialize trainer
     trainer = VertexAIDeepfakeTrainer(
         args.project_id, 
         args.bucket_name, 
@@ -331,18 +315,24 @@ def main():
     job = trainer.submit_training_job(
         machine_type=args.machine_type,
         accelerator_type=args.gpu_type,
-        accelerator_count=args.gpu_count,
-        reuse_image=not args.build_new_image
+        accelerator_count=args.gpu_count
     )
     
     if job:
+        print("\n✅ SUCCESS! Your training job is running.")
         print("\n🎯 Next Steps:")
-        print("1. Monitor job progress in Cloud Console")
+        print("1. Monitor job progress in Cloud Console (link above)")
         print("2. Check logs for training metrics")
-        print("3. Download trained model from GCS when complete")
-        print(f"4. Model will be saved to: gs://{args.bucket_name}/models/{trainer.job_name}/")
+        print("3. Wait for training to complete (may take several hours)")
+        print("4. Download trained model from GCS when complete")
+        
+        if args.gpu_count == 0:
+            print("\n⏰ CPU Training Time Estimates:")
+            print("   - With 297K images, CPU training may take 10-20+ hours")
+            print("   - Consider requesting GPU quota for much faster training")
     else:
-        print("❌ Job submission failed!")
+        print("\n❌ Job submission failed!")
+        print("Please check the error messages above and try again.")
 
 if __name__ == "__main__":
     main()
