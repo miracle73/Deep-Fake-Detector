@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
 """
 Flask API for Deepfake Detection Model
-Deploy this to Google Cloud Run
+Updated to use the CPU-trained MobileNetV2 model
 """
 
 from flask import Flask, request, jsonify
 import torch
+import torch.nn as nn
+from torchvision import models, transforms
 from PIL import Image
 import io
 import base64
-import sys
 import os
 import logging
+import json
 from pathlib import Path
-
-# Add project root to Python path
-project_root = Path(__file__).parent
-sys.path.append(str(project_root))
-
-# Import your custom modules
-from models.efficientnet_detector import create_efficientnet_detector
-from src.data.preprocessing import DeepfakePreprocessor
-from config.model_configs import ConfigManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,53 +24,84 @@ app = Flask(__name__)
 
 # Global variables
 model = None
-preprocessor = None
+transform = None
 device = None
+model_info = {}
+
+class MobileNetDetector(nn.Module):
+    """MobileNetV2 - matching the training script architecture"""
+    
+    def __init__(self, num_classes=2, dropout=0.2):
+        super().__init__()
+        
+        # Use MobileNetV2 - same as training
+        self.base_model = models.mobilenet_v2(pretrained=False)
+        
+        # Get the number of input features for the classifier
+        num_features = self.base_model.classifier[1].in_features
+        
+        # Replace classifier for binary classification
+        self.base_model.classifier = nn.Sequential(
+            nn.Dropout(p=dropout),
+            nn.Linear(num_features, num_classes)
+        )
+    
+    def forward(self, x):
+        return self.base_model(x)
 
 def load_model():
     """Load the trained deepfake detection model"""
-    global model, preprocessor, device
+    global model, transform, device, model_info
     
     try:
-        # Use CPU for Cloud Run (more cost-effective)
+        # Use CPU (since model was trained on CPU)
         device = torch.device('cpu')
         logger.info(f"Using device: {device}")
         
-        # Load configuration (optional - can hardcode values)
-        try:
-            config_manager = ConfigManager('config/config.yaml')
-            model_config = config_manager.model_config
-            data_config = config_manager.data_config
-        except:
-            logger.warning("Config file not found, using default values")
-            # Default values if config is missing
-            model_config = type('obj', (object,), {
-                'name': 'efficientnet-b4',
-                'num_classes': 2,
-                'pretrained': False,
-                'dropout': 0.3
-            })
-            data_config = type('obj', (object,), {
-                'input_size': 224,
-                'augmentation': False
-            })
+        # Define the exact path to your downloaded model
+        checkpoint_path = 'checkpoints/new/best_model_cpu_30000_samples.pth'
         
-        # Create model
-        logger.info("Creating EfficientNet model...")
-        model = create_efficientnet_detector(
-            model_name=model_config.name,
-            num_classes=model_config.num_classes,
-            pretrained=model_config.pretrained,
-            dropout=model_config.dropout
-        )
-        
-        # Load trained weights
-        checkpoint_path = 'checkpoints/best_model.pth'
+        # Alternative paths to try
         if not os.path.exists(checkpoint_path):
-            raise FileNotFoundError(f"Model checkpoint not found: {checkpoint_path}")
+            alternative_paths = [
+                'checkpoints/new/best_model_cpu_10000_samples.pth',
+                'checkpoints/new/best_model_cpu_20000_samples.pth',
+                'checkpoints/deepfake-cpu-optimized-20250809_222222/best_model_cpu_30000_samples.pth',
+                'checkpoints/new/best_model.pth'
+            ]
+            
+            for alt_path in alternative_paths:
+                if os.path.exists(alt_path):
+                    checkpoint_path = alt_path
+                    logger.info(f"Found model at: {alt_path}")
+                    break
+            else:
+                # List available files to help debug
+                checkpoints_dir = Path('checkpoints')
+                if checkpoints_dir.exists():
+                    available_files = list(checkpoints_dir.rglob('*.pth'))
+                    logger.error(f"Available .pth files: {available_files}")
+                raise FileNotFoundError(f"Model checkpoint not found. Looked for: {checkpoint_path}")
         
         logger.info(f"Loading model weights from {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path, map_location=device)
+        
+        # Extract model info from checkpoint
+        if 'config' in checkpoint:
+            model_info['training_config'] = checkpoint['config']
+        if 'val_acc' in checkpoint:
+            model_info['validation_accuracy'] = checkpoint['val_acc']
+        if 'train_acc' in checkpoint:
+            model_info['training_accuracy'] = checkpoint['train_acc']
+        if 'sample_size' in checkpoint:
+            model_info['trained_on_samples'] = checkpoint['sample_size']
+        if 'epoch' in checkpoint:
+            model_info['trained_epochs'] = checkpoint['epoch']
+        
+        logger.info(f"Model info: {model_info}")
+        
+        # Create model with same architecture as training
+        model = MobileNetDetector(num_classes=2, dropout=0.2)
         
         # Load model state dict
         if 'model_state_dict' in checkpoint:
@@ -88,15 +112,29 @@ def load_model():
         model.eval()
         model = model.to(device)
         
-        # Create preprocessor
-        logger.info("Setting up preprocessor...")
-        preprocessor = DeepfakePreprocessor(
-            input_size=data_config.input_size,
-            normalize=True,
-            augment=False  # No augmentation for inference
-        )
+        # Create transform - same as used in training
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+        
+        # Load training summary if available
+        summary_path = checkpoint_path.replace('.pth', '.json').replace('best_model_cpu', 'training_summary')
+        if not os.path.exists(summary_path):
+            summary_path = 'checkpoints/new/training_summary.json'
+        
+        if os.path.exists(summary_path):
+            with open(summary_path, 'r') as f:
+                summary = json.load(f)
+                model_info['training_summary'] = summary
+                logger.info(f"Loaded training summary: {summary}")
         
         logger.info("✅ Model loaded successfully!")
+        logger.info(f"   Model type: MobileNetV2")
+        logger.info(f"   Trained on: {model_info.get('trained_on_samples', 'unknown')} samples")
+        logger.info(f"   Validation accuracy: {model_info.get('validation_accuracy', 'unknown')}%")
+        
         return True
         
     except Exception as e:
@@ -108,12 +146,15 @@ def home():
     """Home endpoint with API information"""
     return jsonify({
         'service': 'Deepfake Detection API',
-        'version': '1.0.0',
+        'version': '2.0.0',
         'status': 'running',
+        'model_type': 'MobileNetV2 (CPU-optimized)',
+        'model_info': model_info,
         'endpoints': {
             'predict': '/predict (POST)',
             'health': '/health (GET)',
-            'batch_predict': '/batch_predict (POST)'
+            'batch_predict': '/batch_predict (POST)',
+            'model_info': '/model_info (GET)'
         },
         'model_loaded': model is not None
     })
@@ -124,7 +165,26 @@ def health_check():
     return jsonify({
         'status': 'healthy' if model is not None else 'unhealthy',
         'model_loaded': model is not None,
-        'device': str(device) if device else None
+        'device': str(device) if device else None,
+        'model_type': 'MobileNetV2'
+    })
+
+@app.route('/model_info', methods=['GET'])
+def get_model_info():
+    """Get detailed information about the loaded model"""
+    if model is None:
+        return jsonify({'error': 'Model not loaded'}), 500
+    
+    return jsonify({
+        'model_architecture': 'MobileNetV2',
+        'trained_for_task': 'Deepfake Detection',
+        'input_size': '224x224',
+        'normalization': {
+            'mean': [0.485, 0.456, 0.406],
+            'std': [0.229, 0.224, 0.225]
+        },
+        'training_details': model_info,
+        'notes': 'This model was trained on a sampled subset for CPU efficiency'
     })
 
 @app.route('/predict', methods=['POST'])
@@ -168,12 +228,11 @@ def predict_image():
         
         # Preprocess image
         logger.info(f"Processing image of size: {image.size}")
-        processed_image = preprocessor.preprocess_image(image, augment=False)
-        batch_input = processed_image.unsqueeze(0).to(device)
+        processed_image = transform(image).unsqueeze(0).to(device)
         
         # Make prediction
         with torch.no_grad():
-            outputs = model(batch_input)
+            outputs = model(processed_image)
             probabilities = torch.softmax(outputs, dim=1)
         
         # Extract results
@@ -186,11 +245,13 @@ def predict_image():
         
         result = {
             'is_deepfake': is_deepfake,
-            'deepfake_probability': round(fake_prob * 100, 2),  # e.g., 85.23%
-            'real_probability': round(real_prob * 100, 2),      # e.g., 14.77%
-            'confidence': round(confidence * 100, 2),           # e.g., 85.23%
+            'deepfake_probability': round(fake_prob * 100, 2),
+            'real_probability': round(real_prob * 100, 2),
+            'confidence': round(confidence * 100, 2),
             'predicted_class': 'deepfake' if is_deepfake else 'real',
-            'threshold_used': 0.5
+            'threshold_used': 0.5,
+            'model_type': 'MobileNetV2',
+            'trained_samples': model_info.get('trained_on_samples', 'unknown')
         }
         
         logger.info(f"Prediction result: {result['predicted_class']} ({result['confidence']}% confidence)")
@@ -229,11 +290,10 @@ def batch_predict():
                 image = Image.open(io.BytesIO(image_data)).convert('RGB')
                 
                 # Process and predict
-                processed_image = preprocessor.preprocess_image(image, augment=False)
-                batch_input = processed_image.unsqueeze(0).to(device)
+                processed_image = transform(image).unsqueeze(0).to(device)
                 
                 with torch.no_grad():
-                    outputs = model(batch_input)
+                    outputs = model(processed_image)
                     probabilities = torch.softmax(outputs, dim=1)
                 
                 real_prob = probabilities[0, 0].item()
@@ -259,7 +319,8 @@ def batch_predict():
         return jsonify({
             'batch_results': results,
             'total_images': len(images_data),
-            'successful_predictions': len([r for r in results if 'error' not in r])
+            'successful_predictions': len([r for r in results if 'error' not in r]),
+            'model_type': 'MobileNetV2'
         })
         
     except Exception as e:
@@ -269,15 +330,23 @@ def batch_predict():
 if __name__ == '__main__':
     # Load model when starting
     logger.info("Starting Deepfake Detection API...")
+    logger.info("=" * 60)
+    logger.info("Using CPU-trained MobileNetV2 model")
+    logger.info("=" * 60)
+    
     success = load_model()
     
     if not success:
-        logger.error("Failed to load model! Exiting...")
+        logger.error("Failed to load model! Please check:")
+        logger.error("1. Model file exists in checkpoints/new/")
+        logger.error("2. File name matches: best_model_cpu_30000_samples.pth")
+        logger.error("3. PyTorch is installed: pip install torch torchvision")
         exit(1)
     
     # Run the app
     port = int(os.environ.get('PORT', 8080))
     logger.info(f"Starting Flask app on port {port}")
+    logger.info(f"API ready at http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=False)
 
 # For production deployment (gunicorn), load model at module level
