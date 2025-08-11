@@ -1,3 +1,4 @@
+# Replace the current .gcloudignore with this:
 cat > .gcloudignore << 'EOF'
 # Git and IDE
 .git/
@@ -14,7 +15,7 @@ __pycache__/
 venv/
 .venv/
 
-# Large datasets - but NOT checkpoints!
+# Large datasets (exclude only root data directory, not src/data/)
 /data/
 /datasets/
 /training_data/
@@ -26,7 +27,4 @@ venv/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Don't exclude checkpoints folder - we need the model!
-# !checkpoints/new/
 EOF
