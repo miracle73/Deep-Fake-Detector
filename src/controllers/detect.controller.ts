@@ -33,7 +33,7 @@ const pubsub = new PubSub();
 
 const MODEL_API_URL =
   process.env.MODEL_API_URL ||
-  'https://image-deepfake-detector-pe26zhcr6q-uc.a.run.app/predict';
+  ' https://image-deepfake-detector-production.up.railway.app/predict';
 
 export const analyze = async (
   req: AuthRequest,
