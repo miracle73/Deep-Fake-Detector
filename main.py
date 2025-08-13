@@ -2,6 +2,7 @@
 """
 Flask API for Deepfake Detection Model
 Updated to use the CPU-trained MobileNetV2 model
+Optimized for Google App Engine deployment
 """
 
 from flask import Flask, request, jsonify
@@ -16,8 +17,15 @@ import logging
 import json
 from pathlib import Path
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# App Engine specific configuration
+if os.environ.get('GAE_ENV', '').startswith('standard'):
+    # Running on App Engine
+    import logging
+    logging.basicConfig(level=logging.INFO)
+else:
+    # Local development
+    logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -156,7 +164,8 @@ def home():
             'batch_predict': '/batch_predict (POST)',
             'model_info': '/model_info (GET)'
         },
-        'model_loaded': model is not None
+        'model_loaded': model is not None,
+        'environment': 'App Engine' if os.environ.get('GAE_ENV') else 'Local'
     })
 
 @app.route('/health', methods=['GET'])
@@ -166,7 +175,8 @@ def health_check():
         'status': 'healthy' if model is not None else 'unhealthy',
         'model_loaded': model is not None,
         'device': str(device) if device else None,
-        'model_type': 'MobileNetV2'
+        'model_type': 'MobileNetV2',
+        'environment': 'App Engine' if os.environ.get('GAE_ENV') else 'Local'
     })
 
 @app.route('/model_info', methods=['GET'])
@@ -184,7 +194,8 @@ def get_model_info():
             'std': [0.229, 0.224, 0.225]
         },
         'training_details': model_info,
-        'notes': 'This model was trained on a sampled subset for CPU efficiency'
+        'notes': 'This model was trained on a sampled subset for CPU efficiency',
+        'environment': 'App Engine' if os.environ.get('GAE_ENV') else 'Local'
     })
 
 @app.route('/predict', methods=['POST'])
@@ -327,8 +338,13 @@ def batch_predict():
         logger.error(f"Batch prediction error: {str(e)}")
         return jsonify({'error': f'Batch prediction failed: {str(e)}'}), 500
 
+# Load model when the module is imported (for production)
+if __name__ != '__main__':
+    logger.info("Loading model for production deployment...")
+    load_model()
+
 if __name__ == '__main__':
-    # Load model when starting
+    # Load model when starting locally
     logger.info("Starting Deepfake Detection API...")
     logger.info("=" * 60)
     logger.info("Using CPU-trained MobileNetV2 model")
@@ -343,13 +359,10 @@ if __name__ == '__main__':
         logger.error("3. PyTorch is installed: pip install torch torchvision")
         exit(1)
     
-    # Run the app
-    port = int(os.environ.get('PORT', 8080))
+    # For local development
+    port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
     logger.info(f"API ready at http://localhost:{port}")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(debug=True, host='0.0.0.0', port=port)
 
-# For production deployment (gunicorn), load model at module level
-else:
-    logger.info("Loading model for production deployment...")
-    load_model()
+# App Engine will automatically handle the WSGI server, so the above is only for local testing

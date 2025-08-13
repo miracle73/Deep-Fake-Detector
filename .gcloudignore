@@ -1,4 +1,3 @@
-
 # Git and IDE
 .git/
 .gitignore
@@ -10,22 +9,56 @@ README.md
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 .env
 venv/
 .venv/
+env/
 
 # Large datasets - but NOT checkpoints!
-/data/
-/datasets/
-/training_data/
+data/
+datasets/
+training_data/
+logs/
+results/
 *.mp4
 *.avi
 *.mov
 *.zip
+*.tar.gz
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Don't exclude checkpoints folder - we need the model!
-# !checkpoints/new/
+# Test files
+tests/
+test/
+*_test.py
+test_*.py
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# Documentation
+*.md
+!requirements.txt
+
+# Virtual environment folder (your images/ folder)
+images/
+
+# IMPORTANT: Keep these files for deployment
+!app.py
+!vertex_ai_training_cpu_optimized.py
+!upload_data_to_gcs.py
+!requirements.txt
+!app.yaml
+!checkpoints/new/
+!src/
+!models/
+!config/
