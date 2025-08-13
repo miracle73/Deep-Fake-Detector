@@ -1,0 +1,15 @@
+{
+  "total_images_available": "~297K",
+  "images_used_for_training": 30000,
+  "best_validation_accuracy": 94.5,
+  "model_type": "MobileNetV2",
+  "training_device": "CPU",
+  "config": {
+    "sample_size": 30000,
+    "batch_size": 8,
+    "epochs": 20,
+    "learning_rate": 0.001,
+    "num_workers": 2,
+    "validation_split": 0.2
+  }
+}

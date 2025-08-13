@@ -37,7 +37,6 @@ data/processed/
 # Logs and Results
 logs/
 results/
-checkpoints/
 *.log
 
 # Environment
