@@ -25,8 +25,8 @@ service_keys
 app2.py
 
 # PyTorch
-*.pth
-*.pt
+# *.pth
+# *.pt
 
 # Data
 data/raw/
