@@ -571,9 +571,14 @@ export const apiService = createApi({
         body: { password },
       }),
     }),
-    getAnalysisHistory: builder.query<GetAnalysisHistoryResponse, void>({
-      query: () => ({
-        url: "user/analysis-history",
+    getAnalysisHistory: builder.query<
+      GetAnalysisHistoryResponse,
+      { page?: number } | void
+    >({
+      query: (params) => ({
+        url: `user/analysis-history${
+          params?.page ? `?page=${params.page}` : ""
+        }`,
         method: "GET",
       }),
     }),

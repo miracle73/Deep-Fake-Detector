@@ -10,7 +10,7 @@ import {
   // Download,
   // Trash2,
 } from "lucide-react";
-import FourthImage from "../assets/images/fourthImage.png";
+// import FourthImage from "../assets/images/fourthImage.png";
 import { BackIcon } from "../assets/svg";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
@@ -30,6 +30,7 @@ const ImageScreen = () => {
     useState<DetectAnalyzeResponse | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [fileSize, setFileSize] = useState<string>("");
+  const [fileUrl, setFileUrl] = useState<string>("");
   const [analysisDate, setAnalysisDate] = useState<string>("");
 
   const getResultStatus = () => {
@@ -105,6 +106,7 @@ const ImageScreen = () => {
       setAnalysisResult(location.state.analysisResult);
       setFileName(location.state.fileName || "Unknown File");
       setFileSize(location.state.fileSize || "Unknown Size");
+      setFileUrl(location.state.fileUrl || ""); // Add this line
       setAnalysisDate(new Date().toLocaleString());
     } else {
       // Fallback: try to get from localStorage
@@ -115,6 +117,7 @@ const ImageScreen = () => {
           setAnalysisResult(result);
           setFileName("Analyzed Image");
           setFileSize("Unknown Size");
+          setFileUrl(""); // No URL available from localStorage
           setAnalysisDate(new Date().toLocaleString());
         } catch (error) {
           console.error("Failed to parse stored analysis result:", error);
@@ -420,7 +423,7 @@ const ImageScreen = () => {
             <div className="w-full lg:w-2/3">
               <div className=" rounded-xl overflow-hidden">
                 <img
-                  src={FourthImage || "/placeholder.svg"}
+                  src={fileUrl || "/placeholder.svg"}
                   alt="Video preview showing analysis result"
                   className="w-full h-auto"
                 />
@@ -434,7 +437,7 @@ const ImageScreen = () => {
                 {/* Header with DF Results and status badge */}
                 <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                   <span className="text-sm sm:text-base font-medium">
-                    Safeguard Media Results
+                    Safeguardmedia Results
                   </span>
                   <span
                     className={`bg-white ${
@@ -478,7 +481,7 @@ const ImageScreen = () => {
                       <h4 className="text-sm font-semibold text-[#020717] mb-2">
                         Analysis Details:
                       </h4>
-                      <div className="space-y-1 text-xs text-gray-600">
+                      {/* <div className="space-y-1 text-xs text-gray-600">
                         <div>
                           Real Probability:{" "}
                           {analysisResult.data.real_probability.toFixed(1)}%
@@ -490,7 +493,7 @@ const ImageScreen = () => {
                         <div>
                           Threshold Used: {analysisResult.data.threshold_used}
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   )}
                 </div>
