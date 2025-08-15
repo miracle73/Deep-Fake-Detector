@@ -10,10 +10,10 @@ interface UserData {
   lastName: string;
   email: string;
   role: string;
-  goal: string;
-  contentType?: string;
-  urgencyLevel?: string;
-  metadata?: string;
+  // goal: string;
+  // contentType?: string;
+  // urgencyLevel?: string;
+  // metadata?: string;
 }
 
 export const createDemoUser = async (userdata: UserData) => {

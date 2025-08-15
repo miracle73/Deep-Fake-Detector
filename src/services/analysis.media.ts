@@ -21,6 +21,7 @@ export async function storeAnalysis({
     confidenceScore: confidence,
   });
 
+  console.log('this is analysis', analysis);
   user.analysisHistory.push(analysis._id);
   await user.save();
 

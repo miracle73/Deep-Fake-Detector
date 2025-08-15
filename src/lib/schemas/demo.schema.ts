@@ -64,10 +64,10 @@ export const demoRequestSchema = z.object({
   lastName: requiredString('Last name'),
   email: emailSchema,
   role: z.enum(roleOptions).default('Other'),
-  goal: z.enum(goalOptions).default('Detect manipulated media'),
-  contentType: z.enum(contentTypeOptions).optional(),
-  urgencyLevel: z.enum(urgencyLevelOptions).optional(),
-  metadata: z.string().default('').optional(),
+  // goal: z.enum(goalOptions).default('Detect manipulated media'),
+  // contentType: z.enum(contentTypeOptions).optional(),
+  // urgencyLevel: z.enum(urgencyLevelOptions).optional(),
+  // metadata: z.string().default('').optional(),
 });
 
 export const demoUserSchema = z.object({
