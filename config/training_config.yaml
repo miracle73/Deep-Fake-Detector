@@ -1,0 +1,38 @@
+# Data Configuration
+data:
+  frame_rate: 1.0              
+  frame_size: [224, 224]       
+  max_frames: 16               
+  quality_threshold: 0.3       
+
+# Model Configuration
+model:
+  frame_encoder: "mobilenet_v2"  
+  temporal_model: "lstm"         
+  num_classes: 2
+  dropout: 0.3
+  cpu_optimized: true
+
+# Training Configuration (CPU-optimized)
+training:
+  batch_size: 4                    
+  epochs: 20                       
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  gradient_accumulation_steps: 4   
+  num_workers: 4                   
+  patience: 5                      
+
+# Vertex AI Configuration
+vertex_ai:
+  project_id: "your-project-id"
+  region: "us-central1"
+  machine_type: "n1-highcpu-16"   
+  preemptible: true               
+  max_training_time: 7200         
+# Storage Configuration
+storage:
+  bucket_name: "your-bucket-name"
+  data_prefix: "datasets/videos"
+  model_prefix: "models/experiments"
+  results_prefix: "results/training"
