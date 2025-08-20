@@ -32,7 +32,7 @@ vertex_ai:
   max_training_time: 7200         
 # Storage Configuration
 storage:
-  bucket_name: "your-bucket-name"
-  data_prefix: "datasets/videos"
+  bucket_name: "second-bucket-video-deepfake"
+  data_prefix: "processed"  
   model_prefix: "models/experiments"
   results_prefix: "results/training"

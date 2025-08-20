@@ -2,6 +2,7 @@
 """
 Vertex AI CPU-Optimized Training for Video Deepfake Detection
 Designed for cost-effective training on CPU instances
+Updated to work with processed data in GCS (processed/Real/ and processed/Fake/)
 """
 
 import os
@@ -54,7 +55,7 @@ class CPUOptimizedTrainer:
         # Model architecture (CPU-friendly)
         self.frame_encoder = config.get('frame_encoder', 'mobilenet_v2')  # Lightweight
         self.temporal_model = config.get('temporal_model', 'lstm')  # Efficient for CPU
-        self.max_frames = config.get('max_frames', 16)  # Reduced for memory
+        self.max_frames = config.get('max_frames', 16)  # Match processed data
         
         logger.info(f"🖥️ CPU Training Configuration:")
         logger.info(f"   Batch Size: {self.batch_size}")
@@ -83,13 +84,14 @@ class CPUOptimizedTrainer:
         
         return model
     
-    def create_data_loaders(self, data_dir: str) -> tuple:
-        """Create data loaders optimized for CPU training"""
-        logger.info("📹 Creating video data loaders...")
+    def create_data_loaders(self, bucket_name: str) -> tuple:
+        """Create data loaders optimized for CPU training from GCS processed data"""
+        logger.info("📹 Creating video data loaders from processed GCS data...")
         
-        # Training dataset
+        # Training dataset - Load from processed/Real/ and processed/Fake/
         train_dataset = VideoDataset(
-            data_dir=data_dir,
+            bucket_name=bucket_name,
+            gcs_prefix="processed",  # Points to your processed folder
             split='train',
             max_frames=self.max_frames,
             frame_size=(224, 224),
@@ -99,7 +101,8 @@ class CPUOptimizedTrainer:
         
         # Validation dataset
         val_dataset = VideoDataset(
-            data_dir=data_dir,
+            bucket_name=bucket_name,
+            gcs_prefix="processed",  # Points to your processed folder
             split='val',
             max_frames=self.max_frames,
             frame_size=(224, 224),
@@ -130,6 +133,13 @@ class CPUOptimizedTrainer:
         logger.info(f"   Validation samples: {len(val_dataset)}")
         logger.info(f"   Training batches: {len(train_loader)}")
         logger.info(f"   Validation batches: {len(val_loader)}")
+        
+        # Log data distribution
+        try:
+            class_weights = train_dataset.get_class_weights()
+            logger.info(f"   Class weights: Real={class_weights[0]:.3f}, Fake={class_weights[1]:.3f}")
+        except:
+            logger.info("   Could not calculate class weights")
         
         return train_loader, val_loader
     
@@ -225,16 +235,17 @@ class CPUOptimizedTrainer:
         
         return {'loss': epoch_loss, 'accuracy': epoch_acc.item()}
     
-    def train(self, data_dir: str) -> Dict[str, Any]:
+    def train(self, bucket_name: str) -> tuple:
         """Main training loop"""
         logger.info("🚀 Starting CPU-optimized training...")
+        logger.info(f"📊 Loading data from gs://{bucket_name}/processed/")
         
         # Create model
         model = self.create_model()
         model = model.to(self.device)
         
-        # Create data loaders
-        train_loader, val_loader = self.create_data_loaders(data_dir)
+        # Create data loaders from GCS processed data
+        train_loader, val_loader = self.create_data_loaders(bucket_name)
         
         # Setup training components
         criterion = nn.CrossEntropyLoss()
@@ -387,23 +398,31 @@ def upload_results_to_gcs(local_dir: str, bucket_name: str, gcs_prefix: str):
 def main():
     """Main training function for Vertex AI"""
     parser = argparse.ArgumentParser(description='CPU-Optimized Video Deepfake Training')
-    parser.add_argument('--data-dir', type=str, default='/gcs/video-data',
-                       help='GCS path to training data')
-    parser.add_argument('--output-dir', type=str, default='/tmp/model_output',
-                       help='Local output directory')
+    
+    # GCS Configuration
     parser.add_argument('--bucket-name', type=str, required=True,
-                       help='GCS bucket for saving results')
+                       help='GCS bucket containing processed data (processed/Real/ and processed/Fake/)')
+    parser.add_argument('--output-dir', type=str, default='/tmp/model_output',
+                       help='Local output directory for model files')
     parser.add_argument('--gcs-prefix', type=str, default='models/experiments',
-                       help='GCS prefix for saving results')
-    parser.add_argument('--config', type=str, help='Training configuration JSON')
+                       help='GCS prefix for saving trained models')
+    parser.add_argument('--config', type=str, help='Training configuration JSON file')
     
     # Training hyperparameters
-    parser.add_argument('--batch-size', type=int, default=4)
-    parser.add_argument('--epochs', type=int, default=20)
-    parser.add_argument('--learning-rate', type=float, default=0.001)
-    parser.add_argument('--max-frames', type=int, default=16)
-    parser.add_argument('--frame-encoder', type=str, default='mobilenet_v2')
-    parser.add_argument('--temporal-model', type=str, default='lstm')
+    parser.add_argument('--batch-size', type=int, default=4,
+                       help='Training batch size (default: 4 for CPU)')
+    parser.add_argument('--epochs', type=int, default=20,
+                       help='Number of training epochs')
+    parser.add_argument('--learning-rate', type=float, default=0.001,
+                       help='Initial learning rate')
+    parser.add_argument('--max-frames', type=int, default=16,
+                       help='Maximum frames per video (should match processed data)')
+    parser.add_argument('--frame-encoder', type=str, default='mobilenet_v2',
+                       choices=['mobilenet_v2', 'resnet18'],
+                       help='Frame encoder architecture')
+    parser.add_argument('--temporal-model', type=str, default='lstm',
+                       choices=['lstm', 'gru', 'none'],
+                       help='Temporal modeling approach')
     
     args = parser.parse_args()
     
@@ -426,13 +445,27 @@ def main():
     # Add experiment metadata
     config['experiment_id'] = datetime.now().strftime('%Y%m%d_%H%M%S')
     config['training_started_at'] = datetime.now().isoformat()
+    config['bucket_name'] = args.bucket_name
+    config['data_source'] = f"gs://{args.bucket_name}/processed/"
+    
+    # Print configuration
+    print("🎬 VERTEX AI CPU-OPTIMIZED VIDEO DEEPFAKE TRAINING")
+    print("=" * 60)
+    print(f"🌐 Environment: Vertex AI (CPU Optimized)")
+    print(f"☁️ Data Source: gs://{args.bucket_name}/processed/")
+    print(f"📊 Expected Data: Real (1,186) + Fake (1,042) videos")
+    print(f"🎥 Frames per Video: {args.max_frames}")
+    print(f"📦 Batch Size: {args.batch_size}")
+    print(f"⚡ Epochs: {args.epochs}")
+    print(f"🧠 Architecture: {args.frame_encoder} + {args.temporal_model}")
+    print("=" * 60)
     
     try:
         # Initialize trainer
         trainer = CPUOptimizedTrainer(config)
         
-        # Train model
-        model, results = trainer.train(args.data_dir)
+        # Train model using GCS bucket
+        model, results = trainer.train(args.bucket_name)
         
         # Save model locally
         model_path, results_path = trainer.save_model(model, results, args.output_dir)
@@ -445,13 +478,14 @@ def main():
         logger.info(f"📊 Final Results:")
         logger.info(f"   Best Validation Accuracy: {results['best_val_accuracy']:.4f}")
         logger.info(f"   Epochs Trained: {results['epochs_trained']}")
-        logger.info(f"   GCS Location: gs://{args.bucket_name}/{experiment_prefix}")
+        logger.info(f"   Data Used: gs://{args.bucket_name}/processed/ (Real + Fake)")
+        logger.info(f"   Model Saved: gs://{args.bucket_name}/{experiment_prefix}")
         
     except Exception as e:
         logger.error(f"❌ Training failed: {e}")
-        raise
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
-    print("VERTEX AI CPU-OPTIMIZED VIDEO DEEPFAKE TRAINING")
-    print("=" * 60)
     main()
