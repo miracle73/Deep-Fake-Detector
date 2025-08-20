@@ -21,7 +21,7 @@ class VideoDataset(Dataset):
         bucket_name: str = None,
         gcs_prefix: str = "processed",
         split: str = 'train',
-        max_frames: int = 16,  # Match your processed data
+        max_frames: int = 16,  # Match processed data
         frame_size: Tuple[int, int] = (224, 224),
         augment: bool = False,
         cpu_optimized: bool = True,

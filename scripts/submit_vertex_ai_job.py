@@ -81,7 +81,7 @@ def create_vertex_ai_job(
             }
         ],
         base_output_dir=f"gs://{bucket_name}/vertex_ai_jobs/{timestamp}",
-        # staging_bucket=f"gs://{bucket_name}",  # Uncomment if needed
+        staging_bucket=f"gs://{bucket_name}",  # Uncomment if needed
     )
     
     print(f"📤 Submitting job to Vertex AI...")
