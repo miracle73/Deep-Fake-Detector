@@ -1,77 +1,253 @@
 #!/usr/bin/env python3
 """
-Vertex AI CPU-Optimized Training for Video Deepfake Detection
-Designed for cost-effective training on CPU instances
-Updated to work with processed data in GCS (processed/Real/ and processed/Fake/)
+Local training script for deepfake detection using local dataset
+Train on data/processed/Fake and data/processed/Real folders
 """
 
 import os
 import sys
-import argparse
-import logging
-import json
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, Optional
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 import numpy as np
+import logging
+from pathlib import Path
 from tqdm import tqdm
-
-from google.cloud import aiplatform
-from google.cloud import storage
+import json
+from datetime import datetime
+from typing import Dict, Any, Tuple, List, Optional
+import random
 
 # Add src to path
-sys.path.append(str(Path(__file__).parent.parent / "src"))
+sys.path.append(str(Path(__file__).parent / "src"))
 
 from src.video_model import VideoDeepfakeDetector
-from src.video_dataset import VideoDataset
-from src.utils import setup_logging, save_model_to_gcs
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class CPUOptimizedTrainer:
-    """CPU-optimized trainer for video deepfake detection"""
+class LocalVideoDataset(Dataset):
+    """Dataset for local video deepfake detection"""
+    
+    def __init__(
+        self,
+        data_dir: str = "data/processed",
+        split: str = 'train',
+        max_frames: int = 16,
+        frame_size: Tuple[int, int] = (224, 224),
+        augment: bool = False,
+        train_ratio: float = 0.7,
+        val_ratio: float = 0.2,
+        test_ratio: float = 0.1
+    ):
+        self.data_dir = Path(data_dir)
+        self.split = split
+        self.max_frames = max_frames
+        self.frame_size = frame_size
+        self.augment = augment and split == 'train'
+        
+        # Class mapping
+        self.class_to_idx = {'Real': 0, 'Fake': 1}
+        self.idx_to_class = {0: 'Real', 1: 'Fake'}
+        
+        # Split ratios
+        self.train_ratio = train_ratio
+        self.val_ratio = val_ratio
+        self.test_ratio = test_ratio
+        
+        # Load dataset
+        self.samples = self._load_samples()
+        
+        logger.info(f"Loaded {len(self.samples)} {split} samples")
+        
+        # Log class distribution
+        labels = [sample[1] for sample in self.samples]
+        real_count = labels.count(0)
+        fake_count = labels.count(1)
+        logger.info(f"  Real samples: {real_count}")
+        logger.info(f"  Fake samples: {fake_count}")
+    
+    def _load_samples(self) -> List[Tuple[str, int]]:
+        """Load all video samples from local directories"""
+        samples = []
+        
+        # Load from Real and Fake folders
+        for class_name, label in [('Real', 0), ('Fake', 1)]:
+            class_dir = self.data_dir / class_name
+            if not class_dir.exists():
+                logger.warning(f"Directory not found: {class_dir}")
+                continue
+            
+            # Find all .npz files
+            npz_files = list(class_dir.glob('*.npz'))
+            logger.info(f"Found {len(npz_files)} {class_name} .npz files")
+            
+            for npz_file in npz_files:
+                samples.append((str(npz_file), label))
+        
+        if not samples:
+            raise ValueError("No samples found! Check your data directory structure.")
+        
+        return self._split_samples(samples)
+    
+    def _split_samples(self, samples: List[Tuple[str, int]]) -> List[Tuple[str, int]]:
+        """Split samples into train/val/test"""
+        # Shuffle samples consistently
+        random.seed(42)
+        random.shuffle(samples)
+        
+        total_samples = len(samples)
+        train_end = int(total_samples * self.train_ratio)
+        val_end = train_end + int(total_samples * self.val_ratio)
+        
+        if self.split == 'train':
+            return samples[:train_end]
+        elif self.split == 'val':
+            return samples[train_end:val_end]
+        elif self.split == 'test':
+            return samples[val_end:]
+        else:
+            raise ValueError(f"Unknown split: {self.split}")
+    
+    def __len__(self) -> int:
+        return len(self.samples)
+    
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+        """Get a video sample"""
+        sample_path, label = self.samples[idx]
+        
+        try:
+            # Load frames from .npz file
+            frames = self._load_frames(sample_path)
+            
+            if frames is None:
+                logger.warning(f"Failed to load frames for sample {idx}")
+                return self._get_dummy_sample(label)
+            
+            # Process frames
+            frames = self._process_frames(frames)
+            
+            # Apply augmentations if enabled
+            if self.augment:
+                frames = self._apply_augmentations(frames)
+            
+            # Normalize to [0, 1]
+            frames = frames.astype(np.float32) / 255.0
+            
+            # Convert to tensor: (channels, frames, height, width)
+            frames_tensor = torch.from_numpy(frames)
+            frames_tensor = frames_tensor.permute(3, 0, 1, 2)  # (C, T, H, W)
+            
+            # Apply ImageNet normalization
+            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1, 1)
+            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1, 1)
+            frames_tensor = (frames_tensor - mean) / std
+            
+            return frames_tensor, label
+            
+        except Exception as e:
+            logger.error(f"Error loading sample {idx}: {e}")
+            return self._get_dummy_sample(label)
+    
+    def _load_frames(self, frames_path: str) -> Optional[np.ndarray]:
+        """Load frames from .npz file"""
+        try:
+            data = np.load(frames_path)
+            return data['frames']
+        except Exception as e:
+            logger.error(f"Error loading frames from {frames_path}: {e}")
+            return None
+    
+    def _process_frames(self, frames: np.ndarray) -> np.ndarray:
+        """Process frames to ensure correct dimensions"""
+        # Ensure correct number of frames
+        if len(frames) > self.max_frames:
+            # Random temporal crop for training, center crop for validation
+            if self.augment:
+                start_idx = random.randint(0, len(frames) - self.max_frames)
+            else:
+                start_idx = (len(frames) - self.max_frames) // 2
+            frames = frames[start_idx:start_idx + self.max_frames]
+        elif len(frames) < self.max_frames:
+            # Pad with last frame
+            padding_needed = self.max_frames - len(frames)
+            if len(frames) > 0:
+                last_frame = frames[-1]
+                padding = np.tile(last_frame[np.newaxis], (padding_needed, 1, 1, 1))
+                frames = np.concatenate([frames, padding], axis=0)
+            else:
+                # If no frames, create dummy frames
+                frames = np.zeros((self.max_frames, *self.frame_size, 3), dtype=np.uint8)
+        
+        return frames
+    
+    def _apply_augmentations(self, frames: np.ndarray) -> np.ndarray:
+        """Apply video-specific augmentations"""
+        # Random horizontal flip
+        if random.random() > 0.5:
+            frames = np.flip(frames, axis=2)  # Flip width dimension
+        
+        # Random brightness/contrast
+        if random.random() > 0.5:
+            brightness = random.uniform(0.8, 1.2)
+            frames = np.clip(frames * brightness, 0, 255)
+        
+        return frames
+    
+    def _get_dummy_sample(self, label: int) -> Tuple[torch.Tensor, int]:
+        """Return a dummy sample in case of loading errors"""
+        dummy_frames = torch.zeros(3, self.max_frames, *self.frame_size)
+        return dummy_frames, label
+    
+    def get_class_weights(self) -> torch.Tensor:
+        """Calculate class weights for balanced training"""
+        labels = [sample[1] for sample in self.samples]
+        class_counts = np.bincount(labels)
+        
+        # Inverse frequency weighting
+        total_samples = len(labels)
+        weights = total_samples / (len(class_counts) * class_counts)
+        
+        return torch.tensor(weights, dtype=torch.float32)
+
+class LocalTrainer:
+    """Local trainer for video deepfake detection"""
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.device = torch.device('cpu')  # Force CPU for cost optimization
+        self.device = torch.device('cpu')  # Force CPU
         
-        # Training parameters optimized for CPU
-        self.batch_size = config.get('batch_size', 4)  # Small batch for CPU
-        self.epochs = config.get('epochs', 20)
+        # Training parameters
+        self.batch_size = config.get('batch_size', 4)
+        self.epochs = config.get('epochs', 25)
         self.learning_rate = config.get('learning_rate', 0.001)
         self.weight_decay = config.get('weight_decay', 1e-4)
-        
-        # CPU-specific optimizations
-        self.num_workers = min(4, os.cpu_count())  # Limit workers for CPU
         self.gradient_accumulation_steps = config.get('gradient_accumulation_steps', 4)
         
-        # Model architecture (CPU-friendly)
-        self.frame_encoder = config.get('frame_encoder', 'mobilenet_v2')  # Lightweight
-        self.temporal_model = config.get('temporal_model', 'lstm')  # Efficient for CPU
-        self.max_frames = config.get('max_frames', 16)  # Match processed data
+        # Model architecture
+        self.frame_encoder = config.get('frame_encoder', 'mobilenet_v2')
+        self.temporal_model = config.get('temporal_model', 'lstm')
+        self.max_frames = config.get('max_frames', 16)
         
-        logger.info(f"🖥️ CPU Training Configuration:")
+        logger.info(f"🖥️ Local Training Configuration:")
+        logger.info(f"   Device: {self.device}")
         logger.info(f"   Batch Size: {self.batch_size}")
-        logger.info(f"   Gradient Accumulation: {self.gradient_accumulation_steps}")
+        logger.info(f"   Epochs: {self.epochs}")
+        logger.info(f"   Learning Rate: {self.learning_rate}")
         logger.info(f"   Max Frames: {self.max_frames}")
         logger.info(f"   Frame Encoder: {self.frame_encoder}")
-        logger.info(f"   Workers: {self.num_workers}")
+        logger.info(f"   Temporal Model: {self.temporal_model}")
     
     def create_model(self) -> nn.Module:
-        """Create CPU-optimized video deepfake detection model"""
+        """Create video deepfake detection model"""
         model = VideoDeepfakeDetector(
             frame_encoder=self.frame_encoder,
             temporal_model=self.temporal_model,
             num_frames=self.max_frames,
             dropout=0.3,
-            cpu_optimized=True  # Enable CPU optimizations
+            cpu_optimized=True
         )
         
         # Count parameters
@@ -84,39 +260,33 @@ class CPUOptimizedTrainer:
         
         return model
     
-    def create_data_loaders(self, bucket_name: str) -> tuple:
-        """Create data loaders optimized for CPU training from GCS processed data"""
-        logger.info("📹 Creating video data loaders from processed GCS data...")
+    def create_data_loaders(self, data_dir: str) -> tuple:
+        """Create data loaders for training"""
+        logger.info("📹 Creating video data loaders...")
         
-        # Training dataset - Load from processed/Real/ and processed/Fake/
-        train_dataset = VideoDataset(
-            bucket_name=bucket_name,
-            gcs_prefix="processed",  # Points to your processed folder
+        # Training dataset
+        train_dataset = LocalVideoDataset(
+            data_dir=data_dir,
             split='train',
             max_frames=self.max_frames,
-            frame_size=(224, 224),
-            augment=True,
-            cpu_optimized=True
+            augment=True
         )
         
         # Validation dataset
-        val_dataset = VideoDataset(
-            bucket_name=bucket_name,
-            gcs_prefix="processed",  # Points to your processed folder
+        val_dataset = LocalVideoDataset(
+            data_dir=data_dir,
             split='val',
             max_frames=self.max_frames,
-            frame_size=(224, 224),
-            augment=False,
-            cpu_optimized=True
+            augment=False
         )
         
-        # Data loaders with CPU optimization
+        # Data loaders
         train_loader = DataLoader(
             train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=self.num_workers,
-            pin_memory=False,  # Disable for CPU
+            num_workers=0,
+            pin_memory=False,
             drop_last=True
         )
         
@@ -124,7 +294,7 @@ class CPUOptimizedTrainer:
             val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers,
+            num_workers=2,
             pin_memory=False,
             drop_last=False
         )
@@ -134,18 +304,11 @@ class CPUOptimizedTrainer:
         logger.info(f"   Training batches: {len(train_loader)}")
         logger.info(f"   Validation batches: {len(val_loader)}")
         
-        # Log data distribution
-        try:
-            class_weights = train_dataset.get_class_weights()
-            logger.info(f"   Class weights: Real={class_weights[0]:.3f}, Fake={class_weights[1]:.3f}")
-        except:
-            logger.info("   Could not calculate class weights")
-        
         return train_loader, val_loader
     
     def train_epoch(self, model: nn.Module, train_loader: DataLoader, 
                    optimizer: optim.Optimizer, criterion: nn.Module, epoch: int) -> Dict[str, float]:
-        """Train for one epoch with CPU optimizations"""
+        """Train for one epoch"""
         model.train()
         running_loss = 0.0
         running_corrects = 0
@@ -235,17 +398,16 @@ class CPUOptimizedTrainer:
         
         return {'loss': epoch_loss, 'accuracy': epoch_acc.item()}
     
-    def train(self, bucket_name: str) -> tuple:
+    def train(self, data_dir: str = "data/processed") -> tuple:
         """Main training loop"""
-        logger.info("🚀 Starting CPU-optimized training...")
-        logger.info(f"📊 Loading data from gs://{bucket_name}/processed/")
+        logger.info("🚀 Starting local training...")
         
         # Create model
         model = self.create_model()
         model = model.to(self.device)
         
-        # Create data loaders from GCS processed data
-        train_loader, val_loader = self.create_data_loaders(bucket_name)
+        # Create data loaders
+        train_loader, val_loader = self.create_data_loaders(data_dir)
         
         # Setup training components
         criterion = nn.CrossEntropyLoss()
@@ -255,7 +417,7 @@ class CPUOptimizedTrainer:
             weight_decay=self.weight_decay
         )
         
-        # Learning rate scheduler
+        # Learning rate scheduler (fixed - removed verbose parameter)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode='min', factor=0.5, patience=3
         )
@@ -333,7 +495,7 @@ class CPUOptimizedTrainer:
         return model, training_results
     
     def save_model(self, model: nn.Module, results: Dict[str, Any], 
-                   output_dir: str = "/tmp/model_output"):
+                   output_dir: str = "models/checkpoints"):
         """Save trained model and results"""
         os.makedirs(output_dir, exist_ok=True)
         
@@ -372,120 +534,76 @@ class CPUOptimizedTrainer:
         
         return model_path, results_path
 
-def upload_results_to_gcs(local_dir: str, bucket_name: str, gcs_prefix: str):
-    """Upload training results to GCS"""
-    logger.info("☁️ Uploading results to GCS...")
-    
-    try:
-        client = storage.Client()
-        bucket = client.bucket(bucket_name)
-        
-        for file_path in Path(local_dir).rglob('*'):
-            if file_path.is_file():
-                relative_path = file_path.relative_to(local_dir)
-                blob_name = f"{gcs_prefix}/{relative_path}"
-                
-                blob = bucket.blob(blob_name)
-                blob.upload_from_filename(str(file_path))
-                
-                logger.info(f"✅ Uploaded: gs://{bucket_name}/{blob_name}")
-        
-        logger.info("✅ Results uploaded to GCS")
-        
-    except Exception as e:
-        logger.error(f"❌ Failed to upload results: {e}")
-
 def main():
-    """Main training function for Vertex AI"""
-    parser = argparse.ArgumentParser(description='CPU-Optimized Video Deepfake Training')
+    """Main training function"""
     
-    # GCS Configuration
-    parser.add_argument('--bucket-name', type=str, required=True,
-                       help='GCS bucket containing processed data (processed/Real/ and processed/Fake/)')
-    parser.add_argument('--output-dir', type=str, default='/tmp/model_output',
-                       help='Local output directory for model files')
-    parser.add_argument('--gcs-prefix', type=str, default='models/experiments',
-                       help='GCS prefix for saving trained models')
-    parser.add_argument('--config', type=str, help='Training configuration JSON file')
+    # Configuration for local training
+    config = {
+        'batch_size': 2,              # Small batch for memory efficiency
+        'epochs': 25,                 # As requested
+        'learning_rate': 0.001,
+        'max_frames': 8,
+        'frame_encoder': 'mobilenet_v2',
+        'temporal_model': 'lstm',
+        'gradient_accumulation_steps': 4,
+        'weight_decay': 1e-4
+    }
     
-    # Training hyperparameters
-    parser.add_argument('--batch-size', type=int, default=4,
-                       help='Training batch size (default: 4 for CPU)')
-    parser.add_argument('--epochs', type=int, default=20,
-                       help='Number of training epochs')
-    parser.add_argument('--learning-rate', type=float, default=0.001,
-                       help='Initial learning rate')
-    parser.add_argument('--max-frames', type=int, default=16,
-                       help='Maximum frames per video (should match processed data)')
-    parser.add_argument('--frame-encoder', type=str, default='mobilenet_v2',
-                       choices=['mobilenet_v2', 'resnet18'],
-                       help='Frame encoder architecture')
-    parser.add_argument('--temporal-model', type=str, default='lstm',
-                       choices=['lstm', 'gru', 'none'],
-                       help='Temporal modeling approach')
+    # Data directory
+    data_dir = "data/processed"
     
-    args = parser.parse_args()
-    
-    # Load configuration
-    if args.config and Path(args.config).exists():
-        with open(args.config, 'r') as f:
-            config = json.load(f)
-    else:
-        config = {
-            'batch_size': args.batch_size,
-            'epochs': args.epochs,
-            'learning_rate': args.learning_rate,
-            'max_frames': args.max_frames,
-            'frame_encoder': args.frame_encoder,
-            'temporal_model': args.temporal_model,
-            'gradient_accumulation_steps': 4,
-            'weight_decay': 1e-4
-        }
-    
-    # Add experiment metadata
-    config['experiment_id'] = datetime.now().strftime('%Y%m%d_%H%M%S')
-    config['training_started_at'] = datetime.now().isoformat()
-    config['bucket_name'] = args.bucket_name
-    config['data_source'] = f"gs://{args.bucket_name}/processed/"
-    
-    # Print configuration
-    print("🎬 VERTEX AI CPU-OPTIMIZED VIDEO DEEPFAKE TRAINING")
+    print("🎬 LOCAL VIDEO DEEPFAKE TRAINING")
     print("=" * 60)
-    print(f"🌐 Environment: Vertex AI (CPU Optimized)")
-    print(f"☁️ Data Source: gs://{args.bucket_name}/processed/")
-    print(f"📊 Expected Data: Real (1,186) + Fake (1,042) videos")
-    print(f"🎥 Frames per Video: {args.max_frames}")
-    print(f"📦 Batch Size: {args.batch_size}")
-    print(f"⚡ Epochs: {args.epochs}")
-    print(f"🧠 Architecture: {args.frame_encoder} + {args.temporal_model}")
+    print(f"🌐 Environment: Local/Codespace")
+    print(f"📊 Data Source: {data_dir}/")
+    print(f"📦 Batch Size: {config['batch_size']}")
+    print(f"⚡ Epochs: {config['epochs']}")
+    print(f"🧠 Architecture: {config['frame_encoder']} + {config['temporal_model']}")
     print("=" * 60)
+    
+    # Check if data directory exists
+    if not Path(data_dir).exists():
+        logger.error(f"❌ Data directory not found: {data_dir}")
+        logger.error("Make sure you have downloaded the processed data!")
+        return
+    
+    # Check for Real and Fake folders
+    real_dir = Path(data_dir) / "Real"
+    fake_dir = Path(data_dir) / "Fake"
+    
+    if not real_dir.exists() or not fake_dir.exists():
+        logger.error(f"❌ Required folders not found: {real_dir} or {fake_dir}")
+        return
+    
+    # Count files
+    real_files = len(list(real_dir.glob("*.npz")))
+    fake_files = len(list(fake_dir.glob("*.npz")))
+    
+    logger.info(f"📊 Dataset Info:")
+    logger.info(f"   Real samples: {real_files}")
+    logger.info(f"   Fake samples: {fake_files}")
+    logger.info(f"   Total samples: {real_files + fake_files}")
     
     try:
         # Initialize trainer
-        trainer = CPUOptimizedTrainer(config)
+        trainer = LocalTrainer(config)
         
-        # Train model using GCS bucket
-        model, results = trainer.train(args.bucket_name)
+        # Train model
+        model, results = trainer.train(data_dir)
         
-        # Save model locally
-        model_path, results_path = trainer.save_model(model, results, args.output_dir)
+        # Save model
+        model_path, results_path = trainer.save_model(model, results)
         
-        # Upload to GCS
-        experiment_prefix = f"{args.gcs_prefix}/{config['experiment_id']}"
-        upload_results_to_gcs(args.output_dir, args.bucket_name, experiment_prefix)
-        
-        logger.info("✅ Training pipeline completed successfully!")
+        logger.info(f"\n🎉 SUCCESS! Training completed!")
         logger.info(f"📊 Final Results:")
         logger.info(f"   Best Validation Accuracy: {results['best_val_accuracy']:.4f}")
         logger.info(f"   Epochs Trained: {results['epochs_trained']}")
-        logger.info(f"   Data Used: gs://{args.bucket_name}/processed/ (Real + Fake)")
-        logger.info(f"   Model Saved: gs://{args.bucket_name}/{experiment_prefix}")
+        logger.info(f"💾 Model saved to: {model_path}")
         
     except Exception as e:
         logger.error(f"❌ Training failed: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()

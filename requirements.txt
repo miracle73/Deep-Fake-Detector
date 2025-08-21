@@ -6,6 +6,10 @@ opencv-python-headless
 pillow>=10.1.0
 numpy>=1.21.0
 
+# Web Framework Dependencies
+flask>=2.3.0
+werkzeug>=2.3.0
+
 # Google Cloud Dependencies
 google-cloud-aiplatform>=1.35.0
 google-cloud-storage>=2.10.0
