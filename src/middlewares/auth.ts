@@ -22,7 +22,7 @@ export const protect = async (
   }
 
   if (!token) {
-    throw new AppError(401, 'Not authorized to access this route', null);
+    throw new AppError(401, 'Invalid Token', null);
   }
 
   try {

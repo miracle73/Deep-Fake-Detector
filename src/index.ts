@@ -17,6 +17,7 @@ import authRoutes from './routes/authRoutes.js';
 import businessIntegrationRoutes from './routes/businessIntegrationRoutes.js';
 import demoRequestRoutes from './routes/demoRequestRoutes.js';
 import { detectHandler } from './routes/detect.js';
+import { feedbackRoutes } from './routes/feedback.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -69,6 +70,7 @@ app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/waitlist', waitlistRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
 
 // demo request endpoints
 app.use('/api/v1/demo-request', demoRequestRoutes);
