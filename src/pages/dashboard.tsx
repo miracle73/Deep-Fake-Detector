@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  Shield,
   X,
   AlertCircle,
 } from "lucide-react";
@@ -399,6 +400,15 @@ const Dashboard = () => {
             >
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
+            {storedUser.email === "info@safeguardmedia.org" && (
+              <button
+                className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C]"
+                onClick={() => navigate("/admin/feedback")}
+                title="Admin Panel"
+              >
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            )}
 
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px] min-w-0"

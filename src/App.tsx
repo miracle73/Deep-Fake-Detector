@@ -22,6 +22,8 @@ import { Navigate } from "react-router-dom";
 import TermsOfService from "./pages/termsAndCondition";
 import PrivacyPolicy from "./pages/privacypolicy";
 import CreatePassword from "./pages/createPassword";
+import Feedback from "./pages/feedback";
+import AdminFeedbackDashboard from "./pages/adminFeedbackDashboard";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -51,7 +53,8 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/create-password" element={<CreatePassword />} />
           <Route path="/" element={<DeepfakeDetector />} />
-
+          <Route path="/feedback" element={<Feedback />} />
+          <Route path="/admin/feedback" element={<AdminFeedbackDashboard />} />
           {/* Protected Routes */}
           <Route
             path="/dashboard"

@@ -364,6 +364,80 @@ interface GetAnalysisHistoryResponse {
   pagination: Pagination;
   data: AnalysisHistoryItem[];
 }
+
+interface CreateFeedbackRequest {
+  type: string;
+  rating: number;
+  description: string;
+  email?: string;
+}
+
+interface Feedback {
+  _id: string;
+  type: string;
+  rating: number;
+  email?: string;
+  description: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+interface CreateFeedbackResponse {
+  success: boolean;
+  message: string;
+  data: Feedback;
+}
+
+interface GetFeedbacksResponse {
+  success: boolean;
+  message: string;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  data: Feedback[];
+}
+
+interface GetFeedbackResponse {
+  success: boolean;
+  message: string;
+  data: Feedback;
+}
+
+interface FeedbackStatsResponse {
+  success: boolean;
+  data: {
+    total: number;
+    pending: number;
+    inProgress: number;
+    resolved: number;
+    averageRating: number;
+    ratingDistribution: Record<string, number>;
+    typeDistribution: Record<string, number>;
+  };
+}
+
+interface UpdateFeedbackRequest {
+  status?: string;
+  type?: string;
+  rating?: number;
+  description?: string;
+}
+
+interface UpdateFeedbackResponse {
+  success: boolean;
+  message: string;
+  data: Feedback;
+}
+
+interface DeleteFeedbackResponse {
+  success: boolean;
+  message: string;
+}
 export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
@@ -380,6 +454,7 @@ export const apiService = createApi({
         "googleLogin",
         "verifyEmail",
         "registerEnterprise",
+        "createFeedback",
       ];
 
       // Only add token if it's not a public endpoint
@@ -582,6 +657,57 @@ export const apiService = createApi({
         method: "GET",
       }),
     }),
+    createFeedback: builder.mutation<
+      CreateFeedbackResponse,
+      CreateFeedbackRequest
+    >({
+      query: ({ type, rating, description, email }) => ({
+        url: "feedback",
+        method: "POST",
+        body: { type, rating, description, email },
+      }),
+    }),
+    getFeedbacks: builder.query<
+      GetFeedbacksResponse,
+      { page?: number; limit?: number } | void
+    >({
+      query: (params) => ({
+        url: `feedback${
+          params
+            ? `?page=${params.page || 1}&limit=${params.limit || 10}`
+            : "?page=1&limit=10"
+        }`,
+        method: "GET",
+      }),
+    }),
+    getFeedback: builder.query<GetFeedbackResponse, string>({
+      query: (feedbackId) => ({
+        url: `feedback/${feedbackId}`,
+        method: "GET",
+      }),
+    }),
+    getFeedbackStats: builder.query<FeedbackStatsResponse, void>({
+      query: () => ({
+        url: "feedback/stats",
+        method: "GET",
+      }),
+    }),
+    updateFeedback: builder.mutation<
+      UpdateFeedbackResponse,
+      { id: string } & UpdateFeedbackRequest
+    >({
+      query: ({ id, ...updateData }) => ({
+        url: `feedback/${id}`,
+        method: "PUT",
+        body: updateData,
+      }),
+    }),
+    deleteFeedback: builder.mutation<DeleteFeedbackResponse, string>({
+      query: (feedbackId) => ({
+        url: `feedback/${feedbackId}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -605,4 +731,10 @@ export const {
   useDetectAnalyzeMutation,
   useCreatePasswordMutation,
   useGetAnalysisHistoryQuery,
+  useCreateFeedbackMutation,
+  useGetFeedbacksQuery,
+  useGetFeedbackQuery,
+  useGetFeedbackStatsQuery,
+  useUpdateFeedbackMutation,
+  useDeleteFeedbackMutation,
 } = apiService;
