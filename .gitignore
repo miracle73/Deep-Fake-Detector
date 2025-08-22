@@ -64,9 +64,9 @@ data/test/
 *.npz
 
 # Model Files (Large binary files)
-models/checkpoints/
-models/experiments/
-*.pth
+# models/checkpoints/
+# models/experiments/
+# *.pth
 *.pt
 *.h5
 *.pkl

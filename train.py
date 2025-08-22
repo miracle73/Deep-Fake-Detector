@@ -118,16 +118,14 @@ class Trainer:
         
         return epoch_loss, epoch_acc
     
-    def train(self, csv_file: str, data_dir: str):
+    def train(self, data_dir: str):
         """Main training loop"""
         logger.info("🎵 Starting Audio Deepfake Detection Training")
         
         # Create data loaders
         train_loader, val_loader, test_loader = create_data_loaders(
-            csv_file=csv_file,
             data_dir=data_dir,
-            batch_size=self.batch_size,
-            num_workers=4
+            batch_size=self.batch_size
         )
         
         logger.info(f"Train batches: {len(train_loader)}")
@@ -223,9 +221,7 @@ class Trainer:
 def main():
     parser = argparse.ArgumentParser(description='Train Audio Deepfake Detector')
     parser.add_argument('--data-dir', type=str, default='data/raw',
-                       help='Directory containing audio data')
-    parser.add_argument('--csv-file', type=str, default='data/raw/DATASET-balanced.csv',
-                       help='CSV file with labels')
+                       help='Directory containing REAL and FAKE folders')
     parser.add_argument('--epochs', type=int, default=50,
                        help='Number of training epochs')
     parser.add_argument('--batch-size', type=int, default=32,
@@ -242,7 +238,7 @@ def main():
     }
     
     trainer = Trainer(config)
-    trainer.train(args.csv_file, args.data_dir)
+    trainer.train(args.data_dir)
 
 if __name__ == "__main__":
     main()

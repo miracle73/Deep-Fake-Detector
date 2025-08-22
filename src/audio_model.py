@@ -39,7 +39,7 @@ class AudioDeepfakeDetector(nn.Module):
             nn.Conv2d(64, 128, kernel_size=(3, 3), padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.AdaptiveAvgPool2d((None, 1))  # Keep time dimension
+            nn.AdaptiveAvgPool2d((1, 1))  # Keep time dimension
         )
         
         # LSTM for temporal modeling
@@ -82,7 +82,7 @@ class AudioDeepfakeDetector(nn.Module):
         
         # Reshape for LSTM: (batch, time, features)
         batch_size = conv_out.size(0)
-        conv_out = conv_out.squeeze(2).transpose(1, 2)  # (batch, time, 128)
+        conv_out = conv_out.view(batch_size, 128, -1).transpose(1, 2)  # (batch, time, 128)
         
         # LSTM processing
         lstm_out, _ = self.lstm(conv_out)  # (batch, time, hidden*2)

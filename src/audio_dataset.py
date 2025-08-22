@@ -4,7 +4,6 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Optional
 import random
-import csv
 import logging
 
 from audio_preprocessing import AudioPreprocessor
@@ -16,7 +15,6 @@ class AudioDeepfakeDataset(Dataset):
     
     def __init__(
         self,
-        csv_file: str,
         data_dir: str,
         split: str = 'train',
         preprocessor: Optional[AudioPreprocessor] = None,
@@ -25,7 +23,6 @@ class AudioDeepfakeDataset(Dataset):
         val_ratio: float = 0.15,
         test_ratio: float = 0.15
     ):
-        self.csv_file = csv_file
         self.data_dir = Path(data_dir)
         self.split = split
         self.augment = augment and split == 'train'
@@ -37,7 +34,7 @@ class AudioDeepfakeDataset(Dataset):
             self.preprocessor = preprocessor
             self.preprocessor.augment = self.augment
         
-        # Load samples from CSV
+        # Load samples from directories
         self.samples = self._load_samples()
         
         # Split data
@@ -46,53 +43,74 @@ class AudioDeepfakeDataset(Dataset):
         logger.info(f"Loaded {len(self.samples)} {split} samples")
     
     def _load_samples(self) -> List[Tuple[str, int]]:
-        """Load samples from CSV file"""
+        """Load samples from REAL and FAKE directories"""
         samples = []
         
-        try:
-            with open(self.csv_file, 'r') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    # Assuming CSV has 'file' and 'label' columns
-                    audio_path = self.data_dir / row['file']
-                    label = 1 if row['label'].lower() == 'fake' else 0
-                    
-                    if audio_path.exists():
-                        samples.append((str(audio_path), label))
-                    else:
-                        logger.warning(f"Audio file not found: {audio_path}")
+        # Define audio file extensions
+        audio_extensions = ['.wav', '.mp3', '.flac', '.m4a', '.ogg']
         
-        except Exception as e:
-            logger.error(f"Error loading CSV: {e}")
-            
-            # Fallback: scan directories
-            for class_name in ['REAL', 'FAKE']:
-                class_dir = self.data_dir / class_name
-                if class_dir.exists():
-                    label = 0 if class_name == 'REAL' else 1
-                    for audio_file in class_dir.glob('*.wav'):
-                        samples.append((str(audio_file), label))
+        # Load REAL samples (label = 0)
+        real_dir = self.data_dir / 'REAL'
+        if real_dir.exists():
+            for ext in audio_extensions:
+                for audio_file in real_dir.glob(f'*{ext}'):
+                    samples.append((str(audio_file), 0))
+            logger.info(f"Found {len([s for s in samples if s[1] == 0])} REAL samples")
+        else:
+            logger.warning(f"REAL directory not found: {real_dir}")
         
+        # Load FAKE samples (label = 1)
+        fake_dir = self.data_dir / 'FAKE'
+        if fake_dir.exists():
+            fake_count = 0
+            for ext in audio_extensions:
+                for audio_file in fake_dir.glob(f'*{ext}'):
+                    samples.append((str(audio_file), 1))
+                    fake_count += 1
+            logger.info(f"Found {fake_count} FAKE samples")
+        else:
+            logger.warning(f"FAKE directory not found: {fake_dir}")
+        
+        if not samples:
+            raise ValueError(f"No audio files found in {self.data_dir}/REAL or {self.data_dir}/FAKE")
+        
+        logger.info(f"Total samples loaded: {len(samples)}")
         return samples
     
     def _split_data(self, train_ratio: float, val_ratio: float, test_ratio: float) -> List[Tuple[str, int]]:
-        """Split samples into train/val/test"""
+        """Split samples into train/val/test while maintaining class balance"""
+        
+        # Separate by class
+        real_samples = [s for s in self.samples if s[1] == 0]
+        fake_samples = [s for s in self.samples if s[1] == 1]
+        
         # Shuffle with fixed seed for reproducibility
         random.seed(42)
-        random.shuffle(self.samples)
+        random.shuffle(real_samples)
+        random.shuffle(fake_samples)
         
-        total = len(self.samples)
-        train_end = int(total * train_ratio)
-        val_end = train_end + int(total * val_ratio)
+        def split_class_samples(samples, train_ratio, val_ratio, test_ratio):
+            total = len(samples)
+            train_end = int(total * train_ratio)
+            val_end = train_end + int(total * val_ratio)
+            
+            return {
+                'train': samples[:train_end],
+                'val': samples[train_end:val_end],
+                'test': samples[val_end:]
+            }
         
-        if self.split == 'train':
-            return self.samples[:train_end]
-        elif self.split == 'val':
-            return self.samples[train_end:val_end]
-        elif self.split == 'test':
-            return self.samples[val_end:]
-        else:
-            raise ValueError(f"Unknown split: {self.split}")
+        # Split each class
+        real_split = split_class_samples(real_samples, train_ratio, val_ratio, test_ratio)
+        fake_split = split_class_samples(fake_samples, train_ratio, val_ratio, test_ratio)
+        
+        # Combine and shuffle the selected split
+        combined_samples = real_split[self.split] + fake_split[self.split]
+        random.shuffle(combined_samples)
+        
+        logger.info(f"{self.split} split: {len(real_split[self.split])} REAL, {len(fake_split[self.split])} FAKE")
+        
+        return combined_samples
     
     def __len__(self) -> int:
         return len(self.samples)
@@ -107,6 +125,7 @@ class AudioDeepfakeDataset(Dataset):
         if mel_spec is None:
             # Return dummy sample if processing fails
             mel_spec = np.zeros((self.preprocessor.n_mels, 313))  # Default shape
+            logger.warning(f"Failed to process audio: {audio_path}")
         
         # Convert to tensor and add channel dimension
         mel_tensor = torch.from_numpy(mel_spec).float().unsqueeze(0)  # (1, n_mels, time)
@@ -125,17 +144,40 @@ class AudioDeepfakeDataset(Dataset):
         return torch.tensor(weights, dtype=torch.float32)
 
 def create_data_loaders(
-    csv_file: str,
     data_dir: str,
     batch_size: int = 32,
-    num_workers: int = 2
+    num_workers: int = 2,
+    train_ratio: float = 0.7,
+    val_ratio: float = 0.15,
+    test_ratio: float = 0.15
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """Create train, val, and test data loaders"""
     
     # Create datasets
-    train_dataset = AudioDeepfakeDataset(csv_file, data_dir, split='train', augment=True)
-    val_dataset = AudioDeepfakeDataset(csv_file, data_dir, split='val', augment=False)
-    test_dataset = AudioDeepfakeDataset(csv_file, data_dir, split='test', augment=False)
+    train_dataset = AudioDeepfakeDataset(
+        data_dir, 
+        split='train', 
+        augment=True, 
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio
+    )
+    val_dataset = AudioDeepfakeDataset(
+        data_dir, 
+        split='val', 
+        augment=False,
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio
+    )
+    test_dataset = AudioDeepfakeDataset(
+        data_dir, 
+        split='test', 
+        augment=False,
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio
+    )
     
     # Create loaders
     train_loader = DataLoader(
