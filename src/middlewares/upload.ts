@@ -32,15 +32,11 @@ const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: MAX_FILE_SIZE,
-    files: 1, // Allow only single file upload
+    files: 1,
   },
   fileFilter: (req, file, cb) => {
     // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
-      // const error = new Error(
-      //   `Invalid file type. Supported types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
-      // );
-
       const error: MulterErrorWithCode = new Error(
         `Invalid file type. Supported types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
       );
@@ -48,16 +44,10 @@ const imageUpload = multer({
       return cb(error);
     }
 
-    // Additional validation
-    // For example, checking file magic numbers for actual image validation
-    // (would require reading the buffer)
-
     cb(null, true);
   },
-  // filename: generateFilename, // Custom filename function
 });
 
-// Middleware wrapper for better error handling
 export const imageUploadMiddleware = (
   req: Request,
   res: Response,
@@ -68,7 +58,6 @@ export const imageUploadMiddleware = (
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   upload(req, res, (err: any) => {
     if (err) {
-      // Handle different error types
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({
           success: false,
@@ -88,7 +77,6 @@ export const imageUploadMiddleware = (
         });
       }
 
-      // Generic error handler
       return res.status(500).json({
         success: false,
         error: 'Upload failed',
@@ -97,26 +85,22 @@ export const imageUploadMiddleware = (
       });
     }
 
-    // Proceed to next middleware if no error
     next();
   });
 };
 
 export default imageUpload;
 
-// Updated middleware wrapper for multiple files
 export const multipleImageUploadMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  // Now using array() instead of single()
   const upload = imageUpload.array('media', 10); // 'media' field name, max 10 files
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   upload(req, res, (err: any) => {
     if (err) {
-      // Handle different error types (same as before)
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({
           success: false,
@@ -146,7 +130,6 @@ export const multipleImageUploadMiddleware = (
         });
       }
 
-      // Generic error handler
       return res.status(500).json({
         success: false,
         error: 'Upload failed',
@@ -155,7 +138,6 @@ export const multipleImageUploadMiddleware = (
       });
     }
 
-    // Additional validation - ensure at least one file was uploaded
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
@@ -165,7 +147,6 @@ export const multipleImageUploadMiddleware = (
       });
     }
 
-    // Proceed to next middleware if no error
     next();
   });
 };

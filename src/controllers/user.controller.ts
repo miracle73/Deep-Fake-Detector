@@ -153,7 +153,7 @@ export const getAnalysisHistory = async (
     const totalCount = await Analysis.countDocuments({ userId });
 
     const analyses = await Analysis.find({ userId })
-      .sort({ createdAt: -1 })
+      .sort({ uploadDate: -1 })
       .skip(skip)
       .limit(limit)
       .lean();

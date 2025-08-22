@@ -1,30 +1,30 @@
 import { PubSub } from '@google-cloud/pubsub';
-import { cloudLogger } from '../utils/google-cloud/logger.js';
-import { pushMetric } from '../utils/google-cloud/metrics.js';
+import axios from 'axios';
+import FormData from 'form-data';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { v4 as uuidv4 } from 'uuid';
 
+import User from '../models/User.js';
+import { storeAnalysis } from '../services/analysis.media.js';
 import {
   detectionJobs,
   simulateDetection,
 } from '../services/detectionQueue.js';
-import { callVertexAI, callVertexAIBatch } from '../services/vertexClient.js';
+import {
+  generateAndUploadThumbnail,
+  generateAndUploadVideoThumbnail,
+} from '../services/media.service.js';
+import { callVertexAIBatch } from '../services/vertexClient.js';
 import { bucket } from '../utils/gcsClient.js';
+import { cloudLogger } from '../utils/google-cloud/logger.js';
+import { pushMetric } from '../utils/google-cloud/metrics.js';
 import logger from '../utils/logger.js';
 
-// import { simulateDetection } from '../services/detectionQueue.js';
 import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
 import type { AuthRequest } from '../middlewares/auth.js';
-import FormData from 'form-data';
-import axios from 'axios';
-import User from '../models/User.js';
-import Analysis from '../models/Analysis.js';
-import { AppError } from '../utils/error.js';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { generateAndUploadThumbnail } from '../services/media.service.js';
-import { storeAnalysis } from '../services/analysis.media.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +33,11 @@ const pubsub = new PubSub();
 
 const MODEL_API_URL =
   process.env.MODEL_API_URL ||
-  ' https://image-deepfake-detector-production.up.railway.app/predict';
+  'https://image-deepfake-detector-production.up.railway.app';
+
+const VIDEO_API_URL =
+  process.env.VIDEO_API_URL ||
+  'https://video-deepfake-detector-production.up.railway.app';
 
 export const analyze = async (
   req: AuthRequest,
@@ -55,8 +59,6 @@ export const analyze = async (
       return;
     }
 
-    console.log('uploading thumbnail rn...');
-
     const thumbnailUrl = await generateAndUploadThumbnail({
       buffer: file.buffer,
       originalName: file.originalname,
@@ -73,7 +75,7 @@ export const analyze = async (
       contentType: file.mimetype,
     });
 
-    const response = await axios.post(MODEL_API_URL, formData, {
+    const response = await axios.post(`${MODEL_API_URL}/predict`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -91,7 +93,7 @@ export const analyze = async (
     await pushMetric({ type: 'detection_count', value: 1 });
 
     await cloudLogger.info({
-      message: `User ${req.user._id} performed detection`,
+      message: `User ${req.user._id} performed image detection`,
     });
 
     res.status(200).json({
@@ -264,6 +266,121 @@ export const analyzeBulkMedia = async (
 
     return;
   }
+};
+
+export const analyzeVideo = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({
+      statusCode: 400,
+      status: 'error',
+      success: false,
+      message: 'No file uploaded',
+      errorCode: 'NO_FILE',
+      details: 'Please upload a valid image file',
+    });
+
+    return;
+  }
+
+  const thumbnailUrl = await generateAndUploadVideoThumbnail({
+    buffer: file.buffer,
+    originalName: file.originalname,
+  });
+
+  const user = await User.findById(req.user._id);
+
+  const formData = new FormData();
+  formData.append('video', file.buffer, {
+    filename: file.originalname,
+    contentType: file.mimetype,
+  });
+
+  const response = await axios.post(
+    `${VIDEO_API_URL}/analyze_temporal`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  const { confidence } = response.data;
+
+  await storeAnalysis({
+    user,
+    confidence,
+    file,
+    thumbnailUrl,
+  });
+
+  await pushMetric({ type: 'detection_count', value: 1 });
+
+  await cloudLogger.info({
+    message: 'Video analysis complete',
+    context: {
+      userId: req.user._id,
+      thumbnailUrl,
+      confidence,
+      analysisId: response.data.analysisId,
+    },
+  });
+
+  logger.info('Video analysis complete', {
+    userId: req.user._id,
+    thumbnailUrl,
+    confidence,
+  });
+
+  // // Publish to Pub/Sub topic
+  // const topicName = 'video-analysis-complete';
+  // const dataBuffer = Buffer.from(
+  //   JSON.stringify({
+  //     userId: req.user._id,
+  //     thumbnailUrl,
+  //     confidence,
+  //     analysisId: response.data.analysisId,
+  //   })
+  // );
+  // await pubsub.topic(topicName).publish(dataBuffer);
+  // logger.info('Published video analysis complete message to Pub/Sub', {
+  //   topicName,
+  //   userId: req.user._id,
+  //   thumbnailUrl,
+  //   confidence,
+  //   analysisId: response.data.analysisId,
+  // });
+
+  if (!response.data) {
+    res.status(500).json({
+      success: false,
+      error: 'Video analysis failed',
+      message: 'No data returned from model API',
+      errorCode: 'MODEL_API_ERROR',
+    });
+    return;
+  }
+  if (response.data.error) {
+    res.status(500).json({
+      success: false,
+      error: 'Video analysis failed',
+      message: response.data.error,
+      errorCode: 'MODEL_API_ERROR',
+    });
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Video analysis complete',
+    thumbnailUrl,
+    data: response.data,
+  });
 };
 
 export const getStatus = async (req: Request, res: Response) => {

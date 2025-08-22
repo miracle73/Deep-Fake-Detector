@@ -8,6 +8,7 @@ import upload, {
   multipleImageUploadMiddleware,
 } from '../middlewares/upload.js';
 import { validateAndDecrementQuota } from '../utils/detect.js';
+import { videoUploadMiddleware } from '../middlewares/video-upload.js';
 
 const router = express.Router();
 
@@ -25,6 +26,14 @@ router.post(
   validateAndDecrementQuota,
   multipleImageUploadMiddleware,
   DetectController.analyzeBulkMedia
+);
+
+router.post(
+  '/analyze-video',
+  protect,
+  videoUploadMiddleware,
+  // validateAndDecrementQuota,
+  DetectController.analyzeVideo
 );
 
 router.get('/analyze/status/:id', DetectController.getJobStatus);
