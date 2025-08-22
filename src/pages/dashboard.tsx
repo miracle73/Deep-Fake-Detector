@@ -50,6 +50,9 @@ const Dashboard = () => {
   const [hasConsented, setHasConsented] = useState(true);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [isUrlMode, setIsUrlMode] = useState(false);
+  const [isProcessingUrl, setIsProcessingUrl] = useState(false);
   // const { data: userData } = useGetUserQuery();
   // const { data: historyData } = useGetAnalysisHistoryQuery();
   const storedUser = useSelector((state: RootState) => state.user.user);
@@ -367,6 +370,45 @@ const Dashboard = () => {
       setIsFirstTimeUser(false);
     }
   }, []);
+
+  const handleUrlSubmit = async () => {
+    if (!urlInput.trim()) {
+      setAnalysisError("Please enter a valid URL");
+      return;
+    }
+
+    setIsProcessingUrl(true);
+    setAnalysisError(null);
+
+    try {
+      // Here you would typically validate the URL and fetch the media
+      // For now, we'll simulate the process
+      const url = urlInput.trim();
+
+      // Basic URL validation
+      const urlPattern =
+        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+      if (!urlPattern.test(url)) {
+        throw new Error("Please enter a valid URL");
+      }
+
+      // Simulate file processing from URL
+      setTimeout(() => {
+        setUploadedFile({
+          name: `Media from URL`,
+          size: "Unknown size",
+          thumbnail: ThirdImage, // You might want to generate a thumbnail from the URL
+        });
+        setIsProcessingUrl(false);
+        setUrlInput("");
+      }, 2000);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to process URL";
+      setAnalysisError(errorMessage);
+      setIsProcessingUrl(false);
+    }
+  };
   return (
     <div className={`min-h-screen bg-gray-50 overflow-x-hidden`}>
       {/* Full Width Header */}
@@ -583,191 +625,410 @@ const Dashboard = () => {
             <div className="w-full xl:w-2/3 p-4 sm:p-6 min-w-0">
               {/* Getting Started Section */}
               <div className="min-w-0">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                  Let's get started!
-                </h2>
-                <p className="text-sm sm:text-base text-gray-600 mb-6">
-                  Upload your file for analysis, supports video, audio, and
-                  image formats.
-                </p>
-
                 {/* Upload Area */}
-                <div
-                  className={`border-2 border-dashed rounded-xl p-4 sm:p-6 lg:p-12 text-center transition-colors w-full ${
-                    dragActive
-                      ? "border-blue-400 bg-blue-50"
-                      : "border-gray-300 bg-white"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  {!uploadedFile ? (
-                    <div className="w-full">
-                      <div className="flex justify-center items-center mb-4">
-                        <UploadIcon />
-                      </div>
+                <div className="min-w-0">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
+                    Let's get started!
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-600 mb-6">
+                    Upload your file or provide a URL for analysis, supports
+                    video, audio, and image formats.
+                  </p>
 
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                        Drag and drop to upload or browse files
-                      </h3>
-                      <p className="text-xs sm:text-sm text-red-500 mb-6">
-                        Max file size 10MB
-                      </p>
+                  {/* Toggle between Upload and URL */}
+                  <div className="flex rounded-lg bg-gray-100 p-1 mb-6 w-fit mx-auto">
+                    <button
+                      onClick={() => setIsUrlMode(false)}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        !isUrlMode
+                          ? "bg-white text-gray-900 shadow-sm"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      Upload File
+                    </button>
+                    <button
+                      onClick={() => setIsUrlMode(true)}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isUrlMode
+                          ? "bg-white text-gray-900 shadow-sm"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      From URL
+                    </button>
+                  </div>
 
-                      {/* Supported Formats Section */}
-                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-6 text-left max-w-full overflow-hidden">
-                        <h4 className="text-sm font-medium text-gray-700 mb-3">
-                          Currently, SafeguardMedia supports the following
-                          formats:
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                          <div className="min-w-0">
-                            <span className="font-medium text-gray-800 block">
-                              Videos:
-                            </span>
-                            <div className="text-gray-600 mt-1">
-                              MP4, AVI, MOV
-                            </div>
+                  {/* Upload Area or URL Input */}
+                  {!isUrlMode ? (
+                    // Existing upload area
+                    <div
+                      className={`border-2 border-dashed rounded-xl p-4 sm:p-6 lg:p-12 text-center transition-colors w-full ${
+                        dragActive
+                          ? "border-blue-400 bg-blue-50"
+                          : "border-gray-300 bg-white"
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      {!uploadedFile ? (
+                        <div className="w-full">
+                          <div className="flex justify-center items-center mb-4">
+                            <UploadIcon />
                           </div>
-                          <div className="min-w-0">
-                            <span className="font-medium text-gray-800 block">
-                              Images:
-                            </span>
-                            <div className="text-gray-600 mt-1">
-                              JPEG, PNG, WEBP
-                            </div>
-                          </div>
-                          <div className="min-w-0">
-                            <span className="font-medium text-gray-800 block">
-                              Audio:
-                            </span>
-                            <div className="text-gray-600 mt-1">
-                              MP3, WAV, AAC
-                            </div>
-                          </div>
-                        </div>
-                      </div>
 
-                      {!isFirstTimeUser && (
-                        <div className="mb-4 max-w-full">
-                          <label className="flex items-start space-x-3 cursor-pointer text-left">
-                            <input
-                              type="checkbox"
-                              checked={hasConsented}
-                              onChange={async (e) => {
-                                const newConsentValue = e.target.checked;
-                                setHasConsented(newConsentValue);
-
-                                localStorage.setItem(
-                                  "safeguardmedia_consent",
-                                  newConsentValue.toString()
-                                );
-
-                                try {
-                                  await updateMediaConsent({
-                                    allowStorage: !newConsentValue,
-                                  }).unwrap();
-                                } catch (error) {
-                                  console.error(
-                                    "Failed to update media consent:",
-                                    error
-                                  );
-                                }
-                              }}
-                              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
-                            />
-                            <span className="text-xs text-gray-600 leading-relaxed break-words">
-                              I do not consent to SafeguardMedia using my
-                              uploaded media for AI model training or research.
-                              My upload should be used only for analysis and
-                              detection.
-                            </span>
-                          </label>
-                        </div>
-                      )}
-
-                      <button
-                        className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium w-full sm:w-auto max-w-xs"
-                        onClick={() => {
-                          setHasAnalyses(!hasAnalyses);
-                          handleUploadMedia();
-                        }}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? "Uploading..." : "Upload Media"}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center space-y-4 w-full max-w-full">
-                      {/* Video Thumbnail */}
-                      <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                        {filePreview ? (
-                          <img
-                            src={filePreview}
-                            alt="File preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : selectedFile?.type.startsWith("audio/") ? (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                            <AudioLines className="w-8 h-8 text-gray-600" />
-                          </div>
-                        ) : (
-                          <img
-                            src={ThirdImage}
-                            alt="File thumbnail"
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
-
-                      {/* File Info */}
-                      <div className="flex flex-col sm:flex-row items-center justify-center w-full min-w-0 space-y-2 sm:space-y-0 sm:space-x-4">
-                        <div className="flex flex-col sm:flex-row items-center gap-2 min-w-0 max-w-full">
-                          <p className="text-sm sm:text-base font-medium text-gray-900 truncate max-w-full text-center sm:text-left">
-                            {uploadedFile.name}
+                          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                            Drag and drop to upload or browse files
+                          </h3>
+                          <p className="text-xs sm:text-sm text-red-500 mb-6">
+                            Max file size 10MB
                           </p>
-                          <p className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
-                            ({uploadedFile.size})
-                          </p>
+
+                          {/* Supported Formats Section */}
+                          <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-6 text-left max-w-full overflow-hidden">
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">
+                              Currently, SafeguardMedia supports the following
+                              formats:
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                              <div className="min-w-0">
+                                <span className="font-medium text-gray-800 block">
+                                  Videos:
+                                </span>
+                                <div className="text-gray-600 mt-1">
+                                  MP4, AVI, MOV
+                                </div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-medium text-gray-800 block">
+                                  Images:
+                                </span>
+                                <div className="text-gray-600 mt-1">
+                                  JPEG, PNG, WEBP
+                                </div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-medium text-gray-800 block">
+                                  Audio:
+                                </span>
+                                <div className="text-gray-600 mt-1">
+                                  MP3, WAV, AAC
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {!isFirstTimeUser && (
+                            <div className="mb-4 max-w-full">
+                              <label className="flex items-start space-x-3 cursor-pointer text-left">
+                                <input
+                                  type="checkbox"
+                                  checked={hasConsented}
+                                  onChange={async (e) => {
+                                    const newConsentValue = e.target.checked;
+                                    setHasConsented(newConsentValue);
+
+                                    localStorage.setItem(
+                                      "safeguardmedia_consent",
+                                      newConsentValue.toString()
+                                    );
+
+                                    try {
+                                      await updateMediaConsent({
+                                        allowStorage: !newConsentValue,
+                                      }).unwrap();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to update media consent:",
+                                        error
+                                      );
+                                    }
+                                  }}
+                                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
+                                />
+                                <span className="text-xs text-gray-600 leading-relaxed break-words">
+                                  I do not consent to SafeguardMedia using my
+                                  uploaded media for AI model training or
+                                  research. My upload should be used only for
+                                  analysis and detection.
+                                </span>
+                              </label>
+                            </div>
+                          )}
+
+                          <button
+                            className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium w-full sm:w-auto max-w-xs"
+                            onClick={() => {
+                              setHasAnalyses(!hasAnalyses);
+                              handleUploadMedia();
+                            }}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? "Uploading..." : "Upload Media"}
+                          </button>
                         </div>
-                        <button
-                          onClick={handleRemoveFile}
-                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full flex-shrink-0"
-                          title="Remove file"
-                        >
-                          <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                      </div>
+                      ) : (
+                        // Existing uploaded file display section
+                        <div className="flex flex-col items-center space-y-4 w-full max-w-full">
+                          {/* Video Thumbnail */}
+                          <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                            {filePreview ? (
+                              <img
+                                src={filePreview}
+                                alt="File preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : selectedFile?.type.startsWith("audio/") ? (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                                <AudioLines className="w-8 h-8 text-gray-600" />
+                              </div>
+                            ) : (
+                              <img
+                                src={ThirdImage}
+                                alt="File thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
 
-                      {/* Analyse Button */}
-                      <button
-                        onClick={handleAnalyseMedia}
-                        disabled={isAnalyzing || !selectedFile}
-                        className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors w-full sm:w-auto max-w-xs"
-                      >
-                        {isAnalyzing ? "Analyzing..." : "Analyse Media"}
-                      </button>
-
-                      {analysisError && (
-                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg w-full max-w-full">
-                          <div className="flex items-start">
-                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-red-500" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-red-700 break-words">
-                                {analysisError}
+                          {/* File Info */}
+                          <div className="flex flex-col sm:flex-row items-center justify-center w-full min-w-0 space-y-2 sm:space-y-0 sm:space-x-4">
+                            <div className="flex flex-col sm:flex-row items-center gap-2 min-w-0 max-w-full">
+                              <p className="text-sm sm:text-base font-medium text-gray-900 truncate max-w-full text-center sm:text-left">
+                                {uploadedFile.name}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
+                                ({uploadedFile.size})
                               </p>
                             </div>
                             <button
-                              type="button"
-                              onClick={() => setAnalysisError(null)}
-                              className="ml-2 text-red-400 hover:text-red-600 flex-shrink-0"
-                              title="Dismiss error"
+                              onClick={handleRemoveFile}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full flex-shrink-0"
+                              title="Remove file"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                           </div>
+
+                          {/* Analyse Button */}
+                          <button
+                            onClick={handleAnalyseMedia}
+                            disabled={isAnalyzing || !selectedFile}
+                            className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors w-full sm:w-auto max-w-xs"
+                          >
+                            {isAnalyzing ? "Analyzing..." : "Analyse Media"}
+                          </button>
+
+                          {analysisError && (
+                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg w-full max-w-full">
+                              <div className="flex items-start">
+                                <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-red-500" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-red-700 break-words">
+                                    {analysisError}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setAnalysisError(null)}
+                                  className="ml-2 text-red-400 hover:text-red-600 flex-shrink-0"
+                                  title="Dismiss error"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // URL Input Section
+                    <div className="border-2 border-gray-300 rounded-xl p-4 sm:p-6 lg:p-12 text-center bg-white w-full">
+                      {!uploadedFile ? (
+                        <div className="w-full">
+                          <div className="flex justify-center items-center mb-4">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                              <svg
+                                className="w-8 h-8 text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+
+                          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                            Enter media URL
+                          </h3>
+                          <p className="text-xs sm:text-sm text-gray-600 mb-6">
+                            Provide a direct link to your video, audio, or image
+                            file
+                          </p>
+
+                          {/* URL Input */}
+                          <div className="max-w-md mx-auto mb-6">
+                            <input
+                              type="url"
+                              value={urlInput}
+                              onChange={(e) => setUrlInput(e.target.value)}
+                              placeholder="https://example.com/media-file.mp4"
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              disabled={isProcessingUrl}
+                            />
+                          </div>
+
+                          {!isFirstTimeUser && (
+                            <div className="mb-4 max-w-full">
+                              <label className="flex items-start space-x-3 cursor-pointer text-left">
+                                <input
+                                  type="checkbox"
+                                  checked={hasConsented}
+                                  onChange={async (e) => {
+                                    const newConsentValue = e.target.checked;
+                                    setHasConsented(newConsentValue);
+
+                                    localStorage.setItem(
+                                      "safeguardmedia_consent",
+                                      newConsentValue.toString()
+                                    );
+
+                                    try {
+                                      await updateMediaConsent({
+                                        allowStorage: !newConsentValue,
+                                      }).unwrap();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to update media consent:",
+                                        error
+                                      );
+                                    }
+                                  }}
+                                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
+                                />
+                                <span className="text-xs text-gray-600 leading-relaxed break-words">
+                                  I do not consent to SafeguardMedia using my
+                                  uploaded media for AI model training or
+                                  research. My upload should be used only for
+                                  analysis and detection.
+                                </span>
+                              </label>
+                            </div>
+                          )}
+
+                          <button
+                            className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium w-full sm:w-auto max-w-xs"
+                            onClick={handleUrlSubmit}
+                            disabled={isProcessingUrl || !urlInput.trim()}
+                          >
+                            {isProcessingUrl ? "Processing..." : "Process URL"}
+                          </button>
+
+                          {analysisError && (
+                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg w-full max-w-full">
+                              <div className="flex items-start">
+                                <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-red-500" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-red-700 break-words">
+                                    {analysisError}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setAnalysisError(null)}
+                                  className="ml-2 text-red-400 hover:text-red-600 flex-shrink-0"
+                                  title="Dismiss error"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Same uploaded file display for URL mode
+                        <div className="flex flex-col items-center space-y-4 w-full max-w-full">
+                          {/* Video Thumbnail */}
+                          <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                            {filePreview ? (
+                              <img
+                                src={filePreview}
+                                alt="File preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : selectedFile?.type.startsWith("audio/") ? (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                                <AudioLines className="w-8 h-8 text-gray-600" />
+                              </div>
+                            ) : (
+                              <img
+                                src={ThirdImage}
+                                alt="File thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+
+                          {/* File Info */}
+                          <div className="flex flex-col sm:flex-row items-center justify-center w-full min-w-0 space-y-2 sm:space-y-0 sm:space-x-4">
+                            <div className="flex flex-col sm:flex-row items-center gap-2 min-w-0 max-w-full">
+                              <p className="text-sm sm:text-base font-medium text-gray-900 truncate max-w-full text-center sm:text-left">
+                                {uploadedFile.name}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
+                                ({uploadedFile.size})
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                handleRemoveFile();
+                                setUrlInput("");
+                              }}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full flex-shrink-0"
+                              title="Remove file"
+                            >
+                              <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                          </div>
+
+                          {/* Analyse Button */}
+                          <button
+                            onClick={handleAnalyseMedia}
+                            disabled={isAnalyzing}
+                            className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full text-sm sm:text-base font-medium transition-colors w-full sm:w-auto max-w-xs"
+                          >
+                            {isAnalyzing ? "Analyzing..." : "Analyse Media"}
+                          </button>
+
+                          {analysisError && (
+                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg w-full max-w-full">
+                              <div className="flex items-start">
+                                <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-red-500" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-red-700 break-words">
+                                    {analysisError}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setAnalysisError(null)}
+                                  className="ml-2 text-red-400 hover:text-red-600 flex-shrink-0"
+                                  title="Dismiss error"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
