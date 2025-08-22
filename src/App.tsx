@@ -65,7 +65,7 @@ function App() {
             }
           />
           <Route
-            path="/video-detection"
+            path="/video-detection/:token"
             element={
               <ProtectedRoute>
                 <VideoScreen />

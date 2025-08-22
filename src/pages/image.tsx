@@ -34,6 +34,63 @@ const ImageScreen = () => {
   const [fileUrl, setFileUrl] = useState<string>("");
   const [analysisDate, setAnalysisDate] = useState<string>("");
 
+  const getRiskAssessment = () => {
+    if (!analysisResult)
+      return {
+        riskLevel: "Unknown",
+        interpretation: "Analysis not available",
+        action: "Please retry analysis",
+        riskColor: "gray",
+        gaugeColor: "#9CA3AF",
+      };
+
+    const realProb = analysisResult.data.real_probability;
+    const deepfakeProb = analysisResult.data.deepfake_probability;
+
+    if (realProb >= 90 && deepfakeProb <= 10) {
+      return {
+        riskLevel: "Low",
+        interpretation: "Very Likely Real",
+        action: "Accept as authentic. Manual review optional.",
+        riskColor: "green",
+        gaugeColor: "#10B981",
+      };
+    } else if (realProb >= 70 && deepfakeProb <= 29) {
+      return {
+        riskLevel: "Medium",
+        interpretation: "Likely Real, Some Risk",
+        action: "Review manually if content is sensitive or high-stakes.",
+        riskColor: "yellow",
+        gaugeColor: "#F59E0B",
+      };
+    } else if (realProb >= 50 && deepfakeProb <= 49) {
+      return {
+        riskLevel: "Medium-High",
+        interpretation: "Ambiguous / Uncertain",
+        action:
+          "Manual verification strongly recommended. Consider secondary tools.",
+        riskColor: "orange",
+        gaugeColor: "#F97316",
+      };
+    } else if (realProb >= 30 && deepfakeProb <= 69) {
+      return {
+        riskLevel: "High",
+        interpretation: "Likely Deepfake, But Not Conclusive",
+        action: "Treat cautiously. Manual review required; possibly reject.",
+        riskColor: "red",
+        gaugeColor: "#EF4444",
+      };
+    } else {
+      return {
+        riskLevel: "Very High",
+        interpretation: "Very Likely Deepfake",
+        action: "Reject or flag. Notify relevant stakeholders.",
+        riskColor: "red",
+        gaugeColor: "#DC2626",
+      };
+    }
+  };
+
   const getResultStatus = () => {
     if (!analysisResult)
       return { text: "Unknown", color: "gray", bgColor: "bg-gray-100" };
@@ -56,23 +113,10 @@ const ImageScreen = () => {
   };
 
   const getConfidenceScore = () => {
-    if (!analysisResult) return "0";
-    return Math.round(analysisResult.data.confidence).toString();
+    if (!analysisResult) return 0;
+    return Math.round(analysisResult.data.confidence);
   };
 
-  const getResultSummary = () => {
-    if (!analysisResult) return "Analysis results not available.";
-
-    if (analysisResult.data.is_deepfake) {
-      return `Our model analysis found significant indicators in this media file strongly suggesting this media has been manipulated using deepfake techniques. The deepfake probability is ${analysisResult.data.deepfake_probability.toFixed(
-        1
-      )}%.`;
-    } else {
-      return `Our analysis indicates this media appears to be authentic with a ${analysisResult.data.real_probability.toFixed(
-        1
-      )}% probability of being real content.`;
-    }
-  };
   const handleBack = () => {
     // Clean up localStorage
     if (token) {
@@ -131,30 +175,30 @@ const ImageScreen = () => {
     }
   }, [token, navigate, location.state]);
   return (
-    <div className={`min-h-screen bg-gray-50`}>
+    <div className={`min-h-screen bg-gray-50 overflow-x-hidden`}>
       {/* Full Width Header */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 w-full">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 w-full overflow-x-hidden">
+        <div className="flex items-center justify-between min-w-0">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             {/* Mobile menu button */}
             <button
-              className="lg:hidden p-2 text-gray-400 hover:text-gray-600"
+              className="lg:hidden p-2 text-gray-400 hover:text-gray-600 flex-shrink-0"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0">
               <img
                 src={SafeguardMediaLogo}
                 alt="Safeguardmedia Logo"
-                className="h-12 w-auto"
+                className="h-12 w-auto flex-shrink-0"
               />
-              <span className="text-xl max-lg:text-sm font-bold text-gray-900">
+              <span className="text-xl max-lg:text-sm font-bold text-gray-900 truncate ml-2">
                 Safeguardmedia
               </span>
             </div>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             {/* <div
               className="hidden sm:flex  bg-[#FBFBEF] gap-2 justify-between items-center"
               onClick={() => {
@@ -215,14 +259,14 @@ const ImageScreen = () => {
                 navigate("/settings");
               }}
             >
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-xs sm:text-sm font-medium text-gray-600">
                   {storedUser.firstName
                     ? storedUser.firstName.charAt(0).toUpperCase()
                     : "U"}
                 </span>
               </div>
-              <span className="hidden sm:inline text-sm text-gray-700">
+              <span className="hidden sm:inline text-sm text-gray-700 truncate">
                 {storedUser.firstName || "Username"}
               </span>
             </div>
@@ -232,12 +276,12 @@ const ImageScreen = () => {
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex overflow-hidden">
           <div
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="relative flex flex-col w-64 bg-white border-r border-gray-200">
+          <div className="relative flex flex-col w-64 max-w-[80vw] bg-white border-r border-gray-200 overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
               <button
@@ -316,7 +360,7 @@ const ImageScreen = () => {
       )}
 
       {/* Content Area with Sidebar */}
-      <div className="flex">
+      <div className="flex overflow-x-hidden">
         {/* Desktop Sidebar */}
         <div className="hidden lg:flex w-24 bg-white border-r border-gray-200 flex-col items-center py-6 space-y-8 min-h-[calc(100vh-73px)]">
           <div
@@ -376,41 +420,41 @@ const ImageScreen = () => {
         </div>
 
         {/* Main Content Container */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden overflow-x-hidden min-w-0">
           {/* Upper Section: File Header + Right Sidebar */}
           {/* File Header Section - Full Width */}
-          <div className="px-4 sm:px-6 pt-4 sm:pt-6">
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 overflow-x-hidden">
             <div className=" p-2 sm:p-4 mb-2 sm:mb-6">
               {/* Header with Back button, filename and action buttons */}
-              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4 overflow-x-hidden">
+                <div className="flex flex-col gap-2 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 overflow-x-hidden">
                     <button
                       onClick={handleBack}
-                      className=" hover:bg-gray-100 rounded-lg transition-colors"
+                      className=" hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
                     >
                       <BackIcon />
                     </button>
-                    <div>
-                      <h2 className="text-lg sm:text-xl font-semibold text-[#020717]">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-lg sm:text-xl font-semibold text-[#020717] truncate">
                         Back
                       </h2>
                     </div>
                   </div>
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  <div className="min-w-0">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
                       {fileName}
                     </h2>
                   </div>
                   {/* File details */}
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 overflow-x-auto">
                     <span>File size: {fileSize}</span>
                     <span className="mx-2">•</span>
                     <span>Date: {analysisDate}</span>
                   </div>
                 </div>
                 {/* Right side - Action buttons */}
-                <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                   {/* <button
                     onClick={handleDownloadReport}
                     className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -433,22 +477,23 @@ const ImageScreen = () => {
           </div>
 
           {/* Video Preview and DF Results Section - Side by Side */}
-          <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6">
+          <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6 overflow-x-hidden">
             {/* Video Preview - Left Side */}
-            <div className="w-full lg:w-2/3">
+            <div className="w-full lg:w-2/3 min-w-0">
               <div className=" rounded-xl overflow-hidden">
                 <img
                   src={fileUrl || "/placeholder.svg"}
                   alt="Video preview showing analysis result"
-                  className="w-full h-auto"
+                  className="w-full h-auto max-w-full object-contain"
                 />
               </div>
             </div>
 
             {/* DF Results Card - Right Side */}
-            <div className="w-full lg:w-1/3">
+            {/* DF Results Card - Right Side */}
+            <div className="w-full lg:w-1/3 min-w-0">
               {/* DF Results Card */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-[70vh] flex flex-col">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden min-h-[50vh] flex flex-col">
                 {/* Header with DF Results and status badge */}
                 <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                   <span className="text-sm sm:text-base font-medium">
@@ -465,50 +510,123 @@ const ImageScreen = () => {
 
                 {/* Results Content */}
                 <div className="flex-1 flex flex-col">
-                  {/* Confidence Score */}
-                  <div className="p-4 sm:p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm sm:text-base text-gray-700 font-medium">
-                        Confidence Score
-                      </span>
-                      <span className="text-2xl sm:text-3xl font-bold text-gray-900">
-                        {getConfidenceScore()}%
-                      </span>
+                  {/* Confidence Gauge */}
+                  <div className="p-4 sm:p-6 flex flex-col items-center justify-center">
+                    <div className="relative w-32 h-32 mb-4">
+                      {/* Gauge Background */}
+                      <svg className="w-full h-full" viewBox="0 0 120 120">
+                        {/* Background Circle */}
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r="50"
+                          fill="none"
+                          stroke="#E5E7EB"
+                          strokeWidth="10"
+                        />
+                        {/* Progress Circle */}
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r="50"
+                          fill="none"
+                          stroke={getRiskAssessment().gaugeColor}
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          strokeDasharray={`${
+                            (getConfidenceScore() / 100) * 314.16
+                          } 314.16`}
+                          transform="rotate(-90 60 60)"
+                          className="transition-all duration-1000 ease-out"
+                          style={{
+                            filter:
+                              getConfidenceScore() === 0
+                                ? "opacity(0)"
+                                : "opacity(1)",
+                          }}
+                        />
+                      </svg>
+                      {/* Center Score */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                            {getConfidenceScore()}%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Confidence
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Risk Assessment */}
+                  <div className="px-4 sm:px-6 pb-4">
+                    <div className="space-y-4">
+                      {/* Risk Level */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          Risk Level:
+                        </span>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            getRiskAssessment().riskLevel === "Low"
+                              ? "bg-green-100 text-green-800"
+                              : getRiskAssessment().riskLevel === "Medium"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : getRiskAssessment().riskLevel === "Medium-High"
+                              ? "bg-orange-100 text-orange-800"
+                              : getRiskAssessment().riskLevel === "High"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {getRiskAssessment().riskLevel}
+                        </span>
+                      </div>
+
+                      {/* Interpretation */}
+                      <div>
+                        <span className="text-sm text-gray-600 block mb-2">
+                          Interpretation:
+                        </span>
+                        <p className="text-sm font-medium text-gray-900 break-words">
+                          {getRiskAssessment().interpretation}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Divider */}
                   <div className="border-t border-gray-200"></div>
 
-                  {/* Result Summary */}
-                  <div className="flex-1 p-4 sm:p-6">
-                    <h4 className="text-sm sm:text-base font-semibold text-[#020717] mb-3">
-                      Result Summary:
-                    </h4>
-                    <p className="text-xs sm:text-sm text-[#020717] font-[300] leading-relaxed">
-                      {getResultSummary()}
-                    </p>
-                  </div>
-
-                  {/* Additional Analysis Details */}
+                  {/* Analysis Details */}
                   {analysisResult && (
                     <div className="border-t border-gray-200 p-4 sm:p-6">
-                      <h4 className="text-sm font-semibold text-[#020717] mb-2">
-                        Analysis Details:
+                      <h4 className="text-sm font-semibold text-[#020717] mb-3">
+                        Confidence Breakdown:
                       </h4>
-                      {/* <div className="space-y-1 text-xs text-gray-600">
-                        <div>
-                          Real Probability:{" "}
-                          {analysisResult.data.real_probability.toFixed(1)}%
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-600">
+                            Real Probability:
+                          </span>
+                          <span className="font-medium text-green-600">
+                            {analysisResult.data.real_probability.toFixed(1)}%
+                          </span>
                         </div>
-                        <div>
-                          Deepfake Probability:{" "}
-                          {analysisResult.data.deepfake_probability.toFixed(1)}%
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-600">
+                            Deepfake Probability:
+                          </span>
+                          <span className="font-medium text-red-600">
+                            {analysisResult.data.deepfake_probability.toFixed(
+                              1
+                            )}
+                            %
+                          </span>
                         </div>
-                        <div>
-                          Threshold Used: {analysisResult.data.threshold_used}
-                        </div>
-                      </div> */}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -517,9 +635,9 @@ const ImageScreen = () => {
           </div>
 
           {/* Disclaimer Section */}
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6 mt-5 ">
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 mt-5 overflow-x-hidden">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-blue-800 break-words">
                 <span className="font-medium">Disclaimer:</span> Results are
                 provided for informational purposes only and users assume full
                 responsibility for any decisions based on these analyses.

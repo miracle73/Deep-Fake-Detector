@@ -27,6 +27,7 @@ import {
   useUpdateMediaConsentMutation,
   useDetectAnalyzeMutation,
   useGetAnalysisHistoryQuery,
+  useDetectAnalyzeVideoMutation,
 } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
@@ -60,6 +61,7 @@ const Dashboard = () => {
   const [detectAnalyze] = useDetectAnalyzeMutation();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [detectAnalyzeVideo] = useDetectAnalyzeVideoMutation();
 
   const getPageNumbers = () => {
     if (!historyData?.pagination) return [];
@@ -301,25 +303,53 @@ const Dashboard = () => {
     setAnalysisError(null);
 
     try {
-      const response = await detectAnalyze({ image: selectedFile }).unwrap();
+      let response;
+
+      // Check file type and use appropriate endpoint
+      if (
+        selectedFile.type.startsWith("video/") ||
+        selectedFile.name.match(/\.(mp4|avi|mov)$/i)
+      ) {
+        // Use video analysis endpoint for video files
+        response = await detectAnalyzeVideo({ video: selectedFile }).unwrap();
+      } else {
+        // Use image analysis endpoint for images and other files
+        response = await detectAnalyze({ image: selectedFile }).unwrap();
+      }
 
       // Generate unique token
       const token = generateUniqueToken();
 
-      // Store the response data temporarily (you can use localStorage or state management)
+      // Store the response data temporarily
       localStorage.setItem(`analysis_${token}`, JSON.stringify(response));
 
-      // Navigate to image-detection page with token and response
-      navigate(`/image-detection/${token}`, {
-        state: {
-          analysisResult: response,
-          fileName: uploadedFile?.name || selectedFile.name,
-          fileSize:
-            uploadedFile?.size ||
-            `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-          fileUrl: filePreview,
-        },
-      });
+      // Navigate to appropriate detection page based on file type
+      if (
+        selectedFile.type.startsWith("video/") ||
+        selectedFile.name.match(/\.(mp4|avi|mov)$/i)
+      ) {
+        navigate(`/video-detection/${token}`, {
+          state: {
+            analysisResult: response,
+            fileName: uploadedFile?.name || selectedFile.name,
+            fileSize:
+              uploadedFile?.size ||
+              `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+            fileUrl: filePreview,
+          },
+        });
+      } else {
+        navigate(`/image-detection/${token}`, {
+          state: {
+            analysisResult: response,
+            fileName: uploadedFile?.name || selectedFile.name,
+            fileSize:
+              uploadedFile?.size ||
+              `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+            fileUrl: filePreview,
+          },
+        });
+      }
     } catch (error: unknown) {
       console.error("Analysis failed:", error);
 
@@ -330,13 +360,13 @@ const Dashboard = () => {
         if (apiError.data?.message) {
           setAnalysisError(apiError.data.message);
         } else {
-          setAnalysisError("Failed to analyze the image. Please try again.");
+          setAnalysisError("Failed to analyze the media. Please try again.");
         }
       } else if (error && typeof error === "object" && "message" in error) {
         const messageError = error as { message: string };
         setAnalysisError(messageError.message);
       } else {
-        setAnalysisError("Failed to analyze the image. Please try again.");
+        setAnalysisError("Failed to analyze the media. Please try again.");
       }
     } finally {
       setIsAnalyzing(false);

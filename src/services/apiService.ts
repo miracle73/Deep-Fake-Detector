@@ -438,6 +438,77 @@ interface DeleteFeedbackResponse {
   success: boolean;
   message: string;
 }
+
+// Add this interface with your other interfaces
+interface DetectAnalyzeVideoRequest {
+  video: File;
+}
+
+interface VideoAnalysisResponse {
+  success: boolean;
+  message: string;
+  thumbnailUrl: string;
+  data: {
+    analysis_type: string;
+    overall_assessment: {
+      confidence: number;
+      fake_ratio: number;
+      fake_segments: number;
+      is_deepfake: boolean;
+      predicted_class: string;
+      real_ratio: number;
+      real_segments: number;
+      safeguard_analysis: {
+        color_code: string;
+        interpretation: string;
+        recommended_action: string;
+        risk_level: string;
+      };
+    };
+    segment_analysis: Array<{
+      duration: number;
+      end_time: number;
+      keyframe_info: {
+        frame_number: number;
+        timestamp: number;
+        type: string;
+      };
+      prediction: {
+        confidence: number;
+        deepfake_probability: number;
+        is_deepfake: boolean;
+        predicted_class: string;
+        real_probability: number;
+      };
+      safeguard_analysis: {
+        color_code: string;
+        interpretation: string;
+        recommended_action: string;
+        risk_level: string;
+      };
+      segment_id: number;
+      start_time: number;
+      time_range: string;
+    }>;
+    segment_summary: string[];
+    technical_details: {
+      frame_size: string;
+      keyframe_extraction: string;
+      model_type: string;
+      processing_time_seconds: number;
+      sequence_length: string;
+      total_frames_analyzed: number;
+    };
+    video_filename: string;
+    video_info: {
+      duration: string;
+      fps: number;
+      segments_analyzed: number;
+      total_frames: number;
+    };
+  };
+}
+
 export const apiService = createApi({
   reducerPath: "apiService",
   baseQuery: fetchBaseQuery({
@@ -708,6 +779,21 @@ export const apiService = createApi({
         method: "DELETE",
       }),
     }),
+    detectAnalyzeVideo: builder.mutation<
+      VideoAnalysisResponse,
+      DetectAnalyzeVideoRequest
+    >({
+      query: ({ video }) => {
+        const formData = new FormData();
+        formData.append("video", video);
+
+        return {
+          url: "detect/analyze-video",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
@@ -737,4 +823,5 @@ export const {
   useGetFeedbackStatsQuery,
   useUpdateFeedbackMutation,
   useDeleteFeedbackMutation,
+  useDetectAnalyzeVideoMutation,
 } = apiService;
