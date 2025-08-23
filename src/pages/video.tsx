@@ -97,6 +97,7 @@ const VideoScreen = () => {
   const [fileName, setFileName] = useState("");
   const [fileSize, setFileSize] = useState("");
   // const [currentSegment, setCurrentSegment] = useState(0);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const storedUser = useSelector((state: RootState) => state.user.user);
 
   useEffect(() => {
@@ -107,17 +108,32 @@ const VideoScreen = () => {
       setAnalysisResult(stateData.analysisResult);
       setFileName(stateData.fileName || "Unknown File");
       setFileSize(stateData.fileSize || "Unknown Size");
+      setVideoUrl(stateData.fileUrl || null); // Get the video URL
     } else if (token) {
       // Fallback to localStorage
       const storedData = localStorage.getItem(`analysis_${token}`);
       if (storedData) {
         const parsedData = JSON.parse(storedData);
         setAnalysisResult(parsedData);
-        setFileName(parsedData.data?.video_filename || "Unknown File");
-        setFileSize("Unknown Size");
+        setFileName(
+          parsedData.fileName ||
+            parsedData.data?.video_filename ||
+            "Unknown File"
+        );
+        setFileSize(parsedData.fileSize || "Unknown Size");
+        setVideoUrl(parsedData.fileUrl || null); // Get the video URL from storage
       }
     }
   }, [token, location.state]);
+
+  useEffect(() => {
+    // Cleanup function to revoke blob URL when component unmounts
+    return () => {
+      if (videoUrl && videoUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, [videoUrl]);
 
   // Calculate video duration from analysis data
   // const videoDuration = analysisResult?.data.video_info.duration
@@ -489,9 +505,19 @@ const VideoScreen = () => {
           {/* Video Preview and DF Results Section - Side by Side */}
           <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6">
             {/* Video Preview - Left Side */}
+            {/* Video Preview - Left Side */}
             <div className="w-full lg:w-2/3">
-              <div className=" rounded-xl overflow-hidden">
-                {analysisResult.thumbnailUrl ? (
+              <div className="rounded-xl overflow-hidden bg-black">
+                {videoUrl ? (
+                  <video
+                    controls
+                    className="w-full h-auto"
+                    src={videoUrl}
+                    poster={analysisResult?.thumbnailUrl} // Use thumbnail as poster if available
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                ) : analysisResult?.thumbnailUrl ? (
                   <img
                     src={analysisResult.thumbnailUrl}
                     alt="Video thumbnail"

@@ -181,7 +181,11 @@ const Dashboard = () => {
       };
       reader.readAsDataURL(file);
     } else if (file.type.startsWith("video/")) {
-      // For videos, create a video element to extract thumbnail
+      // For videos, create both a blob URL for playback and extract thumbnail
+      const videoUrl = URL.createObjectURL(file);
+      setFilePreview(videoUrl); // Store the video URL for playback
+
+      // Still extract thumbnail for preview in dashboard if needed
       const video = document.createElement("video");
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -195,13 +199,19 @@ const Dashboard = () => {
       video.onseeked = () => {
         if (ctx) {
           ctx.drawImage(video, 0, 0);
-          setFilePreview(canvas.toDataURL());
+          // You can store thumbnail separately if needed for dashboard preview
+          // const thumbnailDataUrl = canvas.toDataURL();
+          // setThumbnailPreview(thumbnailDataUrl);
         }
       };
 
-      video.src = URL.createObjectURL(file);
+      video.src = videoUrl;
+    } else if (file.type.startsWith("audio/")) {
+      // For audio files, create blob URL
+      const audioUrl = URL.createObjectURL(file);
+      setFilePreview(audioUrl);
     } else {
-      // For audio files, use a default audio icon or create a simple preview
+      // For other file types, set preview to null
       setFilePreview(null);
     }
 
@@ -320,8 +330,17 @@ const Dashboard = () => {
       // Generate unique token
       const token = generateUniqueToken();
 
-      // Store the response data temporarily
-      localStorage.setItem(`analysis_${token}`, JSON.stringify(response));
+      // Store the response data AND the file URL
+      const dataToStore = {
+        ...response,
+        fileUrl: filePreview, // Add the video/media URL
+        fileName: uploadedFile?.name || selectedFile.name,
+        fileSize:
+          uploadedFile?.size ||
+          `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+      };
+
+      localStorage.setItem(`analysis_${token}`, JSON.stringify(dataToStore));
 
       // Navigate to appropriate detection page based on file type
       if (
@@ -335,7 +354,7 @@ const Dashboard = () => {
             fileSize:
               uploadedFile?.size ||
               `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-            fileUrl: filePreview,
+            fileUrl: filePreview, // Pass the video URL
           },
         });
       } else {
@@ -346,7 +365,7 @@ const Dashboard = () => {
             fileSize:
               uploadedFile?.size ||
               `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-            fileUrl: filePreview,
+            fileUrl: filePreview, // Pass the media URL
           },
         });
       }
