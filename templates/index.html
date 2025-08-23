@@ -1,165 +1,4 @@
-#!/usr/bin/env python3
-"""
-Flask Web Application for Audio Deepfake Detection
-"""
-
-import os
-import sys
-from pathlib import Path
-import tempfile
-import json
-from datetime import datetime
-
-from flask import Flask, render_template, request, jsonify, send_file
-from werkzeug.utils import secure_filename
-import torch
-
-# Add src to path
-sys.path.append(str(Path(__file__).parent / "src"))
-
-from audio_model import AudioDeepfakeDetector
-from audio_preprocessing import AudioPreprocessor
-
-# Initialize Flask app
-app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'wav', 'mp3', 'flac', 'm4a', 'ogg', 'aac'}
-
-# Create upload directory
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs('static', exist_ok=True)
-
-# Global model instance
-model = None
-preprocessor = None
-device = None
-
-def allowed_file(filename):
-    """Check if file extension is allowed"""
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-def load_model():
-    """Load the trained model"""
-    global model, preprocessor, device
-    
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    # Load model
-    model_path = 'checkpoints/best_model.pth'
-    
-    if not Path(model_path).exists():
-        print(f"⚠️ Model not found at {model_path}")
-        print("Please train the model first using: python train.py")
-        return False
-    
-    model = AudioDeepfakeDetector(
-        input_size=128,
-        hidden_size=256,
-        num_layers=3,
-        dropout=0.0,
-        bidirectional=True
-    )
-    
-    checkpoint = torch.load(model_path, map_location=device)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model = model.to(device)
-    model.eval()
-    
-    # Initialize preprocessor
-    preprocessor = AudioPreprocessor(
-        sample_rate=16000,
-        n_mels=128,
-        n_fft=2048,
-        hop_length=512,
-        max_duration=10.0,
-        augment=False
-    )
-    
-    print(f"✅ Model loaded successfully on {device}")
-    return True
-
-@app.route('/')
-def index():
-    """Main page"""
-    return render_template('index.html')
-
-@app.route('/api/predict', methods=['POST'])
-def predict():
-    """API endpoint for audio deepfake detection"""
-    
-    if 'audio' not in request.files:
-        return jsonify({'error': 'No audio file provided'}), 400
-    
-    file = request.files['audio']
-    
-    if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
-    
-    if not allowed_file(file.filename):
-        return jsonify({'error': 'Invalid file type. Allowed: WAV, MP3, FLAC, M4A, OGG'}), 400
-    
-    try:
-        # Save uploaded file
-        filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{timestamp}_{filename}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        # Process audio
-        mel_spec = preprocessor.process_audio_file(filepath)
-        
-        if mel_spec is None:
-            return jsonify({'error': 'Failed to process audio file'}), 500
-        
-        # Prepare input
-        mel_tensor = torch.from_numpy(mel_spec).float().unsqueeze(0).unsqueeze(0)
-        mel_tensor = mel_tensor.to(device)
-        
-        # Make prediction
-        with torch.no_grad():
-            outputs = model(mel_tensor)
-            probabilities = torch.softmax(outputs, dim=1)
-            
-            fake_prob = probabilities[0, 1].item()
-            real_prob = probabilities[0, 0].item()
-            prediction = 'FAKE' if fake_prob > 0.5 else 'REAL'
-            confidence = max(fake_prob, real_prob)
-        
-        # Clean up uploaded file
-        os.remove(filepath)
-        
-        # Return result
-        result = {
-            'prediction': prediction,
-            'confidence': round(confidence * 100, 2),
-            'fake_probability': round(fake_prob * 100, 2),
-            'real_probability': round(real_prob * 100, 2),
-            'filename': file.filename,
-            'timestamp': timestamp
-        }
-        
-        return jsonify(result)
-    
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/health')
-def health():
-    """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
-        'model_loaded': model is not None,
-        'device': str(device) if device else 'not initialized'
-    })
-
-# Create HTML template
-def create_html_template():
-    """Create index.html template"""
-    html_content = '''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -254,6 +93,7 @@ def create_html_template():
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
         
         .result {
@@ -297,13 +137,18 @@ def create_html_template():
             background: #f0f0f0;
             border-radius: 15px;
             overflow: hidden;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
             transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
         }
         
         .loading {
@@ -329,9 +174,30 @@ def create_html_template():
         
         .file-info {
             margin-top: 15px;
-            padding: 10px;
+            padding: 15px;
             background: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
             display: none;
         }
     </style>
@@ -341,11 +207,15 @@ def create_html_template():
         <h1>🎵 Audio Deepfake Detector</h1>
         <p class="subtitle">Upload an audio file to check if it's real or AI-generated</p>
         
+        <div class="warning">
+            ⚠️ <strong>Note:</strong> This model is trained on limited data and may not be fully accurate. Results should be interpreted with caution.
+        </div>
+        
         <div class="upload-area" id="upload-area">
             <div class="upload-icon">📁</div>
             <p>Click to select or drag & drop audio file here</p>
             <p style="margin-top: 10px; color: #999; font-size: 14px;">
-                Supported: WAV, MP3, FLAC, M4A, OGG (Max 50MB)
+                Supported: WAV, MP3, FLAC, M4A, OGG, AAC (Max 50MB)
             </p>
             <input type="file" id="file-input" accept="audio/*">
         </div>
@@ -358,8 +228,10 @@ def create_html_template():
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Analyzing audio...</p>
+            <p>Analyzing audio... This may take a few seconds.</p>
         </div>
+        
+        <div class="error" id="error"></div>
         
         <div class="result" id="result">
             <div class="result-title" id="result-title"></div>
@@ -379,6 +251,7 @@ def create_html_template():
         const fileInfo = document.getElementById('file-info');
         const loading = document.getElementById('loading');
         const result = document.getElementById('result');
+        const error = document.getElementById('error');
         
         uploadArea.addEventListener('click', () => fileInput.click());
         
@@ -410,12 +283,27 @@ def create_html_template():
         function handleFileSelect(file) {
             selectedFile = file;
             
+            // Check file size
+            const maxSize = 50 * 1024 * 1024; // 50MB
+            if (file.size > maxSize) {
+                showError('File too large. Maximum size is 50MB.');
+                return;
+            }
+            
             fileInfo.innerHTML = `
-                <strong>Selected:</strong> ${file.name}<br>
-                <strong>Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB
+                <strong>📎 Selected:</strong> ${file.name}<br>
+                <strong>📏 Size:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                <strong>🎵 Type:</strong> ${file.type || 'Unknown'}
             `;
             fileInfo.style.display = 'block';
             analyzeBtn.style.display = 'inline-block';
+            result.style.display = 'none';
+            error.style.display = 'none';
+        }
+        
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
             result.style.display = 'none';
         }
         
@@ -425,6 +313,7 @@ def create_html_template():
             analyzeBtn.disabled = true;
             loading.style.display = 'block';
             result.style.display = 'none';
+            error.style.display = 'none';
             
             const formData = new FormData();
             formData.append('audio', selectedFile);
@@ -440,10 +329,10 @@ def create_html_template():
                 if (response.ok) {
                     showResult(data);
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
+                    showError(data.error || 'Unknown error occurred');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                showError('Network error: ' + error.message);
             } finally {
                 analyzeBtn.disabled = false;
                 loading.style.display = 'none';
@@ -454,34 +343,36 @@ def create_html_template():
             result.className = 'result ' + (data.prediction === 'REAL' ? 'real' : 'fake');
             result.style.display = 'block';
             
-            document.getElementById('result-title').textContent = 
-                data.prediction === 'REAL' ? '✅ REAL AUDIO' : '⚠️ FAKE AUDIO DETECTED';
+            const icon = data.prediction === 'REAL' ? '✅' : '⚠️';
+            const title = data.prediction === 'REAL' ? 'REAL AUDIO' : 'FAKE AUDIO DETECTED';
+            
+            document.getElementById('result-title').textContent = `${icon} ${title}`;
             
             document.getElementById('result-details').innerHTML = `
-                <strong>Confidence:</strong> ${data.confidence}%<br>
-                <strong>Real Probability:</strong> ${data.real_probability}%<br>
-                <strong>Fake Probability:</strong> ${data.fake_probability}%
+                <strong>🎯 Confidence:</strong> ${data.confidence}%<br>
+                <strong>✅ Real Probability:</strong> ${data.real_probability}%<br>
+                <strong>⚠️ Fake Probability:</strong> ${data.fake_probability}%<br>
+                <strong>📝 Note:</strong> ${data.prediction === 'REAL' ? 
+                    'This audio appears to be authentic.' : 
+                    'This audio may be AI-generated or manipulated.'}
             `;
             
-            document.getElementById('confidence-bar').style.width = data.confidence + '%';
+            const confidenceBar = document.getElementById('confidence-bar');
+            confidenceBar.style.width = data.confidence + '%';
+            confidenceBar.textContent = data.confidence + '%';
         }
+        
+        // Check model health on load
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.model_loaded) {
+                    showError('Model not loaded. Please train the model first.');
+                }
+            })
+            .catch(error => {
+                console.error('Health check failed:', error);
+            });
     </script>
 </body>
-</html>'''
-    
-    # Create templates directory and save HTML
-    os.makedirs('templates', exist_ok=True)
-    with open('templates/index.html', 'w') as f:
-        f.write(html_content)
-    print("✅ HTML template created")
-
-if __name__ == '__main__':
-    # Create HTML template
-    create_html_template()
-    
-    # Load model
-    if load_model():
-        print("🌐 Starting web server...")
-        app.run(debug=True, host='0.0.0.0', port=5000)
-    else:
-        print("❌ Failed to load model. Exiting.")
+</html>

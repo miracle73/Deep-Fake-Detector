@@ -15,7 +15,7 @@ sys.path.append(str(Path(__file__).parent / "src"))
 from audio_model import AudioDeepfakeDetector
 from audio_dataset import create_data_loaders
 
-def evaluate_model(model_path: str, csv_file: str, data_dir: str):
+def evaluate_model(model_path: str, data_dir: str):
     """Evaluate trained model on test set"""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -28,7 +28,7 @@ def evaluate_model(model_path: str, csv_file: str, data_dir: str):
     model.eval()
     
     # Load test data
-    _, _, test_loader = create_data_loaders(csv_file, data_dir, batch_size=32)
+    _, _, test_loader = create_data_loaders(data_dir, batch_size=32)
     
     all_preds = []
     all_labels = []
@@ -61,8 +61,8 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-path', default='checkpoints/best_model.pth')
-    parser.add_argument('--csv-file', default='data/raw/DATASET-balanced.csv')
-    parser.add_argument('--data-dir', default='data/raw')
+    parser.add_argument('--data-dir', default='data/raw',
+                       help='Directory containing REAL and FAKE folders')
     
     args = parser.parse_args()
-    evaluate_model(args.model_path, args.csv_file, args.data_dir)
+    evaluate_model(args.model_path, args.data_dir)
