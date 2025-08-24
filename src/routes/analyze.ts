@@ -9,7 +9,7 @@ import upload, {
 } from '../middlewares/upload.js';
 import { validateAndDecrementQuota } from '../utils/detect.js';
 import { videoUploadMiddleware } from '../middlewares/video-upload.js';
-import audioUploadMiddleware from 'middlewares/audio-upload.js';
+import audioUploadMiddleware from '../middlewares/audio-upload.js';
 
 const router = express.Router();
 
@@ -45,7 +45,7 @@ router.post(
   DetectController.analyzeAudio
 );
 
-router.post('/upload-media-url', DetectController.urlUpload);
+router.post('/upload-media-url', protect, DetectController.urlUpload);
 
 router.get('/analyze/status/:id', DetectController.getJobStatus);
 

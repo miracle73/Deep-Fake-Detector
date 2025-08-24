@@ -1,12 +1,10 @@
 import { PubSub } from '@google-cloud/pubsub';
 import axios from 'axios';
 import FormData from 'form-data';
+import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import mime from 'mime-types';
-import { randomUUID } from 'crypto';
 
 import User from '../models/User.js';
 import { storeAnalysis } from '../services/analysis.media.js';
@@ -18,19 +16,18 @@ import {
   generateAndUploadThumbnail,
   generateAndUploadVideoThumbnail,
 } from '../services/media.service.js';
+import { uploadToGCS } from '../services/storage.js';
 import { callVertexAIBatch } from '../services/vertexClient.js';
 import { bucket } from '../utils/gcsClient.js';
 import { cloudLogger } from '../utils/google-cloud/logger.js';
 import { pushMetric } from '../utils/google-cloud/metrics.js';
 import logger from '../utils/logger.js';
+import { DownloadedFile } from '../utils/mediaDownloader.js';
 
 import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
 import type { AuthRequest } from '../middlewares/auth.js';
-import { DownloadedFile, MediaDownloader } from 'utils/mediaDownloader.js';
-import { uploadToGCS } from 'services/storage.js';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
