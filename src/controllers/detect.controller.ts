@@ -4,6 +4,9 @@ import FormData from 'form-data';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import mime from 'mime-types';
+import { randomUUID } from 'crypto';
 
 import User from '../models/User.js';
 import { storeAnalysis } from '../services/analysis.media.js';
@@ -25,6 +28,8 @@ import type { NextFunction, Request, Response } from 'express';
 import type { Response as ExpressResponse } from 'express';
 import type { DetectionJob } from '../services/detectionQueue.js';
 import type { AuthRequest } from '../middlewares/auth.js';
+import { DownloadedFile, MediaDownloader } from 'utils/mediaDownloader.js';
+import { uploadToGCS } from 'services/storage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +43,10 @@ const MODEL_API_URL =
 const VIDEO_API_URL =
   process.env.VIDEO_API_URL ||
   'https://video-deepfake-detector-production.up.railway.app';
+
+const AUDIO_MODEL_API_URL =
+  process.env.AUDIO_MODEL_API_URL ||
+  'https://audio-deepfake-model-production.up.railway.app';
 
 export const analyze = async (
   req: AuthRequest,
@@ -383,6 +392,97 @@ export const analyzeVideo = async (
   });
 };
 
+export const analyzeAudio = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({
+      statusCode: 400,
+      status: 'error',
+      success: false,
+      message: 'No file uploaded',
+      errorCode: 'NO_FILE',
+      details: 'Please upload a valid audio file',
+    });
+    return;
+  }
+
+  const thumbnailUrl =
+    'https://www.premiumbeat.com/blog/wp-content/uploads/2015/08/Audio-Waveforms-Featued-Image.jpg?w=875&h=490&crop=1';
+
+  const user = await User.findById(req.user._id);
+  const formData = new FormData();
+  formData.append('audio', file.buffer, {
+    filename: file.originalname,
+    contentType: file.mimetype,
+  });
+
+  const response = await axios.post(
+    `${AUDIO_MODEL_API_URL}/predict`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  const { confidence } = response.data;
+
+  await storeAnalysis({
+    user,
+    confidence,
+    file,
+    thumbnailUrl,
+  });
+
+  await pushMetric({ type: 'detection_count', value: 1 });
+
+  await cloudLogger.info({
+    message: 'Audio analysis complete',
+    context: {
+      userId: req.user._id,
+      thumbnailUrl,
+      confidence,
+      analysisId: response.data.analysisId,
+    },
+  });
+
+  logger.info('Audio analysis complete', {
+    userId: req.user._id,
+    thumbnailUrl,
+    confidence,
+  });
+
+  if (!response.data) {
+    res.status(500).json({
+      success: false,
+      error: 'Audio analysis failed',
+      message: 'No data returned from model API',
+      errorCode: 'MODEL_API_ERROR',
+    });
+    return;
+  }
+  if (response.data.error) {
+    res.status(500).json({
+      success: false,
+      error: 'Audio analysis failed',
+      message: response.data.error,
+      errorCode: 'MODEL_API_ERROR',
+    });
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Audio analysis complete',
+    thumbnailUrl,
+    data: response.data,
+  });
+};
+
 export const getStatus = async (req: Request, res: Response) => {
   const job = detectionJobs.get(req.params.id);
   if (!job) res.status(404).json({ message: 'Job not found' });
@@ -414,4 +514,119 @@ export const getJobStatus = (req: Request, res: Response): Promise<void> => {
   });
 
   return Promise.resolve();
+};
+
+export const urlUpload = async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      res.status(400).json({ success: false, message: 'URL is required' });
+      return;
+    }
+
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const contentType = response.headers['content-type'];
+    const extension = contentType.split('/')[1] || 'bin';
+    const size = Number.parseInt(response.headers['content-length'] || '0', 10);
+
+    const tmpFilePath = path.join('/tmp', `${uuidv4()}.${extension}`);
+    fs.writeFileSync(tmpFilePath, response.data);
+    const gcsFileName = `previews/${uuidv4()}.${extension}`;
+    const previewUrl = await uploadToGCS(tmpFilePath, gcsFileName, contentType);
+
+    // Clean up tmp file
+    fs.unlinkSync(tmpFilePath);
+
+    // Respond with metadata
+    res.json({
+      success: true,
+      metadata: {
+        url,
+        contentType,
+        extension,
+        size,
+        previewUrl,
+      },
+      message:
+        'File fetched and uploaded to GCS successfully. Confirm before upload.',
+    });
+  } catch (error: any) {
+    console.error('Error uploading media URL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch or upload media URL',
+      error: error.message,
+    });
+  }
+  // const { url } = req.body;
+
+  // if (!url) {
+  //   res.status(400).json({ success: false, message: 'URL is required' });
+  //   return;
+  // }
+
+  // try {
+  //   const headResp = await axios.head(url, { timeout: 5000 }).catch(() => null);
+
+  //   if (!headResp || !headResp.headers['content-type']) {
+  //     res
+  //       .status(400)
+  //       .json({ success: false, message: 'Invalid or inaccessible URL' });
+  //     return;
+  //   }
+
+  //   const contentType = headResp.headers['content-type'];
+  //   const extension = mime.extension(contentType) || 'bin';
+
+  //   const tmpDir = path.join('/tmp');
+  //   if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+
+  //   const tempFile = path.join(tmpDir, `${randomUUID()}.${extension}`);
+  //   const writer = fs.createWriteStream(tempFile);
+  //   await new Promise((resolve, reject) => {
+  //     axios({
+  //       url,
+  //       method: 'GET',
+  //       responseType: 'stream',
+  //       maxContentLength: 2 * 1024 * 1024,
+  //     })
+  //       .then((response) => {
+  //         response.data.pipe(writer);
+  //         writer.on('finish', resolve);
+  //         writer.on('error', reject);
+  //       })
+  //       .catch(reject);
+  //   });
+
+  //   // 2. Build metadata
+  //   const metadata = {
+  //     url,
+  //     contentType,
+  //     extension,
+  //     size: fs.statSync(tempFile).size,
+  //     previewPath: tempFile,
+  //   };
+
+  //   res.json({
+  //     success: true,
+  //     metadata,
+  //     message: 'File fetched successfully. Confirm before upload.',
+  //   });
+  // } catch (err: any) {
+  //   console.error('Error fetching URL:', err.message);
+  //   res.status(500).json({
+  //     success: false,
+  //     message: 'Failed to fetch file',
+  //     error: err.message,
+  //   });
+  // }
+};
+
+export const processMedia = async (file: DownloadedFile) => {
+  return {
+    filename: file.originalName,
+    mimeType: file.mimeType,
+    size: file.size,
+    // ... other metadata
+  };
 };

@@ -9,11 +9,17 @@ WORKDIR /app
 # install pnpm globally
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# copy only lockfile and package.json first
+COPY package.json pnpm-lock.yaml* ./
+
+# install deps first
+RUN pnpm install --frozen-lockfile
+
 # copy project files
 COPY . .
 
 # install dependencies
-RUN pnpm install --frozen-lockfile
+# RUN pnpm install --frozen-lockfile
 
 # build the TypeScript app
 RUN pnpm build
