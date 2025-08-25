@@ -1,12 +1,10 @@
 import { PubSub } from '@google-cloud/pubsub';
 import axios from 'axios';
 import FormData from 'form-data';
-
-import { Readable } from 'stream';
-
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
 
 import User from '../models/User.js';
@@ -535,6 +533,100 @@ export const analyzeAudio = async (
     if (f?.path) {
       fs.promises.unlink(f.path).catch(() => {});
     }
+  }
+};
+
+export const analyzeURL = async (req: AuthRequest, res: Response) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      res.status(400).json({ success: false, message: 'URL is required' });
+      return;
+    }
+
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const contentType = response.headers['content-type'];
+    if (!contentType) throw new Error('Could not determine content type');
+
+    const extension = contentType.split('/')[1] || 'bin';
+    const size = Number.parseInt(response.headers['content-length'] || '0', 10);
+
+    const tmpFilePath = path.join('/tmp', `${uuidv4()}.${extension}`);
+    fs.writeFileSync(tmpFilePath, response.data);
+
+    let analyzerUrl: string | null = null;
+
+    let fieldName = 'file';
+
+    console.log('this is contentType', contentType);
+    if (contentType.startsWith('image/')) {
+      analyzerUrl = `${MODEL_API_URL}/predict`;
+      fieldName = 'image';
+    } else if (contentType.startsWith('audio/')) {
+      analyzerUrl = `${AUDIO_MODEL_API_URL}/predict_audio`;
+      fieldName = 'audio';
+    } else if (contentType.startsWith('video/')) {
+      analyzerUrl = `${VIDEO_API_URL}/predict_video`;
+      fieldName = 'video';
+    } else {
+      throw new Error(`Unsupported content type: ${contentType}`);
+    }
+
+    const form = new FormData();
+    form.append(fieldName, fs.createReadStream(tmpFilePath), {
+      filename: `upload.${extension}`,
+      contentType,
+    });
+
+    console.log('this is form', contentType, fieldName, analyzeURL);
+
+    const modelResponse = await axios.post(analyzerUrl, form, {
+      headers: {
+        ...form.getHeaders(),
+      },
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+    });
+
+    fs.unlinkSync(tmpFilePath);
+
+    const analysis = modelResponse.data;
+    console.log('this is result', analysis);
+
+    const user = await User.findById((req as any).user._id);
+    await storeAnalysis({
+      user,
+      confidence: analysis.confidence,
+      file: { originalname: url, mimetype: contentType, size } as any,
+      thumbnailUrl: url,
+    });
+    await pushMetric({ type: 'detection_count', value: 1 });
+
+    logger.info('URL analysis complete', {
+      userId: (req as any).user._id,
+      url,
+      analysis,
+    });
+
+    res.status(200).json({
+      success: true,
+      metadata: {
+        url,
+        contentType,
+        extension,
+        size,
+        previewUrl: url,
+      },
+      analysis,
+      message: 'File analyzed successfully',
+    });
+  } catch (error) {
+    console.error('Error analyzing URL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to analyze media from URL',
+      error: error instanceof Error ? error.message : 'Unknown Error Occured',
+    });
   }
 };
 

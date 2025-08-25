@@ -45,6 +45,13 @@ router.post(
   DetectController.analyzeAudio
 );
 
+router.post(
+  '/analyze-url',
+  protect,
+  // validateAndDecrementQuota,
+  DetectController.analyzeURL
+);
+
 router.post('/upload-media-url', protect, DetectController.urlUpload);
 
 router.get('/analyze/status/:id', DetectController.getJobStatus);
