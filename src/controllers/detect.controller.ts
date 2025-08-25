@@ -2,6 +2,8 @@ import { PubSub } from '@google-cloud/pubsub';
 import axios from 'axios';
 import FormData from 'form-data';
 
+import { Readable } from 'stream';
+
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -394,89 +396,146 @@ export const analyzeAudio = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
-  const file = req.file;
-  if (!file) {
-    res.status(400).json({
-      statusCode: 400,
-      status: 'error',
-      success: false,
-      message: 'No file uploaded',
-      errorCode: 'NO_FILE',
-      details: 'Please upload a valid audio file',
-    });
-    return;
-  }
-
-  const thumbnailUrl =
-    'https://www.premiumbeat.com/blog/wp-content/uploads/2015/08/Audio-Waveforms-Featued-Image.jpg?w=875&h=490&crop=1';
-
-  const user = await User.findById(req.user._id);
-  const formData = new FormData();
-
-  formData.append('audio', fs.createReadStream(file.path));
-
-  const headers = formData.getHeaders();
-
-  const response = await axios.post(
-    `${AUDIO_MODEL_API_URL}/predict_audio`,
-    formData,
-    {
-      headers,
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({
+        statusCode: 400,
+        status: 'error',
+        success: false,
+        message: 'No file uploaded',
+        errorCode: 'NO_FILE',
+        details: 'Please upload a valid audio file',
+      });
+      return;
     }
-  );
 
-  const { confidence } = response.data;
+    const makeStream = (): {
+      stream: NodeJS.ReadableStream;
+      knownLength?: number;
+    } => {
+      if (file.buffer && file.buffer.length) {
+        const readable = new Readable();
+        readable.push(file.buffer);
+        readable.push(null);
+        return { stream: readable, knownLength: file.buffer.length };
+      }
+      if (file.path) {
+        return {
+          stream: fs.createReadStream(file.path),
+          knownLength: file.size,
+        };
+      }
 
-  await storeAnalysis({
-    user,
-    confidence,
-    file,
-    thumbnailUrl,
-  });
+      const fallback = new Readable().wrap(req);
+      return { stream: fallback };
+    };
 
-  await pushMetric({ type: 'detection_count', value: 1 });
+    const { stream, knownLength } = makeStream();
 
-  await cloudLogger.info({
-    message: 'Audio analysis complete',
-    context: {
+    const form = new FormData();
+    form.append('audio', stream as any, {
+      filename: file.originalname || 'audio',
+      contentType: file.mimetype || 'application/octet-stream',
+      knownLength,
+    });
+
+    let headers = form.getHeaders();
+    try {
+      const contentLength: number = await new Promise((resolve, reject) => {
+        form.getLength((err, length) => (err ? reject(err) : resolve(length)));
+      });
+      headers = { ...headers, 'Content-Length': contentLength };
+    } catch {}
+
+    const response = await axios.post(
+      `${
+        process.env.AUDIO_MODEL_API_URL ||
+        'https://audio-deepfake-model-production.up.railway.app'
+      }/predict_audio`,
+      form,
+      {
+        headers,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      }
+    );
+
+    const thumbnailUrl =
+      'https://www.premiumbeat.com/blog/wp-content/uploads/2015/08/Audio-Waveforms-Featued-Image.jpg?w=875&h=490&crop=1';
+
+    const user = await User.findById(req.user._id);
+
+    const { confidence } = response.data ?? {};
+
+    await storeAnalysis({
+      user,
+      confidence,
+      file,
+      thumbnailUrl,
+    });
+
+    await pushMetric({ type: 'detection_count', value: 1 });
+
+    await cloudLogger.info({
+      message: 'Audio analysis complete',
+      context: {
+        userId: req.user._id,
+        thumbnailUrl,
+        confidence,
+        analysisId: response.data?.analysisId,
+      },
+    });
+
+    logger.info('Audio analysis complete', {
       userId: req.user._id,
       thumbnailUrl,
       confidence,
-      analysisId: response.data.analysisId,
-    },
-  });
+    });
 
-  logger.info('Audio analysis complete', {
-    userId: req.user._id,
-    thumbnailUrl,
-    confidence,
-  });
+    if (!response.data) {
+      res.status(500).json({
+        success: false,
+        error: 'Audio analysis failed',
+        message: 'No data returned from model API',
+        errorCode: 'MODEL_API_ERROR',
+      });
+      return;
+    }
+    if (response.data.error) {
+      res.status(500).json({
+        success: false,
+        error: 'Audio analysis failed',
+        message: response.data.error,
+        errorCode: 'MODEL_API_ERROR',
+      });
+      return;
+    }
 
-  if (!response.data) {
+    res.status(200).json({
+      success: true,
+      message: 'Audio analysis complete',
+      thumbnailUrl,
+      data: response.data,
+    });
+  } catch (err: any) {
+    const apiErr = err?.response?.data || err?.message || 'Unknown error';
+    console.error('Audio analyze error:', apiErr);
+
     res.status(500).json({
       success: false,
-      error: 'Audio analysis failed',
-      message: 'No data returned from model API',
-      errorCode: 'MODEL_API_ERROR',
+      code: 500,
+      message: err?.message || 'Audio analysis failed',
+      error: err?.response?.data || {
+        message: err?.message || 'Unknown error',
+      },
     });
-    return;
+  } finally {
+    const f: any = (req as any).file;
+    if (f?.path) {
+      fs.promises.unlink(f.path).catch(() => {});
+    }
   }
-  if (response.data.error) {
-    res.status(500).json({
-      success: false,
-      error: 'Audio analysis failed',
-      message: response.data.error,
-      errorCode: 'MODEL_API_ERROR',
-    });
-    return;
-  }
-
-  res.status(200).json({
-    success: true,
-    message: 'Audio analysis complete',
-    thumbnailUrl,
-    data: response.data,
-  });
 };
 
 export const getStatus = async (req: Request, res: Response) => {
