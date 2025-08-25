@@ -309,6 +309,10 @@ interface DetectAnalyzeRequest {
   image: File;
 }
 
+interface DetectAnalyzeAudioRequest {
+  audio: File;
+}
+
 export interface DetectAnalyzeResponse {
   statusCode: number;
   status: string;
@@ -794,6 +798,21 @@ export const apiService = createApi({
         };
       },
     }),
+    detectAnalyzeAudio: builder.mutation<
+      DetectAnalyzeResponse,
+      DetectAnalyzeAudioRequest
+    >({
+      query: ({ audio }) => {
+        const formData = new FormData();
+        formData.append("audio", audio);
+
+        return {
+          url: "detect/analyze",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
@@ -824,4 +843,5 @@ export const {
   useUpdateFeedbackMutation,
   useDeleteFeedbackMutation,
   useDetectAnalyzeVideoMutation,
+  useDetectAnalyzeAudioMutation,
 } = apiService;

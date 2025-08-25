@@ -108,7 +108,14 @@ const VideoScreen = () => {
       setAnalysisResult(stateData.analysisResult);
       setFileName(stateData.fileName || "Unknown File");
       setFileSize(stateData.fileSize || "Unknown Size");
-      setVideoUrl(stateData.fileUrl || null); // Get the video URL
+
+      // Use originalFile to create a fresh blob URL
+      if (stateData.originalFile) {
+        const videoUrl = URL.createObjectURL(stateData.originalFile);
+        setVideoUrl(videoUrl);
+      } else {
+        setVideoUrl(stateData.fileUrl || null);
+      }
     } else if (token) {
       // Fallback to localStorage
       const storedData = localStorage.getItem(`analysis_${token}`);
@@ -121,7 +128,7 @@ const VideoScreen = () => {
             "Unknown File"
         );
         setFileSize(parsedData.fileSize || "Unknown Size");
-        setVideoUrl(parsedData.fileUrl || null); // Get the video URL from storage
+        setVideoUrl(parsedData.fileUrl || null);
       }
     }
   }, [token, location.state]);
@@ -506,14 +513,19 @@ const VideoScreen = () => {
           <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6">
             {/* Video Preview - Left Side */}
             {/* Video Preview - Left Side */}
+            {/* Video Preview - Left Side */}
             <div className="w-full lg:w-2/3">
-              <div className="rounded-xl overflow-hidden bg-black">
+              <div
+                className="rounded-xl overflow-hidden bg-black"
+                style={{ height: "400px" }}
+              >
                 {videoUrl ? (
                   <video
                     controls
-                    className="w-full h-auto"
+                    className="w-full h-full object-cover"
                     src={videoUrl}
-                    poster={analysisResult?.thumbnailUrl} // Use thumbnail as poster if available
+                    poster={analysisResult?.thumbnailUrl}
+                    style={{ height: "400px" }}
                   >
                     Your browser does not support the video tag.
                   </video>
@@ -521,13 +533,15 @@ const VideoScreen = () => {
                   <img
                     src={analysisResult.thumbnailUrl}
                     alt="Video thumbnail"
-                    className="w-full h-auto"
+                    className="w-full h-full object-cover"
+                    style={{ height: "400px" }}
                   />
                 ) : (
                   <img
                     src={FourthImage || "/placeholder.svg"}
                     alt="Video preview showing analysis result"
-                    className="w-full h-auto"
+                    className="w-full h-full object-cover"
+                    style={{ height: "400px" }}
                   />
                 )}
               </div>

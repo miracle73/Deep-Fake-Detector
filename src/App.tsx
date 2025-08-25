@@ -113,7 +113,7 @@ function App() {
             }
           />
           <Route
-            path="/audio-detection"
+            path="/audio-detection/:token"
             element={
               <ProtectedRoute>
                 <AudioScreen />

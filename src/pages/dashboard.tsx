@@ -28,6 +28,7 @@ import {
   useDetectAnalyzeMutation,
   useGetAnalysisHistoryQuery,
   useDetectAnalyzeVideoMutation,
+  useDetectAnalyzeAudioMutation,
 } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
@@ -62,6 +63,7 @@ const Dashboard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [detectAnalyzeVideo] = useDetectAnalyzeVideoMutation();
+  const [detectAnalyzeAudio] = useDetectAnalyzeAudioMutation();
 
   const getPageNumbers = () => {
     if (!historyData?.pagination) return [];
@@ -174,6 +176,7 @@ const Dashboard = () => {
     setIsUploading(true);
 
     // Generate preview based on file type
+    // Generate preview based on file type
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -181,37 +184,26 @@ const Dashboard = () => {
       };
       reader.readAsDataURL(file);
     } else if (file.type.startsWith("video/")) {
-      // For videos, create both a blob URL for playback and extract thumbnail
-      const videoUrl = URL.createObjectURL(file);
-      setFilePreview(videoUrl); // Store the video URL for playback
-
-      // Still extract thumbnail for preview in dashboard if needed
+      // Generate video thumbnail
       const video = document.createElement("video");
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      video.onloadedmetadata = () => {
+      video.src = URL.createObjectURL(file);
+      video.currentTime = 1; // Capture frame at 1 second
+      video.onloadeddata = () => {
+        const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        video.currentTime = 1; // Seek to 1 second
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(video, 0, 0);
+        setFilePreview(canvas.toDataURL());
+        URL.revokeObjectURL(video.src);
       };
-
-      video.onseeked = () => {
-        if (ctx) {
-          ctx.drawImage(video, 0, 0);
-          // You can store thumbnail separately if needed for dashboard preview
-          // const thumbnailDataUrl = canvas.toDataURL();
-          // setThumbnailPreview(thumbnailDataUrl);
-        }
-      };
-
-      video.src = videoUrl;
     } else if (file.type.startsWith("audio/")) {
-      // For audio files, create blob URL
-      const audioUrl = URL.createObjectURL(file);
-      setFilePreview(audioUrl);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFilePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     } else {
-      // For other file types, set preview to null
       setFilePreview(null);
     }
 
@@ -322,6 +314,12 @@ const Dashboard = () => {
       ) {
         // Use video analysis endpoint for video files
         response = await detectAnalyzeVideo({ video: selectedFile }).unwrap();
+      } else if (
+        selectedFile.type.startsWith("audio/") ||
+        selectedFile.name.match(/\.(mp3|wav|aac)$/i)
+      ) {
+        // Use audio analysis endpoint for audio files
+        response = await detectAnalyzeAudio({ audio: selectedFile }).unwrap();
       } else {
         // Use image analysis endpoint for images and other files
         response = await detectAnalyze({ image: selectedFile }).unwrap();
@@ -333,7 +331,7 @@ const Dashboard = () => {
       // Store the response data AND the file URL
       const dataToStore = {
         ...response,
-        fileUrl: filePreview, // Add the video/media URL
+        fileUrl: selectedFile, // Add the media URL
         fileName: uploadedFile?.name || selectedFile.name,
         fileSize:
           uploadedFile?.size ||
@@ -354,7 +352,23 @@ const Dashboard = () => {
             fileSize:
               uploadedFile?.size ||
               `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-            fileUrl: filePreview, // Pass the video URL
+            fileUrl: filePreview,
+            originalFile: selectedFile,
+          },
+        });
+      } else if (
+        selectedFile.type.startsWith("audio/") ||
+        selectedFile.name.match(/\.(mp3|wav|aac)$/i)
+      ) {
+        // Navigate to audio detection page
+        navigate(`/audio-detection/${token}`, {
+          state: {
+            analysisResult: response,
+            fileName: uploadedFile?.name || selectedFile.name,
+            fileSize:
+              uploadedFile?.size ||
+              `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+            fileUrl: filePreview, // Pass the audio URL
           },
         });
       } else {
@@ -365,7 +379,7 @@ const Dashboard = () => {
             fileSize:
               uploadedFile?.size ||
               `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-            fileUrl: filePreview, // Pass the media URL
+            fileUrl: filePreview,
           },
         });
       }
