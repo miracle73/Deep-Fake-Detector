@@ -588,11 +588,15 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
     fs.unlinkSync(tmpFilePath);
 
     const analysis = modelResponse.data;
+    console.log(analysis.overall_assessment);
 
     const user = await User.findById((req as any).user._id);
     await storeAnalysis({
       user,
-      confidence: analysis.confidence,
+      confidence:
+        fieldName === 'video'
+          ? analysis.overall_assessment.confidence
+          : analysis.confidence,
       file: { originalname: url, mimetype: contentType, size } as any,
       thumbnailUrl: url,
     });
@@ -606,6 +610,8 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
 
     res.status(200).json({
       success: true,
+      analysis,
+      message: 'File analyzed successfully',
       metadata: {
         url,
         contentType,
@@ -613,8 +619,6 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
         size,
         previewUrl: url,
       },
-      analysis,
-      message: 'File analyzed successfully',
     });
   } catch (error) {
     console.error('Error analyzing URL:', error);
