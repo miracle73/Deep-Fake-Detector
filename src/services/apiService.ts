@@ -313,6 +313,22 @@ interface DetectAnalyzeAudioRequest {
   audio: File;
 }
 
+export interface DetectAnalyzeAudioResponse {
+  success: boolean;
+  message: string;
+  thumbnailUrl: string;
+  data: {
+    confidence: number;
+    deepfake_probability: number;
+    filename: string;
+    is_deepfake: boolean;
+    predicted_class: string;
+    real_probability: number;
+    segments_processed: number;
+    total_duration: number;
+  };
+}
+
 export interface DetectAnalyzeResponse {
   statusCode: number;
   status: string;
@@ -511,6 +527,61 @@ interface VideoAnalysisResponse {
       total_frames: number;
     };
   };
+}
+
+interface UploadMediaUrlRequest {
+  url: string;
+}
+
+interface UploadMediaUrlResponse {
+  success: boolean;
+  metadata: {
+    url: string;
+    contentType: string;
+    extension: string;
+    size: number;
+    previewUrl: string;
+  };
+  message: string;
+}
+
+interface AnalyzeUrlRequest {
+  url: string;
+}
+
+interface AnalyzeUrlResponse {
+  success: boolean;
+  metadata: {
+    url: string;
+    contentType: string;
+    extension: string;
+    size: number;
+    previewUrl: string;
+  };
+  analysis?: {
+    // For images
+    confidence?: number;
+    deepfake_probability?: number;
+    is_deepfake?: boolean;
+    model_type?: string;
+    predicted_class?: string;
+    real_probability?: number;
+    threshold_used?: number;
+    trained_samples?: number;
+    // For videos - reuse VideoAnalysisResponse data structure
+    analysis_type?: string;
+    overall_assessment?: unknown;
+    segment_analysis?: unknown[];
+    segment_summary?: string[];
+    technical_details?: unknown;
+    video_filename?: string;
+    video_info?: unknown;
+    // For audio - reuse DetectAnalyzeAudioResponse data structure
+    filename?: string;
+    segments_processed?: number;
+    total_duration?: number;
+  };
+  message: string;
 }
 
 export const apiService = createApi({
@@ -799,7 +870,7 @@ export const apiService = createApi({
       },
     }),
     detectAnalyzeAudio: builder.mutation<
-      DetectAnalyzeResponse,
+      DetectAnalyzeAudioResponse,
       DetectAnalyzeAudioRequest
     >({
       query: ({ audio }) => {
@@ -807,11 +878,29 @@ export const apiService = createApi({
         formData.append("audio", audio);
 
         return {
-          url: "detect/analyze",
+          url: "detect/analyze-audio",
           method: "POST",
           body: formData,
         };
       },
+    }),
+    uploadMediaUrl: builder.mutation<
+      UploadMediaUrlResponse,
+      UploadMediaUrlRequest
+    >({
+      query: ({ url }) => ({
+        url: "detect/upload-media-url",
+        method: "POST",
+        body: { url },
+      }),
+    }),
+
+    analyzeUrl: builder.mutation<AnalyzeUrlResponse, AnalyzeUrlRequest>({
+      query: ({ url }) => ({
+        url: "detect/analyze-url",
+        method: "POST",
+        body: { url },
+      }),
     }),
   }),
 });
@@ -844,4 +933,6 @@ export const {
   useDeleteFeedbackMutation,
   useDetectAnalyzeVideoMutation,
   useDetectAnalyzeAudioMutation,
+  useUploadMediaUrlMutation,
+  useAnalyzeUrlMutation,
 } = apiService;

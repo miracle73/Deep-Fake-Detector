@@ -1,4 +1,3 @@
-import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import {
   Bell,
@@ -8,12 +7,6 @@ import {
   AudioLines,
   Menu,
   X,
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  Volume2,
-  VolumeX,
   Shield,
 } from "lucide-react";
 import { BackIcon } from "../assets/svg";
@@ -24,13 +17,14 @@ import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
 
 interface AnalysisResult {
-  status: string;
-  confidenceScore: number;
-  fileName?: string;
-  fileSize?: string;
-  fileUrl?: string;
-  realRatio?: number;
-  fakeRatio?: number;
+  confidence: number;
+  deepfake_probability: number;
+  filename: string;
+  is_deepfake: boolean;
+  predicted_class: string;
+  real_probability: number;
+  segments_processed: number;
+  total_duration: number;
 }
 
 const AudioScreen = () => {
@@ -38,11 +32,6 @@ const AudioScreen = () => {
   const { token } = useParams();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.8);
-  const [isMuted, setIsMuted] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
     null
   );
@@ -61,107 +50,33 @@ const AudioScreen = () => {
       const storedData = localStorage.getItem(`analysis_${token}`);
       if (storedData) {
         const parsedData = JSON.parse(storedData);
-        setAnalysisResult(parsedData);
+        console.log(parsedData.fileUrl, 5400);
+        setAnalysisResult(parsedData.data);
         setFileName(parsedData.fileName || "Unknown Audio File");
         setFileSize(parsedData.fileSize || "Unknown size");
         setFileUrl(parsedData.fileUrl || "");
+
         setUploadDate(new Date().toLocaleDateString());
       }
       // If no stored data, try to get from location state
-      else if (location.state) {
-        const {
-          analysisResult: result,
-          fileName: name,
-          fileSize: size,
-          fileUrl: url,
-        } = location.state;
-        setAnalysisResult(result);
-        setFileName(name || "Unknown Audio File");
-        setFileSize(size || "Unknown size");
-        setFileUrl(url || "");
+      if (location.state) {
+        const { originalFile } = location.state;
+        console.log(location.state, 4500);
+
+        if (typeof originalFile === "string") {
+          setFileUrl(originalFile);
+        } else {
+          const audioFile = URL.createObjectURL(originalFile);
+          setFileUrl(audioFile);
+        }
+
         setUploadDate(new Date().toLocaleDateString());
       }
     }
   }, [token, location.state]);
 
-  // Audio event handlers
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      const handleLoadedMetadata = () => {
-        setDuration(Math.floor(audio.duration));
-      };
-
-      const handleTimeUpdate = () => {
-        setCurrentTime(Math.floor(audio.currentTime));
-      };
-
-      const handleEnded = () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      };
-
-      audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.addEventListener("timeupdate", handleTimeUpdate);
-      audio.addEventListener("ended", handleEnded);
-
-      return () => {
-        audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        audio.removeEventListener("timeupdate", handleTimeUpdate);
-        audio.removeEventListener("ended", handleEnded);
-      };
-    }
-  }, [fileUrl]);
-
-  // Update audio volume
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-
   const handleBack = () => {
     navigate("/dashboard");
-  };
-
-  const handlePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleVolumeToggle = () => {
-    setIsMuted(!isMuted);
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
-  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (audioRef.current && duration > 0) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const percentage = clickX / rect.width;
-      const newTime = Math.floor(percentage * duration);
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
   };
 
   // New functions for enhanced results section (similar to VideoScreen)
@@ -175,33 +90,26 @@ const AudioScreen = () => {
         gaugeColor: "#9CA3AF",
       };
 
-    const confidence = analysisResult.confidenceScore;
+    const realProb = analysisResult?.real_probability || 0;
+    const deepfakeProb = analysisResult?.deepfake_probability || 0;
 
-    if (
-      analysisResult.status?.toLowerCase() === "authentic" ||
-      analysisResult.status?.toLowerCase() === "real"
-    ) {
-      if (confidence >= 90) {
-        return {
-          riskLevel: "Low",
-          interpretation: "Very Likely Authentic",
-          action: "Accept as authentic. Manual review optional.",
-          riskColor: "green",
-          gaugeColor: "#10B981",
-        };
-      } else if (confidence >= 70) {
-        return {
-          riskLevel: "Medium",
-          interpretation: "Likely Authentic, Some Risk",
-          action: "Review manually if content is sensitive or high-stakes.",
-          riskColor: "yellow",
-          gaugeColor: "#F59E0B",
-        };
-      }
-    } else if (
-      analysisResult.status?.toLowerCase() === "uncertain" ||
-      analysisResult.status?.toLowerCase() === "inconclusive"
-    ) {
+    if (realProb >= 90 && deepfakeProb <= 10) {
+      return {
+        riskLevel: "Low",
+        interpretation: "Very Likely Real",
+        action: "Accept as authentic. Manual review optional.",
+        riskColor: "green",
+        gaugeColor: "#10B981",
+      };
+    } else if (realProb >= 70 && deepfakeProb <= 29) {
+      return {
+        riskLevel: "Medium",
+        interpretation: "Likely Real, Some Risk",
+        action: "Review manually if content is sensitive or high-stakes.",
+        riskColor: "yellow",
+        gaugeColor: "#F59E0B",
+      };
+    } else if (realProb >= 50 && deepfakeProb <= 49) {
       return {
         riskLevel: "Medium-High",
         interpretation: "Ambiguous / Uncertain",
@@ -210,92 +118,49 @@ const AudioScreen = () => {
         riskColor: "orange",
         gaugeColor: "#F97316",
       };
-    } else if (
-      analysisResult.status?.toLowerCase() === "deepfake" ||
-      analysisResult.status?.toLowerCase() === "fake"
-    ) {
-      if (confidence >= 70) {
-        return {
-          riskLevel: "Very High",
-          interpretation: "Very Likely Deepfake",
-          action: "Reject or flag. Notify relevant stakeholders.",
-          riskColor: "red",
-          gaugeColor: "#DC2626",
-        };
-      } else {
-        return {
-          riskLevel: "High",
-          interpretation: "Likely Deepfake, But Not Conclusive",
-          action: "Treat cautiously. Manual review required; possibly reject.",
-          riskColor: "red",
-          gaugeColor: "#EF4444",
-        };
-      }
+    } else if (realProb >= 30 && deepfakeProb <= 69) {
+      return {
+        riskLevel: "High",
+        interpretation: "Likely Deepfake, But Not Conclusive",
+        action: "Treat cautiously. Manual review required; possibly reject.",
+        riskColor: "red",
+        gaugeColor: "#EF4444",
+      };
+    } else {
+      return {
+        riskLevel: "Very High",
+        interpretation: "Very Likely Deepfake",
+        action: "Reject or flag. Notify relevant stakeholders.",
+        riskColor: "red",
+        gaugeColor: "#DC2626",
+      };
     }
-
-    return {
-      riskLevel: "Medium",
-      interpretation: "Analysis Uncertain",
-      action: "Manual review recommended.",
-      riskColor: "yellow",
-      gaugeColor: "#F59E0B",
-    };
   };
 
   const getResultStatus = () => {
     if (!analysisResult)
       return { text: "Unknown", color: "gray", bgColor: "bg-gray-100" };
 
-    if (
-      analysisResult.status?.toLowerCase() === "deepfake" ||
-      analysisResult.status?.toLowerCase() === "fake"
-    ) {
+    if (analysisResult?.is_deepfake) {
       return {
         text: "Deepfake",
         color: "red",
         bgColor: "bg-red-600",
         textColor: "text-red-600",
       };
-    } else if (
-      analysisResult.status?.toLowerCase() === "authentic" ||
-      analysisResult.status?.toLowerCase() === "real"
-    ) {
+    } else {
       return {
         text: "Authentic",
         color: "green",
         bgColor: "bg-green-600",
         textColor: "text-green-600",
       };
-    } else {
-      return {
-        text: "Uncertain",
-        color: "yellow",
-        bgColor: "bg-yellow-600",
-        textColor: "text-yellow-600",
-      };
     }
   };
 
   const getConfidenceScore = () => {
     if (!analysisResult) return 0;
-    return Math.round(analysisResult.confidenceScore);
-  };
-
-  const getResultSummary = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "authentic":
-      case "real":
-        return "Our model analysis found little to no evidence of manipulation in this audio file. The audio appears to be authentic.";
-      case "uncertain":
-      case "inconclusive":
-        return "Our model detected some indicators of manipulation, but the evidence isn't conclusive, or the audio quality impacts certainty.";
-      case "deepfake":
-      case "fake":
-      case "synthetic":
-        return "Our model analysis found significant indicators in this audio file strongly suggesting this media has been manipulated using deepfake techniques.";
-      default:
-        return "Analysis completed. Please review the confidence score and other indicators for more details.";
-    }
+    return Math.round(analysisResult?.confidence || 0);
   };
 
   return (
@@ -515,26 +380,36 @@ const AudioScreen = () => {
           {/* Audio Visualization and Results Section - Side by Side */}
           <div className="flex flex-col lg:flex-row px-4 sm:px-6 gap-4 sm:gap-6">
             {/* Audio Visualization - Left Side */}
+            {/* Audio Visualization - Left Side */}
             <div className="w-full lg:w-2/3">
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                {/* Audio waveform visualization placeholder */}
-                <div className="h-48 sm:h-64 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <div className="text-center">
-                    <AudioLines className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 text-sm">
-                      Audio Waveform Visualization
-                    </p>
-                    <p className="text-gray-400 text-xs mt-1">
-                      {fileName
-                        ? `Playing: ${fileName}`
-                        : "Waveform will be displayed here"}
-                    </p>
-                  </div>
+                {/* Audio player */}
+                <div className="h-48 sm:h-64 bg-gray-50 rounded-lg flex items-center justify-center px-4">
+                  {fileUrl ? (
+                    <audio
+                      controls
+                      className="w-full max-w-md"
+                      src={fileUrl}
+                      preload="metadata"
+                    >
+                      Your browser does not support the audio element.
+                    </audio>
+                  ) : (
+                    <div className="text-center">
+                      <AudioLines className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">
+                        Audio Waveform Visualization
+                      </p>
+                      <p className="text-gray-400 text-xs mt-1">
+                        No audio file available
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
             {/* Enhanced Results Card - Right Side (Similar to VideoScreen) */}
+            {/* Enhanced Results Card - Right Side (matching ImageScreen) */}
             <div className="w-full lg:w-1/3">
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden min-h-[50vh] flex flex-col">
                 {/* Header with Results and status badge */}
@@ -582,7 +457,10 @@ const AudioScreen = () => {
                           transform="rotate(-90 60 60)"
                           className="transition-all duration-1000 ease-out"
                           style={{
-                            opacity: getConfidenceScore() === 0 ? 0 : 1,
+                            filter:
+                              getConfidenceScore() === 0
+                                ? "opacity(0)"
+                                : "opacity(1)",
                           }}
                         />
                       </svg>
@@ -640,17 +518,36 @@ const AudioScreen = () => {
                   {/* Divider */}
                   <div className="border-t border-gray-200"></div>
 
-                  {/* Analysis Details */}
-                  <div className="border-t border-gray-200 p-4 sm:p-6">
-                    <h4 className="text-sm font-semibold text-[#020717] mb-3">
-                      Analysis Summary:
-                    </h4>
-                    <p className="text-xs sm:text-sm text-[#020717] font-[300] leading-relaxed">
-                      {analysisResult
-                        ? getResultSummary(analysisResult.status)
-                        : "Loading analysis results..."}
-                    </p>
-                  </div>
+                  {/* Analysis Details - Modified to match ImageScreen style */}
+                  {analysisResult && (
+                    <div className="border-t border-gray-200 p-4 sm:p-6">
+                      <h4 className="text-sm font-semibold text-[#020717] mb-3">
+                        Confidence Breakdown:
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-600">
+                            Real Probability:
+                          </span>
+                          <span className="font-medium text-green-600">
+                            {analysisResult?.real_probability?.toFixed(1) ||
+                              "0.0"}
+                            %
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-600">
+                            Deepfake Probability:
+                          </span>
+                          <span className="font-medium text-red-600">
+                            {analysisResult?.deepfake_probability?.toFixed(1) ||
+                              "0.0"}
+                            %
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -659,258 +556,7 @@ const AudioScreen = () => {
           {/* Audio Analysis Interface - Updated to use real audio */}
           <div className="px-2 sm:px-4 md:px-6 py-4 sm:py-6">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-              {/* Audio Player Interface - Left Side */}
-              <div className="w-full lg:w-2/3">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  {/* Audio Player Controls */}
-                  <div className="p-4 sm:p-6">
-                    {/* Time Display and Controls */}
-                    <div className="flex flex-row items-center justify-center space-x-4 gap-2 sm:gap-4 mb-4">
-                      <div className="flex items-center justify-between sm:justify-start space-x-4 order-1 sm:order-1">
-                        <span className="text-sm font-mono text-gray-600">
-                          {formatTime(currentTime)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-center space-x-4 order-2 sm:order-2">
-                        <button
-                          onClick={() => {
-                            const newTime = Math.max(0, currentTime - 10);
-                            if (audioRef.current) {
-                              audioRef.current.currentTime = newTime;
-                            }
-                            setCurrentTime(newTime);
-                          }}
-                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                          disabled={!fileUrl}
-                        >
-                          <SkipBack className="w-4 h-4 text-gray-600" />
-                        </button>
-                        <button
-                          onClick={handlePlayPause}
-                          className="p-3 bg-[#0F2FA3] hover:bg-blue-700 rounded-full transition-colors disabled:bg-gray-400"
-                          disabled={!fileUrl}
-                        >
-                          {isPlaying ? (
-                            <Pause className="w-5 h-5 text-white" />
-                          ) : (
-                            <Play className="w-5 h-5 text-white ml-0.5" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            const newTime = Math.min(
-                              duration,
-                              currentTime + 10
-                            );
-                            if (audioRef.current) {
-                              audioRef.current.currentTime = newTime;
-                            }
-                            setCurrentTime(newTime);
-                          }}
-                          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                          disabled={!fileUrl}
-                        >
-                          <SkipForward className="w-4 h-4 text-gray-600" />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end space-x-4 order-3 sm:order-3">
-                        <span className="text-sm font-mono text-gray-600">
-                          {formatTime(duration)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Volume Control */}
-                    <div className="flex items-center justify-center space-x-3 mb-4">
-                      <button
-                        onClick={handleVolumeToggle}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        {isMuted || volume === 0 ? (
-                          <VolumeX className="w-4 h-4 text-gray-600" />
-                        ) : (
-                          <Volume2 className="w-4 h-4 text-gray-600" />
-                        )}
-                      </button>
-                      <div className="flex-1 max-w-32">
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={isMuted ? 0 : volume}
-                          onChange={handleVolumeChange}
-                          className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                      </div>
-                      <span className="text-xs text-gray-500 w-8">
-                        {Math.round((isMuted ? 0 : volume) * 100)}%
-                      </span>
-                    </div>
-
-                    {/* Timeline Scrubber */}
-                    <div className="mb-4">
-                      <div
-                        className="relative h-1 bg-gray-200 rounded-full cursor-pointer"
-                        onClick={handleTimelineClick}
-                      >
-                        <div
-                          className="absolute top-0 left-0 h-full bg-[#0F2FA3] rounded-full transition-all duration-150"
-                          style={{
-                            width:
-                              duration > 0
-                                ? `${(currentTime / duration) * 100}%`
-                                : "0%",
-                          }}
-                        />
-                        <div
-                          className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-[#0F2FA3] rounded-full border-2 border-white shadow-md transition-all duration-150"
-                          style={{
-                            left:
-                              duration > 0
-                                ? `${(currentTime / duration) * 100}%`
-                                : "0%",
-                            marginLeft: "-8px",
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Timeline Markers */}
-                    <div className="flex justify-between text-xs text-gray-500 mb-4 px-1">
-                      <span>0s</span>
-                      {duration > 60 && (
-                        <span className="hidden xs:inline">1m</span>
-                      )}
-                      {duration > 120 && <span>2m</span>}
-                      {duration > 240 && (
-                        <span className="hidden xs:inline">4m</span>
-                      )}
-                      {duration > 360 && <span>6m</span>}
-                      {duration > 480 && <span>8m</span>}
-                    </div>
-
-                    {/* Audio Analysis Segments */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Analysis Segments
-                      </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {Array.from(
-                          { length: Math.min(8, Math.ceil(duration / 60)) },
-                          (_, i) => (
-                            <div
-                              key={i}
-                              className="p-2 bg-gray-50 rounded border cursor-pointer hover:bg-gray-100 transition-colors text-center"
-                              onClick={() => {
-                                const newTime = Math.floor(
-                                  (i / Math.min(8, Math.ceil(duration / 60))) *
-                                    duration
-                                );
-                                if (audioRef.current) {
-                                  audioRef.current.currentTime = newTime;
-                                }
-                                setCurrentTime(newTime);
-                              }}
-                            >
-                              <div className="text-xs text-gray-600">
-                                Segment {i + 1}
-                              </div>
-                              <div className="text-xs text-gray-400">
-                                {formatTime(
-                                  Math.floor(
-                                    (i /
-                                      Math.min(8, Math.ceil(duration / 60))) *
-                                      duration
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Analysis Note */}
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-xs sm:text-sm text-gray-700">
-                        <span className="font-medium">Note:</span> Highlighted
-                        segments indicate areas where our model detected
-                        anomalies most strongly associated with known deepfake
-                        audio techniques.
-                      </p>
-                    </div>
-
-                    {!fileUrl && (
-                      <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
-                        <p className="text-sm text-gray-600">
-                          Audio file not available for playback
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               {/* Results Explanation Panel - Right Side */}
-              <div className="w-full lg:w-1/3">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden h-full">
-                  {/* Header */}
-                  <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4">
-                    <h3 className="text-sm sm:text-base font-medium">
-                      What Do My Results Mean?
-                    </h3>
-                  </div>
-
-                  {/* Results Categories */}
-                  <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
-                    {/* Authentic */}
-                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
-                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#E8F8EA] rounded-full flex-shrink-0 self-start">
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#257933]">
-                          Authentic
-                        </h4>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                          Our model found little to no evidence of manipulation.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Uncertain */}
-                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
-                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#FFF8E5] rounded-full flex-shrink-0 self-start">
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#8F6D00]">
-                          Uncertain
-                        </h4>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                          Our model detected some indicators of manipulation,
-                          but the evidence isn't conclusive, or the audio
-                          quality impacts certainty.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Deepfake */}
-                    <div className="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-3">
-                      <div className="py-1 px-3 sm:py-2 sm:px-4 bg-[#FDEDEE] rounded-full flex-shrink-0 self-start">
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#B5171F]">
-                          Deepfake
-                        </h4>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                          Our model found significant evidence suggesting this
-                          audio has been manipulated.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 

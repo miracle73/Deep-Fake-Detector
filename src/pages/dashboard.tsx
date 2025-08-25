@@ -29,6 +29,8 @@ import {
   useGetAnalysisHistoryQuery,
   useDetectAnalyzeVideoMutation,
   useDetectAnalyzeAudioMutation,
+  useUploadMediaUrlMutation,
+  useAnalyzeUrlMutation,
 } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
@@ -64,6 +66,10 @@ const Dashboard = () => {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [detectAnalyzeVideo] = useDetectAnalyzeVideoMutation();
   const [detectAnalyzeAudio] = useDetectAnalyzeAudioMutation();
+  const [uploadMediaUrl] = useUploadMediaUrlMutation();
+  const [analyzeUrl] = useAnalyzeUrlMutation();
+  const [urlFile, setUrlFile] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<string | null>(null);
 
   const getPageNumbers = () => {
     if (!historyData?.pagination) return [];
@@ -198,11 +204,9 @@ const Dashboard = () => {
         URL.revokeObjectURL(video.src);
       };
     } else if (file.type.startsWith("audio/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFilePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      setFilePreview(
+        "https://www.premiumbeat.com/blog/wp-content/uploads/2015/08/Audio-Waveforms-Featued-Image.jpg?w=875&h=490&crop=1"
+      );
     } else {
       setFilePreview(null);
     }
@@ -368,7 +372,8 @@ const Dashboard = () => {
             fileSize:
               uploadedFile?.size ||
               `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-            fileUrl: filePreview, // Pass the audio URL
+            fileUrl: filePreview,
+            originalFile: selectedFile,
           },
         });
       } else {
@@ -435,41 +440,118 @@ const Dashboard = () => {
   }, []);
 
   const handleUrlSubmit = async () => {
-    if (!urlInput.trim()) {
-      setAnalysisError("Please enter a valid URL");
-      return;
-    }
+    console.log("Submitting URL for analysis:", urlInput);
+    // if (!urlInput.trim()) {
+    //   setAnalysisError("Please enter a valid URL");
+    //   return;
+    // }
 
     setIsProcessingUrl(true);
     setAnalysisError(null);
-
+    console.log("Submitting URL for analysis:", urlInput, 44);
     try {
-      // Here you would typically validate the URL and fetch the media
-      // For now, we'll simulate the process
-      const url = urlInput.trim();
+      const url = urlInput;
 
-      // Basic URL validation
-      const urlPattern =
-        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-      if (!urlPattern.test(url)) {
-        throw new Error("Please enter a valid URL");
+      // // Basic URL validation
+      // const urlPattern =
+      //   /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+      // if (!urlPattern.test(url)) {
+      //   throw new Error("Please enter a valid URL");
+      // }
+
+      // Upload the media URL
+      const uploadResponse = await uploadMediaUrl({ url }).unwrap();
+
+      // Check if the content type is supported
+      const { contentType, previewUrl, size } = uploadResponse.metadata;
+
+      if (
+        !contentType.startsWith("image/") &&
+        !contentType.startsWith("video/") &&
+        !contentType.startsWith("audio/")
+      ) {
+        throw new Error(
+          "Unsupported media type. Please provide a URL to an image, video, or audio file."
+        );
       }
 
-      // Simulate file processing from URL
-      setTimeout(() => {
-        setUploadedFile({
-          name: `Media from URL`,
-          size: "Unknown size",
-          thumbnail: ThirdImage, // You might want to generate a thumbnail from the URL
-        });
-        setIsProcessingUrl(false);
-        setUrlInput("");
-      }, 2000);
+      if (contentType.startsWith("image/")) {
+        setFileType("image");
+      }
+      if (contentType.startsWith("video/")) {
+        setFileType("video");
+      }
+      if (contentType.startsWith("audio/")) {
+        setFileType("audio");
+      }
+
+      // Set uploaded file info for UI
+      setUploadedFile({
+        name: `Media from URL`,
+        size: `${(size / 1024 / 1024).toFixed(2)} MB`,
+        thumbnail: previewUrl || ThirdImage,
+      });
+
+      // Store the URL for analysis
+      setUrlFile(url);
+      setFilePreview(previewUrl);
+      console.log("Submitting URL for analysis:", urlInput, 55);
+      // NOW ANALYZE IMMEDIATELY
+      setIsAnalyzing(true);
+
+      // Analyze the URL
+      const response = await analyzeUrl({ url }).unwrap();
+
+      // Generate unique token
+      const token = generateUniqueToken();
+      console.log(urlFile);
+      // Determine media type from response metadata
+      let mediaType = "image"; // default
+      if (response.metadata) {
+        const { contentType } = response.metadata;
+        if (contentType.startsWith("video/")) {
+          mediaType = "video";
+        } else if (contentType.startsWith("audio/")) {
+          mediaType = "audio";
+        }
+      }
+
+      // Store the response data
+      const dataToStore = {
+        ...response,
+        fileUrl: url,
+        fileName: `Media from URL`,
+        fileSize: `${(size / 1024 / 1024).toFixed(2)} MB`,
+      };
+
+      localStorage.setItem(`analysis_${token}`, JSON.stringify(dataToStore));
+
+      // Navigate to appropriate detection page
+      const navigationState = {
+        analysisResult: response,
+        fileName: `Media from URL`,
+        fileSize: `${(size / 1024 / 1024).toFixed(2)} MB`,
+        fileUrl: previewUrl,
+        originalFile: url,
+      };
+
+      if (mediaType === "video") {
+        navigate(`/video-detection/${token}`, { state: navigationState });
+      } else if (mediaType === "audio") {
+        navigate(`/audio-detection/${token}`, { state: navigationState });
+      } else {
+        navigate(`/image-detection/${token}`, { state: navigationState });
+      }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to process URL";
+        error instanceof Error
+          ? error.message
+          : "Failed to process and analyze URL";
       setAnalysisError(errorMessage);
+    } finally {
       setIsProcessingUrl(false);
+      setIsAnalyzing(false);
+      setUrlInput("");
     }
   };
   return (
@@ -991,7 +1073,7 @@ const Dashboard = () => {
                           <button
                             className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium w-full sm:w-auto max-w-xs"
                             onClick={handleUrlSubmit}
-                            disabled={isProcessingUrl || !urlInput.trim()}
+                            // disabled={isProcessingUrl || !urlInput.trim()}
                           >
                             {isProcessingUrl ? "Processing..." : "Process URL"}
                           </button>
@@ -1023,15 +1105,37 @@ const Dashboard = () => {
                           {/* Video Thumbnail */}
                           <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                             {filePreview ? (
-                              <img
-                                src={filePreview}
-                                alt="File preview"
-                                className="w-full h-full object-cover"
-                              />
-                            ) : selectedFile?.type.startsWith("audio/") ? (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                                <AudioLines className="w-8 h-8 text-gray-600" />
-                              </div>
+                              fileType === "image" ? (
+                                <img
+                                  src={filePreview}
+                                  alt="File preview"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : fileType === "video" ? (
+                                <video
+                                  controls
+                                  className="w-full h-full object-cover"
+                                  src={filePreview}
+                                  poster={filePreview}
+                                >
+                                  Your browser does not support the video tag.
+                                </video>
+                              ) : fileType === "audio" ? (
+                                <audio
+                                  controls
+                                  className="w-full max-w-md"
+                                  src={filePreview}
+                                  preload="metadata"
+                                >
+                                  Your browser does not support the audio tag.
+                                </audio>
+                              ) : (
+                                <img
+                                  src={filePreview}
+                                  alt="File preview"
+                                  className="w-full h-full object-cover"
+                                />
+                              )
                             ) : (
                               <img
                                 src={ThirdImage}

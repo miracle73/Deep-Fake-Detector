@@ -105,14 +105,31 @@ const VideoScreen = () => {
     const stateData = location.state;
 
     if (stateData?.analysisResult) {
-      setAnalysisResult(stateData.analysisResult);
+      if (typeof stateData.originalFile === "string") {
+        if (stateData.analysisResult.analysis) {
+          setAnalysisResult({
+            success: true,
+            message: "",
+            thumbnailUrl: stateData.analysisResult.thumbnailUrl || "",
+            data: stateData.analysisResult.analysis,
+          });
+        }
+      } else {
+        setAnalysisResult(stateData.analysisResult);
+      }
+
       setFileName(stateData.fileName || "Unknown File");
       setFileSize(stateData.fileSize || "Unknown Size");
-
+      console.log(stateData.analysisResult.analysis, 44);
       // Use originalFile to create a fresh blob URL
       if (stateData.originalFile) {
-        const videoUrl = URL.createObjectURL(stateData.originalFile);
-        setVideoUrl(videoUrl);
+        // Check if originalFile is a URL string or a File object
+        if (typeof stateData.originalFile === "string") {
+          setVideoUrl(stateData.originalFile);
+        } else {
+          const videoUrl = URL.createObjectURL(stateData.originalFile);
+          setVideoUrl(videoUrl);
+        }
       } else {
         setVideoUrl(stateData.fileUrl || null);
       }
@@ -500,9 +517,9 @@ const VideoScreen = () => {
                   <div className="text-sm text-gray-600">
                     <span>File size: {fileSize}</span>
                     <span className="mx-2">•</span>
-                    <span>Duration: {data.video_info.duration}</span>
+                    <span>Duration: {data?.video_info.duration}</span>
                     <span className="mx-2">•</span>
-                    <span>FPS: {data.video_info.fps}</span>
+                    <span>FPS: {data?.video_info.fps}</span>
                   </div>
                 </div>
               </div>

@@ -149,9 +149,27 @@ const ImageScreen = () => {
     // Try to get data from location state first (from navigation)
     if (location.state?.analysisResult) {
       setAnalysisResult(location.state.analysisResult);
+      if (typeof location.state.originalFile === "string") {
+        console.log(location.state.analysisResult.analysis, 44);
+        if (location.state.analysisResult.analysis) {
+          setAnalysisResult({
+            success: true,
+            message: "",
+            statusCode: 200,
+            status: "success",
+
+            data: location.state.analysisResult.analysis,
+          });
+        }
+      } else {
+        setAnalysisResult(location.state.analysisResult);
+      }
       setFileName(location.state.fileName || "Unknown File");
       setFileSize(location.state.fileSize || "Unknown Size");
       setFileUrl(location.state.fileUrl || ""); // Add this line
+      if (location.state.originalFile) {
+        setFileUrl(location.state.originalFile);
+      }
       setAnalysisDate(new Date().toLocaleString());
     } else {
       // Fallback: try to get from localStorage
