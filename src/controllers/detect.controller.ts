@@ -1,6 +1,7 @@
 import { PubSub } from '@google-cloud/pubsub';
 import axios from 'axios';
 import FormData from 'form-data';
+
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -411,18 +412,16 @@ export const analyzeAudio = async (
 
   const user = await User.findById(req.user._id);
   const formData = new FormData();
-  formData.append('audio', file.buffer, {
-    filename: file.originalname,
-    contentType: file.mimetype,
-  });
+
+  formData.append('audio', fs.createReadStream(file.path));
+
+  const headers = formData.getHeaders();
 
   const response = await axios.post(
-    `${AUDIO_MODEL_API_URL}/predict`,
+    `${AUDIO_MODEL_API_URL}/predict_audio`,
     formData,
     {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers,
     }
   );
 

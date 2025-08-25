@@ -25,6 +25,7 @@
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.53.3",
+    "busboy": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -56,6 +57,7 @@
     "zod": "^3.25.28"
   },
   "devDependencies": {
+    "@types/busboy": "^1.5.4",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/fluent-ffmpeg": "^2.1.27",
