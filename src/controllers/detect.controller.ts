@@ -558,7 +558,6 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
 
     let fieldName = 'file';
 
-    console.log('this is contentType', contentType);
     if (contentType.startsWith('image/')) {
       analyzerUrl = `${MODEL_API_URL}/predict`;
       fieldName = 'image';
@@ -578,8 +577,6 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
       contentType,
     });
 
-    console.log('this is form', contentType, fieldName, analyzeURL);
-
     const modelResponse = await axios.post(analyzerUrl, form, {
       headers: {
         ...form.getHeaders(),
@@ -591,7 +588,6 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
     fs.unlinkSync(tmpFilePath);
 
     const analysis = modelResponse.data;
-    console.log('this is result', analysis);
 
     const user = await User.findById((req as any).user._id);
     await storeAnalysis({
