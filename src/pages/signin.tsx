@@ -97,7 +97,7 @@ function Signin() {
           // Navigate to dashboard after a brief delay
           setTimeout(() => {
             navigate("/dashboard");
-          }, 1500);
+          }, 150);
         } else {
           setErrors({ general: "Google sign-in failed. Please try again." });
         }
@@ -226,7 +226,7 @@ function Signin() {
       // Navigate to dashboard after a brief delay
       setTimeout(() => {
         navigate("/dashboard");
-      }, 1500);
+      }, 150);
     } catch (error: unknown) {
       console.error("Login failed:", error);
 

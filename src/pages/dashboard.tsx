@@ -60,6 +60,7 @@ const Dashboard = () => {
   // const { data: userData } = useGetUserQuery();
   // const { data: historyData } = useGetAnalysisHistoryQuery();
   const storedUser = useSelector((state: RootState) => state.user.user);
+
   const [updateMediaConsent] = useUpdateMediaConsentMutation();
   const [detectAnalyze] = useDetectAnalyzeMutation();
   const [isAnalyzing, setIsAnalyzing] = useState(false);

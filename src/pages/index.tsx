@@ -8,23 +8,162 @@ import {
 } from "lucide-react";
 // import { Headphones, Play } from "lucide-react";
 // import { DownwardArrow } from "../assets/svg";
-import { FaArrowDownLong } from "react-icons/fa6";
+// import { FaArrowDownLong } from "react-icons/fa6";
+import SecondLogo from "../assets/images/SafeguardMedia8.svg";
 import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
 import TravelImage from "../assets/images/front-4.png";
 import ScanImage from "../assets/images/scan-image.png";
 import MediaHouseImage from "../assets/images/mediahouse-image.png";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
+import { Badge } from "../components/ui/badge";
+
+interface AnimatedSectionProps {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+  index: number;
+}
 
 export default function DeepfakeDetector() {
   const navigate = useNavigate();
   // const [activeTab, setActiveTab] = useState("individual");
   // const [selectedPlan, setSelectedPlan] = useState("pro");
+  const [isVisible, setIsVisible] = useState<Record<number, boolean>>({});
   const imageRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLHeadingElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+
+      // Check which elements are in viewport
+      const elements = document.querySelectorAll("[data-animate]");
+      elements.forEach((el, index) => {
+        const rect = el.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+
+        if (isInViewport && !isVisible[index]) {
+          setIsVisible((prev) => ({ ...prev, [index]: true }));
+        }
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isVisible]);
+
+  const AnimatedSection: React.FC<AnimatedSectionProps> = ({
+    children,
+    delay = 0,
+    className = "",
+    index,
+  }) => (
+    <div
+      data-animate
+      className={`transition-all duration-1000 ease-out ${
+        isVisible[index]
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-8"
+      } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+
+  const styles = `
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+    .animate-slideInLeft { animation: slideInLeft 0.8s ease-out forwards; }
+    .animate-slideInRight { animation: slideInRight 0.8s ease-out forwards; }
+    .animate-pulse-soft { animation: pulse 2s ease-in-out infinite; }
+    .animate-gradient { animation: gradient 15s ease infinite; }
+    
+    .gradient-text {
+      background: linear-gradient(270deg, #0F2FA3, #0080FF, #00C4FF);
+      background-size: 600% 600%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient 3s ease infinite;
+    }
+    
+    .hero-parallax {
+      transform: translateY(${scrollY * 0.3}px);
+    }
+    
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(15, 47, 163, 0.15);
+    }
+    
+    .button-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .button-hover::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .button-hover:hover::before {
+      left: 100%;
+    }
+    
+    .button-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(15, 47, 163, 0.3);
+    }
+  `;
 
   const updateLinePosition = () => {
     if (imageRef.current && textRef.current && containerRef.current) {
@@ -84,6 +223,7 @@ export default function DeepfakeDetector() {
 
   return (
     <div className="min-h-screen bg-white ">
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
       {/* Header */}
       <header className="">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -139,7 +279,65 @@ export default function DeepfakeDetector() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative z-10">
+          {/* Badge */}
+          <div className="mb-6">
+            <Badge
+              variant="secondary"
+              className="bg-[#0F2FA30D] rounded-full border bg-gradient-to-r from-[#0F2FA3] to-[#0080FF] bg-clip-text text-transparent text-blue-700 border-[#0F2FA3] px-4 py-2"
+            >
+              AI-Powered Media Verification Platform
+            </Badge>
+          </div>
+
+          {/* Headline */}
+          <AnimatedSection index={1}>
+            <div className="flex justify-center items-center">
+              <img
+                src={SecondLogo}
+                alt="logo"
+                className="w-20 h-20 lg:h-28 lg:w-28"
+              />
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Safe<span className="gradient-text">guard</span>media
+              </h1>
+            </div>
+          </AnimatedSection>
+
+          {/* Subtitle */}
+          <AnimatedSection index={2}>
+            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              A unified platform for detecting AI-generated and manipulated
+              media in real-time. Powered by cutting-edge AI technology.
+            </p>
+          </AnimatedSection>
+
+          {/* CTA Buttons */}
+          <AnimatedSection index={3}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <Button
+                size="lg"
+                className="w-full sm:w-auto bg-[#0F2FA3] button-hover text-lg px-8 py-4"
+                onClick={() => {
+                  navigate("/get-started");
+                }}
+              >
+                Continue with Email
+              </Button>
+
+              {/* <Button
+                  variant="ghost"
+                  size="lg"
+                  className="w-full sm:w-auto group hover:bg-gray-100 transition-all duration-300 text-lg px-8 py-4"
+                >
+                  See Demo
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
+                </Button> */}
+            </div>
+          </AnimatedSection>
+          {/* Hero Image */}
+        </div>
+        {/* <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Advanced Model for Reliable
             <br />
@@ -171,7 +369,7 @@ export default function DeepfakeDetector() {
               <FaArrowDownLong />
             </Button>
           </div>
-        </div>
+        </div> */}
         <div
           ref={containerRef}
           className="border border-[#8C8C8C] rounded-[50px] flex flex-col lg:flex-row items-start justify-between p-4 sm:p-6 mb-10 max-w-6xl w-full relative bg-white"

@@ -7,6 +7,7 @@ interface RegisterRequest {
   lastName: string;
   agreedToTerms: boolean;
   userType: string;
+  accessCode: string;
   // phoneNumber: string;
 }
 
@@ -623,6 +624,7 @@ export const apiService = createApi({
         lastName,
         agreedToTerms,
         userType,
+        accessCode,
       }) => ({
         url: "auth/register",
         method: "POST",
@@ -633,6 +635,7 @@ export const apiService = createApi({
           lastName,
           agreedToTerms,
           userType,
+          accessCode,
         },
       }),
     }),

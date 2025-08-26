@@ -21,6 +21,7 @@ interface FormData {
   phone: string;
   password: string;
   agreeTerms: boolean;
+  accessCode: string;
 }
 
 interface FormErrors {
@@ -31,6 +32,7 @@ interface FormErrors {
   password?: string;
   agreeTerms?: string;
   general?: string;
+  accessCode?: string;
 }
 
 function SignUp() {
@@ -45,6 +47,7 @@ function SignUp() {
     phone: "",
     password: "",
     agreeTerms: false,
+    accessCode: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,7 +133,7 @@ function SignUp() {
           // Navigate to dashboard after a brief delay
           setTimeout(() => {
             navigate("/dashboard");
-          }, 1500);
+          }, 150);
         } else {
           setErrors({ general: "Google sign-in failed. Please try again." });
         }
@@ -258,6 +261,7 @@ function SignUp() {
         phone: formData.phone,
         agreedToTerms: formData.agreeTerms,
         userType: accountType,
+        accessCode: formData.accessCode,
         // phoneNumber: formData.phone,
       };
 
@@ -313,6 +317,7 @@ function SignUp() {
         phone: "",
         password: "",
         agreeTerms: false,
+        accessCode: "",
       });
     }
   };
@@ -654,6 +659,34 @@ function SignUp() {
                       {errors.password && (
                         <p className="text-sm text-red-600">
                           {errors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Access Code Field */}
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="accessCode"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Access Code
+                      </label>
+                      <input
+                        id="accessCode"
+                        name="accessCode"
+                        type="text"
+                        placeholder="Enter access code"
+                        value={formData.accessCode}
+                        onChange={handleInputChange}
+                        className={`w-full h-12 px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.accessCode
+                            ? "border-red-300"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {errors.accessCode && (
+                        <p className="text-sm text-red-600">
+                          {errors.accessCode}
                         </p>
                       )}
                     </div>
