@@ -60,4 +60,6 @@ router.post(
 
 router.post('/logout', protect, AuthController.logout);
 
+router.get('/create-access-code', AuthController.generateAccessCode);
+
 export default router;

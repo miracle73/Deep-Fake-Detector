@@ -1,3 +1,4 @@
+import { access } from 'fs';
 import { z } from 'zod';
 
 const baseUserSchema = z.object({
@@ -27,6 +28,7 @@ const baseUserSchema = z.object({
     ])
     .optional()
     .transform((val) => val?.replace(/\s+/g, '')),
+  accessCode: z.string().min(1, { message: 'Access code is required' }),
 });
 
 export const individualUserSchema = baseUserSchema.extend({

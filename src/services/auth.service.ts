@@ -20,7 +20,10 @@ export const verifyToken = (
 };
 
 export const invalidateAllSessions = async (userId: string): Promise<void> => {
-  await User.findByIdAndUpdate(userId, { $inc: { sessionVersion: 1 } });
+  await User.findByIdAndUpdate(userId, {
+    isActive: false,
+    $inc: { sessionVersion: 1 },
+  });
 };
 
 export const validateSession = async (

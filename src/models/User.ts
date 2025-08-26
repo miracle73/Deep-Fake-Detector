@@ -88,6 +88,13 @@ const UserSchema: Schema = new Schema(
     passwordChangedAt: {
       type: Date,
     },
+    accessCode: {
+      type: String,
+      required: true,
+      trim: true,
+      uppercase: true,
+    },
+
     lastLogin: {
       type: Date,
     },

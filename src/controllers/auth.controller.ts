@@ -36,6 +36,12 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
+import {
+  createAccessCode,
+  markAccessCodeAsUsed,
+  validateAccessCode,
+} from 'services/accessCode.service.js';
+
 export type UserData = {
   email: string;
   password: string;
@@ -46,6 +52,7 @@ export type UserData = {
   isEmailVerified: boolean;
   stripeCustomerId?: string;
   phoneNumber?: string;
+  accessCode: string;
 } & (
   | {
       userType: 'individual';
@@ -81,12 +88,23 @@ export const register = async (
       userType,
       plan = 'SafeGuard_Free',
       phoneNumber = '',
+      accessCode,
     } = req.body as RegisterInput;
 
     if (!agreedToTerms) {
       throw new AppError(
         400,
         'You must agree to the terms and conditions',
+        null
+      );
+    }
+
+    const validation = await validateAccessCode(accessCode);
+
+    if (!validation.isValid) {
+      throw new AppError(
+        400,
+        validation.message ?? 'Invalid access code',
         null
       );
     }
@@ -113,6 +131,7 @@ export const register = async (
       plan,
       isEmailVerified: false,
       phoneNumber,
+      accessCode: accessCode.toUpperCase().trim(),
     } as UserData;
 
     if (userType === 'individual') {
@@ -160,6 +179,8 @@ export const register = async (
       throw new AppError(500, 'Failed to create user', null);
     }
 
+    await markAccessCodeAsUsed(accessCode, user._id.toString());
+
     const emailToken = generateEmailVerificationToken(user._id.toString());
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${emailToken}`;
@@ -191,7 +212,10 @@ export const register = async (
       user: formatUserResponse(user),
     };
 
-    res.status(201).json(response);
+    res.status(201).json({
+      ...response,
+      message: 'Registration successful. Check your email to continue',
+    });
   } catch (error) {
     logger.error('Failed to register user:', error);
     next(error);
@@ -206,12 +230,21 @@ export const login = async (
   try {
     const { email, password } = req.body as LoginInput;
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password +isActive');
     if (!user) {
       return res.status(404).json({
         success: false,
         code: 404,
         message: 'User not found',
+        details: null,
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        code: 401,
+        message: 'Account deactivated. Please contact support to reactivate.',
         details: null,
       });
     }
@@ -358,8 +391,15 @@ export const logout = async (req: Request, res: Response) => {
   try {
     if (req.user?._id) {
       console.log('Logging out user:', req.user._id);
+
       await invalidateAllSessions(req.user?._id.toString());
-      res.json({ message: 'Logged out from all devices' });
+
+      res.clearCookie('token');
+
+      res.json({
+        success: true,
+        message: 'Log out successful. Account deactivated',
+      });
     } else {
       res.status(400).json({ error: 'User ID required' });
     }
@@ -520,7 +560,6 @@ export const verifyEmail = async (
 
     const user = await User.findById(userId);
 
-    console.log(user);
     if (!user) throw new AppError(404, 'User not found', null);
 
     if (user.isEmailVerified) {
@@ -530,6 +569,7 @@ export const verifyEmail = async (
     }
 
     user.isEmailVerified = true;
+    user.isActive = true;
     await user.save();
 
     let displayName = 'there';
@@ -622,6 +662,28 @@ export const resendVerificationEmail = async (
     });
   } catch (error) {
     logger.error('Error in resendVerificationEmail:', error);
+    next(error);
+  }
+};
+
+export const generateAccessCode = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const accessCode = await createAccessCode(
+      crypto.randomBytes(4).toString('hex').toUpperCase(),
+      24
+    );
+
+    res.status(201).json({
+      success: true,
+      accessCode: accessCode.code,
+      expiresAt: accessCode.expiresAt,
+    });
+  } catch (error) {
+    logger.error('Error in createAccessCode:', error);
     next(error);
   }
 };
