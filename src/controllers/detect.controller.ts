@@ -294,11 +294,22 @@ export const analyzeVideo = async (
 
     return;
   }
+  console.log('here');
 
-  const thumbnailUrl = await generateAndUploadVideoThumbnail({
-    buffer: file.buffer,
-    originalName: file.originalname,
-  });
+  const DEFAULT_THUMBNAIL_URL =
+    process.env.DEFAULT_THUMBNAIL_URL ||
+    'https://via.placeholder.com/300?text=No+Thumbnail';
+
+  let thumbnailUrl: string;
+  try {
+    thumbnailUrl = await generateAndUploadVideoThumbnail({
+      buffer: file.buffer,
+      originalName: file.originalname,
+    });
+  } catch (e) {
+    console.error('Thumbnail generation failed, using default:', e);
+    thumbnailUrl = DEFAULT_THUMBNAIL_URL;
+  }
 
   const user = await User.findById(req.user._id);
 
