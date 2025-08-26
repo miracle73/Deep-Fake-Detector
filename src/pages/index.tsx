@@ -1,5 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  //  useRef
+} from "react";
 // import { Card } from "../components/ui/card";
+import FirstImage from "../assets/images/FirstImage-3.png";
 import { Button } from "../components/ui/button";
 import {
   // Check,
@@ -12,7 +17,7 @@ import {
 import SecondLogo from "../assets/images/SafeguardMedia8.svg";
 import { AudioIcon, ImageIcon, VideoIcon } from "../assets/svg";
 import { useNavigate } from "react-router-dom";
-import TravelImage from "../assets/images/front-4.png";
+// import TravelImage from "../assets/images/front-4.png";
 import ScanImage from "../assets/images/scan-image.png";
 import MediaHouseImage from "../assets/images/mediahouse-image.png";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
@@ -30,10 +35,10 @@ export default function DeepfakeDetector() {
   // const [activeTab, setActiveTab] = useState("individual");
   // const [selectedPlan, setSelectedPlan] = useState("pro");
   const [isVisible, setIsVisible] = useState<Record<number, boolean>>({});
-  const imageRef = useRef<HTMLDivElement | null>(null);
-  const textRef = useRef<HTMLHeadingElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
+  // const imageRef = useRef<HTMLDivElement | null>(null);
+  // const textRef = useRef<HTMLHeadingElement | null>(null);
+  // const containerRef = useRef<HTMLDivElement | null>(null);
+  // const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [scrollY, setScrollY] = useState(0);
   useEffect(() => {
@@ -165,61 +170,61 @@ export default function DeepfakeDetector() {
     }
   `;
 
-  const updateLinePosition = () => {
-    if (imageRef.current && textRef.current && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const imageRect = imageRef.current.getBoundingClientRect();
-      const textRect = textRef.current.getBoundingClientRect();
+  // const updateLinePosition = () => {
+  //   if (imageRef.current && textRef.current && containerRef.current) {
+  //     const containerRect = containerRef.current.getBoundingClientRect();
+  //     const imageRect = imageRef.current.getBoundingClientRect();
+  //     const textRect = textRef.current.getBoundingClientRect();
 
-      // Check if we're on large screens (lg breakpoint is 1024px)
-      const isLargeScreen = window.innerWidth >= 1024;
+  //     // Check if we're on large screens (lg breakpoint is 1024px)
+  //     const isLargeScreen = window.innerWidth >= 1024;
 
-      let imageX, imageY, textX, textY;
+  //     let imageX, imageY, textX, textY;
 
-      if (isLargeScreen) {
-        // Desktop: Point to top-center of image with padding
-        imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
-        imageY = imageRect.top + 16 - containerRect.top; // 16px padding from top
+  //     if (isLargeScreen) {
+  //       // Desktop: Point to top-center of image with padding
+  //       imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
+  //       imageY = imageRect.top + 16 - containerRect.top; // 16px padding from top
 
-        // Point to left edge of text
-        textX = textRect.left - containerRect.left;
-        textY = textRect.top + textRect.height / 2 - containerRect.top;
-      } else {
-        // Mobile/Tablet: Point to center of image
-        imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
-        imageY = imageRect.top + imageRect.height / 2 - containerRect.top;
+  //       // Point to left edge of text
+  //       textX = textRect.left - containerRect.left;
+  //       textY = textRect.top + textRect.height / 2 - containerRect.top;
+  //     } else {
+  //       // Mobile/Tablet: Point to center of image
+  //       imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
+  //       imageY = imageRect.top + imageRect.height / 2 - containerRect.top;
 
-        // Point to center of text
-        textX = textRect.left + textRect.width / 2 - containerRect.left;
-        textY = textRect.top + textRect.height / 2 - containerRect.top;
-      }
+  //       // Point to center of text
+  //       textX = textRect.left + textRect.width / 2 - containerRect.left;
+  //       textY = textRect.top + textRect.height / 2 - containerRect.top;
+  //     }
 
-      setLineCoords({
-        x1: imageX,
-        y1: imageY,
-        x2: textX,
-        y2: textY,
-      });
-    }
-  };
+  //     setLineCoords({
+  //       x1: imageX,
+  //       y1: imageY,
+  //       x2: textX,
+  //       y2: textY,
+  //     });
+  //   }
+  // };
 
-  useEffect(() => {
-    updateLinePosition();
+  // useEffect(() => {
+  //   updateLinePosition();
 
-    const handleResize = () => {
-      updateLinePosition();
-    };
+  //   const handleResize = () => {
+  //     updateLinePosition();
+  //   };
 
-    window.addEventListener("resize", handleResize);
+  //   window.addEventListener("resize", handleResize);
 
-    // Update after images load
-    const timer = setTimeout(updateLinePosition, 100);
+  //   // Update after images load
+  //   const timer = setTimeout(updateLinePosition, 100);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(timer);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("resize", handleResize);
+  //     clearTimeout(timer);
+  //   };
+  // }, []);
 
   return (
     <div className="min-h-screen bg-white ">
@@ -336,6 +341,18 @@ export default function DeepfakeDetector() {
             </div>
           </AnimatedSection>
           {/* Hero Image */}
+          {/* <AnimatedSection index={4}> */}
+          <div className="mb-8 lg:-mb-8 flex justify-center items-center">
+            <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src={FirstImage}
+                alt="Forensic analysis of tampered media with verification overlays"
+                className="w-full h-auto object-cover transition-transform duration-700 hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+          </div>
+          {/* </AnimatedSection> */}
         </div>
         {/* <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
@@ -370,11 +387,11 @@ export default function DeepfakeDetector() {
             </Button>
           </div>
         </div> */}
-        <div
+        {/* <div
           ref={containerRef}
           className="border border-[#8C8C8C] rounded-[50px] flex flex-col lg:flex-row items-start justify-between p-4 sm:p-6 mb-10 max-w-6xl w-full relative bg-white"
         >
-          {/* SVG for connecting line */}
+           SVG for connecting line 
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none z-10"
             style={{ overflow: "visible" }}
@@ -410,7 +427,7 @@ export default function DeepfakeDetector() {
             />
           </svg>
 
-          {/* Image Section */}
+           Image Section 
           <div className="relative w-full lg:w-1/2 mb-6 lg:mb-0">
             <div
               ref={imageRef}
@@ -424,9 +441,9 @@ export default function DeepfakeDetector() {
             </div>
           </div>
 
-          {/* DF Results Card - Right Side */}
+           DF Results Card - Right Side 
           <div className="w-full lg:w-1/2 lg:pl-8">
-            {/* Header */}
+             Header 
             <div className="relative mb-6 ">
               <div className="flex flex-col items-center">
                 <h1
@@ -441,9 +458,9 @@ export default function DeepfakeDetector() {
               </div>
             </div>
 
-            {/* DF Results Card */}
+             DF Results Card 
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-              {/* Header with DF Results and Deepfake badge */}
+               Header with DF Results and Deepfake badge 
               <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <span className="text-sm sm:text-base font-medium">
                   Safeguardmedia Results
@@ -453,9 +470,9 @@ export default function DeepfakeDetector() {
                 </span>
               </div>
 
-              {/* Results Content */}
+               Results Content 
               <div className="flex flex-col">
-                {/* Confidence Score */}
+                 Confidence Score 
                 <div className="p-4 sm:p-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm sm:text-base text-gray-700 font-medium">
@@ -467,10 +484,10 @@ export default function DeepfakeDetector() {
                   </div>
                 </div>
 
-                {/* Divider */}
+                Divider 
                 <div className="border-t border-gray-200"></div>
 
-                {/* Result Summary */}
+                  Result Summary 
                 <div className="p-4 sm:p-6">
                   <h4 className="text-sm sm:text-base font-semibold text-[#020717] mb-3">
                     Result Summary:
@@ -484,7 +501,7 @@ export default function DeepfakeDetector() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* AI Content Information Section */}
         <div className="max-w-6xl mx-auto mt-40 max-md:mt-20 mb-12">
