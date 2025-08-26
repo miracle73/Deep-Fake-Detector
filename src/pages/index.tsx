@@ -324,7 +324,7 @@ export default function DeepfakeDetector() {
               size="lg"
               className="w-auto max-w-xs mx-auto sm:mx-0 bg-[#0F2FA3] button-hover text-lg px-8 py-4"
               onClick={() => {
-                navigate("/get-started");
+                navigate("/signin");
               }}
             >
               Continue with Email
