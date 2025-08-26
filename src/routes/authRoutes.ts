@@ -58,4 +58,6 @@ router.post(
   AuthController.resendVerificationEmail
 );
 
+router.post('/logout', AuthController.logout);
+
 export default router;

@@ -7,6 +7,7 @@ import logger from '../utils/logger.js';
 
 import type { Request, Response, NextFunction } from 'express';
 import type { UserRole } from '../types/roles.js';
+import { validateSession, verifyToken } from 'services/auth.service.js';
 
 export const protect = async (
   req: Request,
@@ -26,24 +27,31 @@ export const protect = async (
   }
 
   try {
-    const decoded = (await jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    )) as { id: string; iat: number };
+    const decoded = verifyToken(token);
 
-    const user = await User.findById(decoded.id);
+    const isValid = await validateSession(
+      decoded.userId,
+      decoded.sessionVersion
+    );
+
+    if (!isValid) {
+      res.status(401).json({ error: 'Session expired. Please login again.' });
+      return;
+    }
+    // if (user.passwordChangedAt) {
+    //   const changedTimestamp = user.passwordChangedAt.getTime() / 1000;
+    // if (decoded.iat && changedTimestamp > decoded.iat) {
+    //   throw new AppError(
+    //     401,
+    //     'User recently changed password. Please log in again'
+    //   );
+    // }
+    // }
+
+    const user = await User.findById(decoded.userId);
+
     if (!user) {
       throw new AppError(401, 'Not authorized to access this route', null);
-    }
-
-    if (user.passwordChangedAt) {
-      const changedTimestamp = user.passwordChangedAt.getTime() / 1000;
-      if (decoded.iat && changedTimestamp > decoded.iat) {
-        throw new AppError(
-          401,
-          'User recently changed password. Please log in again'
-        );
-      }
     }
 
     req.user = user;

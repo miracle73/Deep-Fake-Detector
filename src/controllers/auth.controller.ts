@@ -5,6 +5,10 @@ import { formatUserResponse } from '../lib/helpers.js';
 import User from '../models/User.js';
 import emailQueue from '../queues/emailQueue.js';
 import notificationQueue from '../queues/notificationQueue.js';
+import {
+  generateToken,
+  invalidateAllSessions,
+} from '../services/auth.service.js';
 import { stripe } from '../services/stripeService.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
 import {
@@ -12,7 +16,6 @@ import {
   generateWelcomeEmail,
 } from '../utils/email.templates.js';
 import { AppError, AuthenticationError } from '../utils/error.js';
-import { generateToken } from '../utils/generateToken.js';
 import logger from '../utils/logger.js';
 import {
   generateEmailVerificationToken,
@@ -33,7 +36,6 @@ import type {
   RegisterInput,
 } from '../lib/schemas/user.schema.js';
 import type { AuthResponse, GoogleTempUser } from '../types/user.d.js';
-
 export type UserData = {
   email: string;
   password: string;
@@ -225,6 +227,7 @@ export const login = async (
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
+
     if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
@@ -234,11 +237,14 @@ export const login = async (
       });
     }
 
+    await invalidateAllSessions(user._id.toString());
+
     user.lastLogin = new Date();
+    user.sessionVersion += 1;
+
+    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
 
     await user.save();
-
-    const token = generateToken(user._id.toString());
 
     const response: AuthResponse = {
       success: true,
@@ -333,7 +339,7 @@ export const googleLogin = async (
       user = await User.create(userData);
     }
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
 
     const response: AuthResponse = {
       success: true,
@@ -345,6 +351,20 @@ export const googleLogin = async (
   } catch (error) {
     logger.error('Google sign-in failed', error);
     next(error);
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    if (req.user?._id) {
+      await invalidateAllSessions(req.user?._id.toString());
+      res.json({ message: 'Logged out from all devices' });
+    } else {
+      res.status(400).json({ error: 'User ID required' });
+    }
+  } catch (error) {
+    console.error('Logout all error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -454,7 +474,7 @@ export const resetPassword = async (
 
     await user.save();
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
 
     res.status(200).json({
       success: true,
@@ -574,7 +594,7 @@ export const resendVerificationEmail = async (
       throw new AppError(404, 'Email is already verified', null);
     }
 
-    const token = generateToken(user._id.toString());
+    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
     const html = generateVerificationEmail({
       name: 'there',

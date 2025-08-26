@@ -135,6 +135,7 @@ export type IUser = Document &
     _id: Types.ObjectId;
     analysisHistory: Types.ObjectId[];
     billingHistory: BillingHistoryItem[];
+    sessionVersion: number;
     createdAt: Date;
     updatedAt: Date;
   };
