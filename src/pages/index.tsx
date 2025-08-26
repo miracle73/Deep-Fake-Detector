@@ -1,8 +1,4 @@
-import {
-  useState,
-  useEffect,
-  //  useRef
-} from "react";
+import { useState, useEffect, useRef } from "react";
 // import { Card } from "../components/ui/card";
 import FirstImage from "../assets/images/FirstImage-3.png";
 import { Button } from "../components/ui/button";
@@ -21,24 +17,24 @@ import { useNavigate } from "react-router-dom";
 import ScanImage from "../assets/images/scan-image.png";
 import MediaHouseImage from "../assets/images/mediahouse-image.png";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
-import { Badge } from "../components/ui/badge";
+// import { Badge } from "../components/ui/badge";
 
-interface AnimatedSectionProps {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-  index: number;
-}
+// interface AnimatedSectionProps {
+//   children: React.ReactNode;
+//   delay?: number;
+//   className?: string;
+//   index: number;
+// }
 
 export default function DeepfakeDetector() {
   const navigate = useNavigate();
   // const [activeTab, setActiveTab] = useState("individual");
   // const [selectedPlan, setSelectedPlan] = useState("pro");
   const [isVisible, setIsVisible] = useState<Record<number, boolean>>({});
-  // const imageRef = useRef<HTMLDivElement | null>(null);
-  // const textRef = useRef<HTMLHeadingElement | null>(null);
-  // const containerRef = useRef<HTMLDivElement | null>(null);
-  // const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
+  const imageRef = useRef<HTMLDivElement | null>(null);
+  const textRef = useRef<HTMLHeadingElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [lineCoords, setLineCoords] = useState({ x1: 0, y1: 0, x2: 0, y2: 0 });
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(0);
   const [scrollY, setScrollY] = useState(0);
   useEffect(() => {
@@ -62,65 +58,65 @@ export default function DeepfakeDetector() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isVisible]);
-
-  const AnimatedSection: React.FC<AnimatedSectionProps> = ({
-    children,
-    delay = 0,
-    className = "",
-    index,
-  }) => (
-    <div
-      data-animate
-      className={`transition-all duration-1000 ease-out ${
-        isVisible[index]
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-8"
-      } ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
+  console.log(lineCoords);
+  // const AnimatedSection: React.FC<AnimatedSectionProps> = ({
+  //   children,
+  //   delay = 0,
+  //   className = "",
+  //   index,
+  // }) => (
+  //   <div
+  //     data-animate
+  //     className={`transition-all duration-1000 ease-out ${
+  //       isVisible[index]
+  //         ? "opacity-100 translate-y-0"
+  //         : "opacity-0 translate-y-8"
+  //     } ${className}`}
+  //     style={{ transitionDelay: `${delay}ms` }}
+  //   >
+  //     {children}
+  //   </div>
+  // );
 
   const styles = `
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
     }
-    
+
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
+
     @keyframes slideInLeft {
       from { opacity: 0; transform: translateX(-30px); }
       to { opacity: 1; transform: translateX(0); }
     }
-    
+
     @keyframes slideInRight {
       from { opacity: 0; transform: translateX(30px); }
       to { opacity: 1; transform: translateX(0); }
     }
-    
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
     }
-    
+
     @keyframes gradient {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    
+
     .animate-float { animation: float 6s ease-in-out infinite; }
     .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
     .animate-slideInLeft { animation: slideInLeft 0.8s ease-out forwards; }
     .animate-slideInRight { animation: slideInRight 0.8s ease-out forwards; }
     .animate-pulse-soft { animation: pulse 2s ease-in-out infinite; }
     .animate-gradient { animation: gradient 15s ease infinite; }
-    
+
     .gradient-text {
       background: linear-gradient(270deg, #0F2FA3, #0080FF, #00C4FF);
       background-size: 600% 600%;
@@ -129,26 +125,26 @@ export default function DeepfakeDetector() {
       background-clip: text;
       animation: gradient 3s ease infinite;
     }
-    
+
     .hero-parallax {
       transform: translateY(${scrollY * 0.3}px);
     }
-    
+
     .card-hover {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     .card-hover:hover {
       transform: translateY(-8px) scale(1.02);
       box-shadow: 0 20px 40px rgba(15, 47, 163, 0.15);
     }
-    
+
     .button-hover {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
     }
-    
+
     .button-hover::before {
       content: '';
       position: absolute;
@@ -159,72 +155,72 @@ export default function DeepfakeDetector() {
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
       transition: left 0.5s;
     }
-    
+
     .button-hover:hover::before {
       left: 100%;
     }
-    
+
     .button-hover:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 20px rgba(15, 47, 163, 0.3);
     }
   `;
 
-  // const updateLinePosition = () => {
-  //   if (imageRef.current && textRef.current && containerRef.current) {
-  //     const containerRect = containerRef.current.getBoundingClientRect();
-  //     const imageRect = imageRef.current.getBoundingClientRect();
-  //     const textRect = textRef.current.getBoundingClientRect();
+  const updateLinePosition = () => {
+    if (imageRef.current && textRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const imageRect = imageRef.current.getBoundingClientRect();
+      const textRect = textRef.current.getBoundingClientRect();
 
-  //     // Check if we're on large screens (lg breakpoint is 1024px)
-  //     const isLargeScreen = window.innerWidth >= 1024;
+      // Check if we're on large screens (lg breakpoint is 1024px)
+      const isLargeScreen = window.innerWidth >= 1024;
 
-  //     let imageX, imageY, textX, textY;
+      let imageX, imageY, textX, textY;
 
-  //     if (isLargeScreen) {
-  //       // Desktop: Point to top-center of image with padding
-  //       imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
-  //       imageY = imageRect.top + 16 - containerRect.top; // 16px padding from top
+      if (isLargeScreen) {
+        // Desktop: Point to top-center of image with padding
+        imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
+        imageY = imageRect.top + 16 - containerRect.top; // 16px padding from top
 
-  //       // Point to left edge of text
-  //       textX = textRect.left - containerRect.left;
-  //       textY = textRect.top + textRect.height / 2 - containerRect.top;
-  //     } else {
-  //       // Mobile/Tablet: Point to center of image
-  //       imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
-  //       imageY = imageRect.top + imageRect.height / 2 - containerRect.top;
+        // Point to left edge of text
+        textX = textRect.left - containerRect.left;
+        textY = textRect.top + textRect.height / 2 - containerRect.top;
+      } else {
+        // Mobile/Tablet: Point to center of image
+        imageX = imageRect.left + imageRect.width / 2 - containerRect.left;
+        imageY = imageRect.top + imageRect.height / 2 - containerRect.top;
 
-  //       // Point to center of text
-  //       textX = textRect.left + textRect.width / 2 - containerRect.left;
-  //       textY = textRect.top + textRect.height / 2 - containerRect.top;
-  //     }
+        // Point to center of text
+        textX = textRect.left + textRect.width / 2 - containerRect.left;
+        textY = textRect.top + textRect.height / 2 - containerRect.top;
+      }
 
-  //     setLineCoords({
-  //       x1: imageX,
-  //       y1: imageY,
-  //       x2: textX,
-  //       y2: textY,
-  //     });
-  //   }
-  // };
+      setLineCoords({
+        x1: imageX,
+        y1: imageY,
+        x2: textX,
+        y2: textY,
+      });
+    }
+  };
 
-  // useEffect(() => {
-  //   updateLinePosition();
+  useEffect(() => {
+    updateLinePosition();
 
-  //   const handleResize = () => {
-  //     updateLinePosition();
-  //   };
+    const handleResize = () => {
+      updateLinePosition();
+    };
 
-  //   window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize);
 
-  //   // Update after images load
-  //   const timer = setTimeout(updateLinePosition, 100);
+    // Update after images load
+    const timer = setTimeout(updateLinePosition, 100);
 
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //     clearTimeout(timer);
-  //   };
-  // }, []);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-white ">
@@ -286,51 +282,55 @@ export default function DeepfakeDetector() {
         {/* Hero Section */}
         <div className="text-center mb-12 relative z-10">
           {/* Badge */}
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <Badge
               variant="secondary"
               className="bg-[#0F2FA30D] rounded-full border bg-gradient-to-r from-[#0F2FA3] to-[#0080FF] bg-clip-text text-transparent text-blue-700 border-[#0F2FA3] px-4 py-2"
             >
               AI-Powered Media Verification Platform
             </Badge>
-          </div>
+          </div> */}
+          {/* <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+            Safeguardmedia
+            <br />
+          </h1> */}
 
           {/* Headline */}
-          <AnimatedSection index={1}>
-            <div className="flex justify-center items-center">
-              <img
-                src={SecondLogo}
-                alt="logo"
-                className="w-20 h-20 lg:h-28 lg:w-28"
-              />
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Safe<span className="gradient-text">guard</span>media
-              </h1>
-            </div>
-          </AnimatedSection>
+          {/* <AnimatedSection index={1}> */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-0">
+            <img
+              src={SecondLogo}
+              alt="logo"
+              className="w-16 h-16 sm:w-20 sm:h-20 lg:h-28 lg:w-28"
+            />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight text-center sm:text-left">
+              Safe<span className="gradient-text">guard</span>media
+            </h1>
+          </div>
+          {/* </AnimatedSection> */}
 
           {/* Subtitle */}
-          <AnimatedSection index={2}>
-            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              A unified platform for detecting AI-generated and manipulated
-              media in real-time. Powered by cutting-edge AI technology.
-            </p>
-          </AnimatedSection>
+          {/* <AnimatedSection index={2}> */}
+          <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+            A unified platform for detecting AI-generated and manipulated media
+            in real-time. Powered by cutting-edge AI technology.
+          </p>
+          {/* </AnimatedSection> */}
 
           {/* CTA Buttons */}
-          <AnimatedSection index={3}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto bg-[#0F2FA3] button-hover text-lg px-8 py-4"
-                onClick={() => {
-                  navigate("/get-started");
-                }}
-              >
-                Continue with Email
-              </Button>
 
-              {/* <Button
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <Button
+              size="lg"
+              className="w-auto max-w-xs mx-auto sm:mx-0 bg-[#0F2FA3] button-hover text-lg px-8 py-4"
+              onClick={() => {
+                navigate("/get-started");
+              }}
+            >
+              Continue with Email
+            </Button>
+
+            {/* <Button
                   variant="ghost"
                   size="lg"
                   className="w-full sm:w-auto group hover:bg-gray-100 transition-all duration-300 text-lg px-8 py-4"
@@ -338,8 +338,8 @@ export default function DeepfakeDetector() {
                   See Demo
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" />
                 </Button> */}
-            </div>
-          </AnimatedSection>
+          </div>
+
           {/* Hero Image */}
           {/* <AnimatedSection index={4}> */}
           <div className="mb-8 lg:-mb-8 flex justify-center items-center">
@@ -354,13 +354,10 @@ export default function DeepfakeDetector() {
           </div>
           {/* </AnimatedSection> */}
         </div>
-        {/* <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            Advanced Model for Reliable
-            <br />
-            Deepfake Detection.
-          </h1>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+
+        {/*  
+             <div className="text-center mb-12">
+             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             Instantly analyze media for AI manipulation with our robust and
             easy-to-use platform. From individual checks to enterprise-scale
             integration, get the clarity you need.
