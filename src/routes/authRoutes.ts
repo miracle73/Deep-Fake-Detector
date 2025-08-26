@@ -9,7 +9,7 @@ import {
   resetPasswordBodySchema,
   verifyEmailQuerySchema,
 } from '../lib/schemas/user.schema.js';
-import { convertAccessTokenToIdToken } from '../middlewares/auth.js';
+import { convertAccessTokenToIdToken, protect } from '../middlewares/auth.js';
 import { validateInput, validateQuery } from '../middlewares/validate.js';
 
 import type { RequestHandler } from 'express';
@@ -58,6 +58,6 @@ router.post(
   AuthController.resendVerificationEmail
 );
 
-router.post('/logout', AuthController.logout);
+router.post('/logout', protect, AuthController.logout);
 
 export default router;

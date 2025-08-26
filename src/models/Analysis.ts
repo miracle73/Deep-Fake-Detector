@@ -21,11 +21,14 @@ const AnalysisSchema = new mongoose.Schema({
     required: true,
     default: new Date(),
   },
-  status: {
+  predictedClass: {
     type: String,
-    enum: ['authentic', 'uncertain', 'deepfake'],
     required: true,
-    default: 'uncertain',
+  },
+  isDeepfake: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   confidenceScore: {
     type: Number,

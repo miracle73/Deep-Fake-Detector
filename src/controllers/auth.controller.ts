@@ -240,7 +240,7 @@ export const login = async (
     await invalidateAllSessions(user._id.toString());
 
     user.lastLogin = new Date();
-    user.sessionVersion += 1;
+    // Remove the duplicate increment since invalidateAllSessions already did it
 
     const token = generateToken(user._id.toString(), user.sessionVersion + 1);
 
@@ -339,7 +339,7 @@ export const googleLogin = async (
       user = await User.create(userData);
     }
 
-    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
+    const token = generateToken(user._id.toString(), user.sessionVersion);
 
     const response: AuthResponse = {
       success: true,
@@ -357,6 +357,7 @@ export const googleLogin = async (
 export const logout = async (req: Request, res: Response) => {
   try {
     if (req.user?._id) {
+      console.log('Logging out user:', req.user._id);
       await invalidateAllSessions(req.user?._id.toString());
       res.json({ message: 'Logged out from all devices' });
     } else {
@@ -472,9 +473,12 @@ export const resetPassword = async (
     user.passwordChangedAt = new Date();
     user.lastLogin = new Date();
 
+    // Invalidate all existing sessions for security
+    await invalidateAllSessions(user._id.toString());
+
     await user.save();
 
-    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
+    const token = generateToken(user._id.toString(), user.sessionVersion);
 
     res.status(200).json({
       success: true,
@@ -594,7 +598,10 @@ export const resendVerificationEmail = async (
       throw new AppError(404, 'Email is already verified', null);
     }
 
-    const token = generateToken(user._id.toString(), user.sessionVersion + 1);
+    // Invalidate all existing sessions for security when resending verification
+    await invalidateAllSessions(user._id.toString());
+
+    const token = generateToken(user._id.toString(), user.sessionVersion);
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
     const html = generateVerificationEmail({
       name: 'there',

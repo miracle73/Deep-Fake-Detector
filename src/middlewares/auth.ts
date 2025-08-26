@@ -1,13 +1,12 @@
 import axios from 'axios';
-import jwt from 'jsonwebtoken';
 
 import User from '../models/User.js';
+import { validateSession, verifyToken } from '../services/auth.service.js';
 import { AppError, AuthenticationError } from '../utils/error.js';
 import logger from '../utils/logger.js';
 
 import type { Request, Response, NextFunction } from 'express';
 import type { UserRole } from '../types/roles.js';
-import { validateSession, verifyToken } from 'services/auth.service.js';
 
 export const protect = async (
   req: Request,

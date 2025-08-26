@@ -95,6 +95,7 @@ export const analyze = async (
       confidence,
       file,
       thumbnailUrl,
+      result: response.data,
     });
 
     await pushMetric({ type: 'detection_count', value: 1 });
@@ -317,13 +318,12 @@ export const analyzeVideo = async (
     }
   );
 
-  const { confidence } = response.data;
-
   await storeAnalysis({
     user,
-    confidence,
+    confidence: response.data.overall_assessment.confidence,
     file,
     thumbnailUrl,
+    result: response.data.overall_assessment,
   });
 
   await pushMetric({ type: 'detection_count', value: 1 });
@@ -333,7 +333,7 @@ export const analyzeVideo = async (
     context: {
       userId: req.user._id,
       thumbnailUrl,
-      confidence,
+      confidence: response.data.overall_assessment.confidence,
       analysisId: response.data.analysisId,
     },
   });
@@ -341,7 +341,7 @@ export const analyzeVideo = async (
   logger.info('Video analysis complete', {
     userId: req.user._id,
     thumbnailUrl,
-    confidence,
+    confidence: response.data.overall_assessment.confidence,
   });
 
   // // Publish to Pub/Sub topic
@@ -471,6 +471,7 @@ export const analyzeAudio = async (
       confidence,
       file,
       thumbnailUrl,
+      result: response.data,
     });
 
     await pushMetric({ type: 'detection_count', value: 1 });
@@ -599,6 +600,7 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
           : analysis.confidence,
       file: { originalname: url, mimetype: contentType, size } as any,
       thumbnailUrl: url,
+      result: fieldName === 'video' ? analysis.overall_assessment : analysis,
     });
     await pushMetric({ type: 'detection_count', value: 1 });
 
