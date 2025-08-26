@@ -7,6 +7,7 @@ import {
   AudioLines,
   Menu,
   X,
+  MessageSquarePlus,
   // Play,
   // Pause,
   // SkipBack,
@@ -357,7 +358,19 @@ const VideoScreen = () => {
             >
               <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-
+            <button
+              className="p-2 text-gray-400 hover:text-gray-600 bg-[#F6F7FE] rounded-[30px] border-[0.88px] border-[#8C8C8C] relative group"
+              onClick={() => {
+                navigate("/feedback");
+              }}
+              title="Send Feedback"
+            >
+              <MessageSquarePlus className="w-4 h-4 sm:w-5 sm:h-5" />
+              {/* Optional: Add a tooltip */}
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Send Feedback
+              </span>
+            </button>
             <div
               className="flex items-center space-x-2 cursor-pointer rounded-[30px]"
               onClick={() => navigate("/settings")}
@@ -728,6 +741,23 @@ const VideoScreen = () => {
           </div>
         </div>
       </div>
+      <button
+        className="fixed bottom-6 right-6 z-50 p-3 bg-[#0F2FA3] hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
+        onClick={() => {
+          navigate("/feedback");
+        }}
+      >
+        <MessageSquarePlus className="w-5 h-5" />
+
+        {/* Custom Tooltip */}
+        <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap shadow-lg">
+            Send Feedback
+            {/* Tooltip Arrow */}
+            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      </button>
     </div>
   );
 };

@@ -51,7 +51,7 @@ const Dashboard = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [hasConsented, setHasConsented] = useState(true);
+  const [hasConsented, setHasConsented] = useState(false);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [urlInput, setUrlInput] = useState("");
@@ -433,6 +433,8 @@ const Dashboard = () => {
 
     if (userConsent !== null) {
       setHasConsented(userConsent === "true");
+    } else {
+      setHasConsented(false);
     }
 
     if (userHasUploadedBefore === "true") {
