@@ -548,7 +548,8 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
     const contentType = response.headers['content-type'];
     if (!contentType) throw new Error('Could not determine content type');
 
-    const extension = contentType.split('/')[1] || 'bin';
+    let extension = contentType.split('/')[1] || 'bin';
+    if (extension === 'mpeg') extension = 'mp3';
     const size = Number.parseInt(response.headers['content-length'] || '0', 10);
 
     const tmpFilePath = path.join('/tmp', `${uuidv4()}.${extension}`);
@@ -588,7 +589,6 @@ export const analyzeURL = async (req: AuthRequest, res: Response) => {
     fs.unlinkSync(tmpFilePath);
 
     const analysis = modelResponse.data;
-    console.log(analysis.overall_assessment);
 
     const user = await User.findById((req as any).user._id);
     await storeAnalysis({
