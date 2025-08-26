@@ -40,7 +40,7 @@ import {
   createAccessCode,
   markAccessCodeAsUsed,
   validateAccessCode,
-} from 'services/accessCode.service.js';
+} from '../services/accessCode.service.js';
 
 export type UserData = {
   email: string;
@@ -130,6 +130,8 @@ export const register = async (
       termsAgreedAt: new Date(),
       plan,
       isEmailVerified: false,
+      // isEmailVerified: true,
+      // isActive: true,
       phoneNumber,
       accessCode: accessCode.toUpperCase().trim(),
     } as UserData;
@@ -273,7 +275,6 @@ export const login = async (
     await invalidateAllSessions(user._id.toString());
 
     user.lastLogin = new Date();
-    // Remove the duplicate increment since invalidateAllSessions already did it
 
     const token = generateToken(user._id.toString(), user.sessionVersion + 1);
 

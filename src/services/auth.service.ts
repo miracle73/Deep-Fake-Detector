@@ -21,7 +21,7 @@ export const verifyToken = (
 
 export const invalidateAllSessions = async (userId: string): Promise<void> => {
   await User.findByIdAndUpdate(userId, {
-    isActive: false,
+    // isActive: false,
     $inc: { sessionVersion: 1 },
   });
 };
