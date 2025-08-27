@@ -4,8 +4,8 @@ import { Eye, EyeOff, AlertCircle, Loader, X } from "lucide-react";
 // import BackgroundImage from "../assets/images/signin-2.png";
 import { useLoginMutation } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
-import { useGoogleLoginMutation } from "../services/apiService";
+// import { useGoogleLogin } from "@react-oauth/google";
+// import { useGoogleLoginMutation } from "../services/apiService";
 import { useDispatch } from "react-redux";
 import { loginUser } from "../store/slices/authSlices";
 import { setUserInfo } from "../store/slices/userSlices";
@@ -34,9 +34,9 @@ function Signin() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [googleLogin] = useGoogleLoginMutation();
+  // const [googleLogin] = useGoogleLoginMutation();
   const [successMessage, setSuccessMessage] = useState<string>("");
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  // const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const storedUser = useSelector((state: RootState) => state.user.user);
 
   const [login] = useLoginMutation();
@@ -60,77 +60,77 @@ function Signin() {
     }
   }, [successMessage]);
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (token) => {
-      setIsGoogleLoading(true);
-      try {
-        const response = await googleLogin({
-          idToken: token,
-          agreedToTerms: true,
-          userType: "individual",
-        }).unwrap();
+  // const handleGoogleLogin = useGoogleLogin({
+  //   onSuccess: async (token) => {
+  //     setIsGoogleLoading(true);
+  //     try {
+  //       const response = await googleLogin({
+  //         idToken: token,
+  //         agreedToTerms: true,
+  //         userType: "individual",
+  //       }).unwrap();
 
-        // Handle successful Google login
+  //       // Handle successful Google login
 
-        if (response.success) {
-          // Dispatch user data to Redux store
-          dispatch(
-            setUserInfo({
-              _id: response.user.id,
-              email: response.user.email,
-              userType: response.user.userType,
-              plan: response.user.plan,
-              isGoogleUser: true,
-              firstName: response.user.firstName,
-              lastName: response.user.lastName,
-            })
-          );
+  //       if (response.success) {
+  //         // Dispatch user data to Redux store
+  //         dispatch(
+  //           setUserInfo({
+  //             _id: response.user.id,
+  //             email: response.user.email,
+  //             userType: response.user.userType,
+  //             plan: response.user.plan,
+  //             isGoogleUser: true,
+  //             firstName: response.user.firstName,
+  //             lastName: response.user.lastName,
+  //           })
+  //         );
 
-          // Dispatch token to auth store
-          dispatch(loginUser(response.token));
+  //         // Dispatch token to auth store
+  //         dispatch(loginUser(response.token));
 
-          // Store token in localStorage for persistence
-          localStorage.setItem("authToken", response.token);
+  //         // Store token in localStorage for persistence
+  //         localStorage.setItem("authToken", response.token);
 
-          setSuccessMessage("Google sign-in successful");
+  //         setSuccessMessage("Google sign-in successful");
 
-          // Navigate to dashboard after a brief delay
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 150);
-        } else {
-          setErrors({ general: "Google sign-in failed. Please try again." });
-        }
-      } catch (error: unknown) {
-        console.error("Google login failed:", error);
+  //         // Navigate to dashboard after a brief delay
+  //         setTimeout(() => {
+  //           navigate("/dashboard");
+  //         }, 150);
+  //       } else {
+  //         setErrors({ general: "Google sign-in failed. Please try again." });
+  //       }
+  //     } catch (error: unknown) {
+  //       console.error("Google login failed:", error);
 
-        if (error && typeof error === "object" && "data" in error) {
-          const apiError = error as {
-            data?: { message?: string; errors?: FormErrors };
-          };
-          if (apiError.data?.message) {
-            setErrors({ general: apiError.data.message });
-          } else if (apiError.data?.errors) {
-            setErrors(apiError.data.errors);
-          } else {
-            setErrors({ general: "Google sign-in failed. Please try again." });
-          }
-        } else if (error && typeof error === "object" && "message" in error) {
-          const messageError = error as { message: string };
-          setErrors({ general: messageError.message });
-        } else {
-          setErrors({ general: "Google sign-in failed. Please try again." });
-        }
-      } finally {
-        setIsGoogleLoading(false);
-      }
-    },
-    onError: (error) => {
-      console.error("Google OAuth error:", error);
-      setErrors({ general: "Google authentication failed. Please try again." });
-      setIsGoogleLoading(false);
-    },
-  });
+  //       if (error && typeof error === "object" && "data" in error) {
+  //         const apiError = error as {
+  //           data?: { message?: string; errors?: FormErrors };
+  //         };
+  //         if (apiError.data?.message) {
+  //           setErrors({ general: apiError.data.message });
+  //         } else if (apiError.data?.errors) {
+  //           setErrors(apiError.data.errors);
+  //         } else {
+  //           setErrors({ general: "Google sign-in failed. Please try again." });
+  //         }
+  //       } else if (error && typeof error === "object" && "message" in error) {
+  //         const messageError = error as { message: string };
+  //         setErrors({ general: messageError.message });
+  //       } else {
+  //         setErrors({ general: "Google sign-in failed. Please try again." });
+  //       }
+  //     } finally {
+  //       setIsGoogleLoading(false);
+  //     }
+  //   },
+  //   onError: (error) => {
+  //     console.error("Google OAuth error:", error);
+  //     setErrors({ general: "Google authentication failed. Please try again." });
+  //     setIsGoogleLoading(false);
+  //   },
+  // });
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -324,7 +324,7 @@ function Signin() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Google Sign In Button */}
-                <button
+                {/* <button
                   className="w-full h-12 flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed rounded-xl font-normal text-sm"
                   type="button"
                   onClick={() => handleGoogleLogin()}
@@ -358,10 +358,10 @@ function Signin() {
                       Continue with Google
                     </>
                   )}
-                </button>
+                </button> */}
 
                 {/* Divider */}
-                <div className="relative">
+                {/* <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200" />
                   </div>
@@ -370,7 +370,7 @@ function Signin() {
                       Or Continue with Email
                     </span>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Email Input */}
                 <div className="space-y-2">
