@@ -49,25 +49,33 @@ class AudioDeepfakeDataset(Dataset):
         # Define audio file extensions
         audio_extensions = ['.wav', '.mp3', '.flac', '.m4a', '.ogg']
         
-        # Load REAL samples (label = 0)
+        # Load REAL samples (label = 0) - limit to 15000
         real_dir = self.data_dir / 'REAL'
         if real_dir.exists():
+            real_files = []
             for ext in audio_extensions:
-                for audio_file in real_dir.glob(f'*{ext}'):
-                    samples.append((str(audio_file), 0))
-            logger.info(f"Found {len([s for s in samples if s[1] == 0])} REAL samples")
+                real_files.extend(list(real_dir.glob(f'*{ext}')))
+            
+            # Limit to 15000 files
+            real_files = real_files[:15000]
+            for audio_file in real_files:
+                samples.append((str(audio_file), 0))
+            logger.info(f"Found {len(real_files)} REAL samples (limited to 15000)")
         else:
             logger.warning(f"REAL directory not found: {real_dir}")
         
-        # Load FAKE samples (label = 1)
+        # Load FAKE samples (label = 1) - limit to 15000
         fake_dir = self.data_dir / 'FAKE'
         if fake_dir.exists():
-            fake_count = 0
+            fake_files = []
             for ext in audio_extensions:
-                for audio_file in fake_dir.glob(f'*{ext}'):
-                    samples.append((str(audio_file), 1))
-                    fake_count += 1
-            logger.info(f"Found {fake_count} FAKE samples")
+                fake_files.extend(list(fake_dir.glob(f'*{ext}')))
+            
+            # Limit to 15000 files
+            fake_files = fake_files[:15000]
+            for audio_file in fake_files:
+                samples.append((str(audio_file), 1))
+            logger.info(f"Found {len(fake_files)} FAKE samples (limited to 15000)")
         else:
             logger.warning(f"FAKE directory not found: {fake_dir}")
         
