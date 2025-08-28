@@ -1,0 +1,10 @@
+{
+  "batch_size": 2,
+  "epochs": 25,
+  "learning_rate": 0.001,
+  "max_frames": 8,
+  "frame_encoder": "mobilenet_v2",
+  "temporal_model": "lstm",
+  "gradient_accumulation_steps": 4,
+  "weight_decay": 0.0001
+}

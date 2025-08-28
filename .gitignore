@@ -40,11 +40,11 @@ ENV/
 .env.staging
 
 # Google Cloud Credentials (IMPORTANT!)
-*.json
+
 service-account-key.json
 google-cloud-cli-linux-x86_64.tar.gz
 kaggle.json
-
+service/
 # Google Cloud SDK
 google-cloud-sdk/
 
@@ -64,13 +64,8 @@ data/test/
 *.npz
 
 # Model Files (Large binary files)
-models/checkpoints/
-models/experiments/
-*.pth
-*.pt
-*.h5
-*.pkl
-*.joblib
+
+
 
 # Results and Logs
 results/
