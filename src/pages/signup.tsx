@@ -52,6 +52,7 @@ function SignUp() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const isServiceClosed = true;
   // const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [register] = useRegisterMutation();
@@ -321,6 +322,32 @@ function SignUp() {
       });
     }
   };
+
+  if (isServiceClosed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md text-center">
+          <img
+            src={SafeguardMediaLogo}
+            alt="Safeguardmedia Logo"
+            className="h-12 w-auto mx-auto mb-4"
+          />
+          <h1 className="text-xl font-bold text-gray-900 mb-4">
+            Safeguardmedia
+          </h1>
+          <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h2 className="text-lg font-semibold text-yellow-800 mb-2">
+              Service Temporarily Unavailable
+            </h2>
+            <p className="text-yellow-700">
+              We are closed for a short time for maintenance. Please try again
+              later.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
