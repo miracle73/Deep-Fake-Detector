@@ -91,7 +91,8 @@ node_modules
 *~
 .DS_Store
 Thumbs.db
-
+*.txt
+epochs/
 # Cloud Storage Downloads
 *.zip
 *.tar.gz
