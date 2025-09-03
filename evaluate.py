@@ -28,7 +28,26 @@ def evaluate_model(model_path: str, data_dir: str):
     model.eval()
     
     # Load test data
-    _, _, test_loader = create_data_loaders(data_dir, batch_size=32)
+    # Load test data - custom 3000 files from bottom
+    from torch.utils.data import DataLoader
+    from audio_dataset import AudioDeepfakeDataset
+
+    # Create custom dataset with files from bottom
+    dataset = AudioDeepfakeDataset(data_dir, split='test')
+
+    # Override the samples to get last 3000 files
+    all_samples = []
+    valid_dir = Path('data/raw/valid')  # Fixed path to valid folder
+    for class_name in ['real', 'fake']:  # lowercase folder names
+        class_dir = valid_dir / class_name
+        audio_files = list(class_dir.glob('*.wav')) + list(class_dir.glob('*.mp3'))
+        label = 0 if class_name == 'real' else 1
+        all_samples.extend([(str(f), label) for f in audio_files])
+
+    dataset.samples = all_samples
+    print(f"Evaluating on {len(all_samples)} audio files from valid/raw/audio folders")
+
+    test_loader = DataLoader(dataset, batch_size=32, shuffle=False, num_workers=4)
     
     all_preds = []
     all_labels = []
