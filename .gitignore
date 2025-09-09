@@ -22,13 +22,14 @@ wheels/
 *.egg
 image-deep-fake-detector-cb75e9899f2d.json
 service_keys
-app2.py
+uploads/
 
 # PyTorch
 # *.pth
 # *.pt
 
 # Data
+data/
 data/raw/
 data/processed/
 *.zip

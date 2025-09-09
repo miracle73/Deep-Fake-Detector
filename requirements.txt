@@ -1,34 +1,5 @@
-# Core ML Dependencies
-torch>=1.13.0
-torchvision>=0.14.0
-pillow>=10.1.0
-
-# Web Framework (Flask API)
-flask>=3.0.0
-gunicorn
-
-# Google Cloud Dependencies (for training & data upload)
-google-cloud-aiplatform
-google-cloud-storage
-google-auth
-
-# Progress & Utilities
-tqdm
-python-dotenv
-
-# Optional: For local development/testing
-# numpy>=1.26.0  # Usually included with torch
-# python-multipart  # Only if you need multipart form handling beyond Flask's built-in
-
-# Removed dependencies not used in the code:
-# - opencv-python-headless (not imported in any file)
-# - pandas (not used)
-# - scikit-learn (not used) 
-# - matplotlib (not used)
-# - seaborn (not used)
-# - PyYAML (not used)
-# - tensorboard (not used)
-# - facenet-pytorch (not used)
-# - albumentations (not used)
-# - fastapi/uvicorn (Flask is used instead)
-# - timm (not used - using torchvision models)
+transformers
+pillow
+torch
+flask
+werkzeug
