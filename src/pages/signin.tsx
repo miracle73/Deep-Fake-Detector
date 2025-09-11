@@ -38,7 +38,7 @@ function Signin() {
   const [successMessage, setSuccessMessage] = useState<string>("");
   // const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const storedUser = useSelector((state: RootState) => state.user.user);
-  const isServiceClosed = true;
+  const isServiceClosed = false;
   const [login] = useLoginMutation();
   useEffect(() => {
     if (errors.general) {

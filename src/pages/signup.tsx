@@ -52,7 +52,7 @@ function SignUp() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>("");
-  const isServiceClosed = true;
+  const isServiceClosed = false;
   // const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [register] = useRegisterMutation();
