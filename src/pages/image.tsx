@@ -19,7 +19,30 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import type { DetectAnalyzeResponse } from "../services/apiService";
+// import type { DetectAnalyzeResponse } from "../services/apiService";
+
+interface DetectAnalyzeResponse {
+  statusCode?: number;
+  status?: string;
+  success?: boolean;
+  message?: string;
+  // Original format
+  data?: {
+    confidence: number;
+    deepfake_probability: number;
+    is_deepfake: boolean;
+    predicted_class: string;
+    real_probability: number;
+    threshold_used: number;
+  };
+  // Railway format
+  detection?: {
+    is_deepfake: boolean;
+    label: string;
+    score: number;
+    confidence: number;
+  };
+}
 
 const ImageScreen = () => {
   const navigate = useNavigate();
@@ -44,10 +67,16 @@ const ImageScreen = () => {
         gaugeColor: "#9CA3AF",
       };
 
-    const realProb = analysisResult.data.real_probability;
-    const deepfakeProb = analysisResult.data.deepfake_probability;
+    // Handle the new Railway API response format
+    const isDeepfake =
+      analysisResult.detection?.is_deepfake || analysisResult.data?.is_deepfake;
+    const confidence =
+      analysisResult.detection?.confidence ||
+      analysisResult.data?.confidence ||
+      analysisResult.detection?.score ||
+      0;
 
-    if (realProb >= 90 && deepfakeProb <= 10) {
+    if (!isDeepfake && confidence >= 0.9) {
       return {
         riskLevel: "Low",
         interpretation: "Very Likely Real",
@@ -55,7 +84,7 @@ const ImageScreen = () => {
         riskColor: "green",
         gaugeColor: "#10B981",
       };
-    } else if (realProb >= 70 && deepfakeProb <= 29) {
+    } else if (!isDeepfake && confidence >= 0.7) {
       return {
         riskLevel: "Medium",
         interpretation: "Likely Real, Some Risk",
@@ -63,7 +92,7 @@ const ImageScreen = () => {
         riskColor: "yellow",
         gaugeColor: "#F59E0B",
       };
-    } else if (realProb >= 50 && deepfakeProb <= 49) {
+    } else if (confidence >= 0.5 && confidence < 0.7) {
       return {
         riskLevel: "Medium-High",
         interpretation: "Ambiguous / Uncertain",
@@ -72,7 +101,7 @@ const ImageScreen = () => {
         riskColor: "orange",
         gaugeColor: "#F97316",
       };
-    } else if (realProb >= 30 && deepfakeProb <= 69) {
+    } else if (isDeepfake && confidence >= 0.7) {
       return {
         riskLevel: "High",
         interpretation: "Likely Deepfake, But Not Conclusive",
@@ -95,7 +124,10 @@ const ImageScreen = () => {
     if (!analysisResult)
       return { text: "Unknown", color: "gray", bgColor: "bg-gray-100" };
 
-    if (analysisResult.data.is_deepfake) {
+    const isDeepfake =
+      analysisResult.detection?.is_deepfake || analysisResult.data?.is_deepfake;
+
+    if (isDeepfake) {
       return {
         text: "Deepfake",
         color: "red",
@@ -114,7 +146,12 @@ const ImageScreen = () => {
 
   const getConfidenceScore = () => {
     if (!analysisResult) return 0;
-    return Math.round(analysisResult.data.confidence);
+    const confidence =
+      analysisResult.detection?.confidence ||
+      analysisResult.data?.confidence ||
+      analysisResult.detection?.score ||
+      0;
+    return Math.round(confidence * 100);
   };
 
   const handleBack = () => {
@@ -619,6 +656,7 @@ const ImageScreen = () => {
                   <div className="border-t border-gray-200"></div>
 
                   {/* Analysis Details */}
+                  {/* Analysis Details */}
                   {analysisResult && (
                     <div className="border-t border-gray-200 p-4 sm:p-6">
                       <h4 className="text-sm font-semibold text-[#020717] mb-3">
@@ -630,7 +668,14 @@ const ImageScreen = () => {
                             Real Probability:
                           </span>
                           <span className="font-medium text-green-600">
-                            {analysisResult.data.real_probability.toFixed(1)}%
+                            {(
+                              (1 -
+                                (analysisResult.detection?.score ||
+                                  analysisResult.data?.confidence ||
+                                  0)) *
+                              100
+                            ).toFixed(1)}
+                            %
                           </span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
@@ -638,9 +683,11 @@ const ImageScreen = () => {
                             Deepfake Probability:
                           </span>
                           <span className="font-medium text-red-600">
-                            {analysisResult.data.deepfake_probability.toFixed(
-                              1
-                            )}
+                            {(
+                              (analysisResult.detection?.score ||
+                                analysisResult.data?.confidence ||
+                                0) * 100
+                            ).toFixed(1)}
                             %
                           </span>
                         </div>
