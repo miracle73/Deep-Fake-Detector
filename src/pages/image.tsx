@@ -68,13 +68,12 @@ const ImageScreen = () => {
       };
 
     // Handle the new Railway API response format
-    const isDeepfake =
-      analysisResult.detection?.is_deepfake || analysisResult.data?.is_deepfake;
+    const isDeepfake = analysisResult.detection?.is_deepfake;
+    //  || analysisResult.data?.is_deepfake;
     const confidence =
-      analysisResult.detection?.confidence ||
-      analysisResult.data?.confidence ||
-      analysisResult.detection?.score ||
-      0;
+      // analysisResult.detection?.confidence ||
+      // analysisResult.data?.confidence ||
+      analysisResult.detection?.score || 0;
 
     if (!isDeepfake && confidence >= 0.9) {
       return {
@@ -124,8 +123,8 @@ const ImageScreen = () => {
     if (!analysisResult)
       return { text: "Unknown", color: "gray", bgColor: "bg-gray-100" };
 
-    const isDeepfake =
-      analysisResult.detection?.is_deepfake || analysisResult.data?.is_deepfake;
+    const isDeepfake = analysisResult.detection?.is_deepfake;
+    //  || analysisResult.data?.is_deepfake;
 
     if (isDeepfake) {
       return {
@@ -147,10 +146,9 @@ const ImageScreen = () => {
   const getConfidenceScore = () => {
     if (!analysisResult) return 0;
     const confidence =
-      analysisResult.detection?.confidence ||
-      analysisResult.data?.confidence ||
-      analysisResult.detection?.score ||
-      0;
+      // analysisResult.detection?.confidence ||
+      // analysisResult.data?.confidence ||
+      analysisResult.detection?.score || 0;
     return Math.round(confidence * 100);
   };
 
@@ -668,13 +666,19 @@ const ImageScreen = () => {
                             Real Probability:
                           </span>
                           <span className="font-medium text-green-600">
-                            {(
-                              (1 -
-                                (analysisResult.detection?.score ||
-                                  analysisResult.data?.confidence ||
-                                  0)) *
-                              100
-                            ).toFixed(1)}
+                            {analysisResult.detection?.is_deepfake
+                              ? (
+                                  (1 -
+                                    (analysisResult.detection?.score ||
+                                      // analysisResult.data?.confidence ||
+                                      0)) *
+                                  100
+                                ).toFixed(1)
+                              : (
+                                  (analysisResult.detection?.score ||
+                                    // analysisResult.data?.confidence ||
+                                    0) * 100
+                                ).toFixed(1)}
                             %
                           </span>
                         </div>
@@ -683,11 +687,19 @@ const ImageScreen = () => {
                             Deepfake Probability:
                           </span>
                           <span className="font-medium text-red-600">
-                            {(
-                              (analysisResult.detection?.score ||
-                                analysisResult.data?.confidence ||
-                                0) * 100
-                            ).toFixed(1)}
+                            {analysisResult.detection?.is_deepfake
+                              ? (
+                                  (analysisResult.detection?.score ||
+                                    // analysisResult.data?.confidence ||
+                                    0) * 100
+                                ).toFixed(1)
+                              : (
+                                  (1 -
+                                    (analysisResult.detection?.score ||
+                                      // analysisResult.data?.confidence ||
+                                      0)) *
+                                  100
+                                ).toFixed(1)}
                             %
                           </span>
                         </div>
