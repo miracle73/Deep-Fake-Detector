@@ -11,4 +11,13 @@ export default defineConfig({
       "@": path.resolve(".", "src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://imagedeepfakedetector-production.up.railway.app",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
 });
