@@ -32,8 +32,8 @@ import {
   // useGetAnalysisHistoryQuery,
   // useDetectAnalyzeVideoMutation,
   // useDetectAnalyzeAudioMutation,
-  useUploadMediaUrlMutation,
-  useAnalyzeUrlMutation,
+  // useUploadMediaUrlMutation,
+  // useAnalyzeUrlMutation,
 } from "../services/apiService";
 import SafeguardMediaLogo from "../assets/images/SafeguardMedia8.svg";
 import { CiSettings } from "react-icons/ci";
@@ -70,9 +70,9 @@ const Dashboard = () => {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   // const [detectAnalyzeVideo] = useDetectAnalyzeVideoMutation();
   // const [detectAnalyzeAudio] = useDetectAnalyzeAudioMutation();
-  const [uploadMediaUrl] = useUploadMediaUrlMutation();
-  const [analyzeUrl] = useAnalyzeUrlMutation();
-  const [urlFile, setUrlFile] = useState<string | null>(null);
+  // const [uploadMediaUrl] = useUploadMediaUrlMutation();
+  // const [analyzeUrl] = useAnalyzeUrlMutation();
+  // const [urlFile, setUrlFile] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
 
   // const getPageNumbers = () => {
@@ -415,8 +415,8 @@ const Dashboard = () => {
   //   }
   // };
   const handleAnalyseMedia = async () => {
-    if (!selectedFile) {
-      setAnalysisError("No file selected for analysis");
+    if (!selectedFile && !filePreview) {
+      setAnalysisError("No file or URL selected for analysis");
       return;
     }
 
@@ -424,21 +424,35 @@ const Dashboard = () => {
     setAnalysisError(null);
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+      let response;
 
-      // Call Railway API directly
-      const response = await fetch(
-        "https://imagedeepfakedetector-production.up.railway.app/detect",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+      if (selectedFile) {
+        // File upload
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        response = await fetch(
+          "https://imagedeepfakedetector-production.up.railway.app/detect",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+      } else if (filePreview) {
+        // URL analysis
+        response = await fetch(
+          "https://imagedeepfakedetector-production.up.railway.app/detect-url",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: filePreview }),
+          }
+        );
+      }
+      console.log("API response:", response);
+      if (!response || !response.ok) {
+        throw new Error(
+          `API request failed: ${response ? response.status : "No response"}`
+        );
       }
 
       const result = await response.json();
@@ -464,23 +478,31 @@ const Dashboard = () => {
       // Store the response data
       const dataToStore = {
         ...transformedResponse,
-        fileUrl: selectedFile,
-        fileName: uploadedFile?.name || selectedFile.name,
+        fileUrl: selectedFile || filePreview,
+        fileName:
+          uploadedFile?.name ||
+          (selectedFile ? selectedFile.name : "Image from URL"),
         fileSize:
           uploadedFile?.size ||
-          `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+          (selectedFile
+            ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+            : "Unknown"),
       };
 
       localStorage.setItem(`analysis_${token}`, JSON.stringify(dataToStore));
 
-      // Navigate to image detection page (since Railway only handles images)
+      // Navigate to image detection page
       navigate(`/image-detection/${token}`, {
         state: {
           analysisResult: transformedResponse,
-          fileName: uploadedFile?.name || selectedFile.name,
+          fileName:
+            uploadedFile?.name ||
+            (selectedFile ? selectedFile.name : "Image from URL"),
           fileSize:
             uploadedFile?.size ||
-            `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+            (selectedFile
+              ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+              : "Unknown"),
           fileUrl: filePreview,
         },
       });
@@ -527,118 +549,41 @@ const Dashboard = () => {
   }, []);
 
   const handleUrlSubmit = async () => {
-    console.log("Submitting URL for analysis:", urlInput);
-    // if (!urlInput.trim()) {
-    //   setAnalysisError("Please enter a valid URL");
-    //   return;
-    // }
+    if (!urlInput.trim()) {
+      setAnalysisError("Please enter a valid URL");
+      return;
+    }
 
     setIsProcessingUrl(true);
     setAnalysisError(null);
-    console.log("Submitting URL for analysis:", urlInput, 44);
+
     try {
-      const url = urlInput;
+      // Validate if URL points to an image
+      const img = new Image();
+      img.crossOrigin = "anonymous";
 
-      // // Basic URL validation
-      // const urlPattern =
-      //   /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-      // if (!urlPattern.test(url)) {
-      //   throw new Error("Please enter a valid URL");
-      // }
-
-      // Upload the media URL
-      const uploadResponse = await uploadMediaUrl({ url }).unwrap();
-
-      // Check if the content type is supported
-      const { contentType, previewUrl, size } = uploadResponse.metadata;
-
-      if (
-        !contentType.startsWith("image/") &&
-        !contentType.startsWith("video/") &&
-        !contentType.startsWith("audio/")
-      ) {
-        throw new Error(
-          "Unsupported media type. Please provide a URL to an image, video, or audio file."
-        );
-      }
-
-      if (contentType.startsWith("image/")) {
+      img.onload = () => {
+        // Image loaded successfully, show preview
+        setUploadedFile({
+          name: `Image from URL`,
+          size: `Unknown`,
+          thumbnail: urlInput,
+        });
+        setFilePreview(urlInput);
         setFileType("image");
-      }
-      if (contentType.startsWith("video/")) {
-        setFileType("video");
-      }
-      if (contentType.startsWith("audio/")) {
-        setFileType("audio");
-      }
-
-      // Set uploaded file info for UI
-      setUploadedFile({
-        name: `Media from URL`,
-        size: `${(size / 1024 / 1024).toFixed(2)} MB`,
-        thumbnail: previewUrl || ThirdImage,
-      });
-
-      // Store the URL for analysis
-      setUrlFile(url);
-      setFilePreview(previewUrl);
-      console.log("Submitting URL for analysis:", urlInput, 55);
-      // NOW ANALYZE IMMEDIATELY
-      setIsAnalyzing(true);
-
-      // Analyze the URL
-      const response = await analyzeUrl({ url }).unwrap();
-
-      // Generate unique token
-      const token = generateUniqueToken();
-      console.log(urlFile);
-      // Determine media type from response metadata
-      let mediaType = "image"; // default
-      if (response.metadata) {
-        const { contentType } = response.metadata;
-        if (contentType.startsWith("video/")) {
-          mediaType = "video";
-        } else if (contentType.startsWith("audio/")) {
-          mediaType = "audio";
-        }
-      }
-
-      // Store the response data
-      const dataToStore = {
-        ...response,
-        fileUrl: url,
-        fileName: `Media from URL`,
-        fileSize: `${(size / 1024 / 1024).toFixed(2)} MB`,
+        setIsProcessingUrl(false);
       };
 
-      localStorage.setItem(`analysis_${token}`, JSON.stringify(dataToStore));
-
-      // Navigate to appropriate detection page
-      const navigationState = {
-        analysisResult: response,
-        fileName: `Media from URL`,
-        fileSize: `${(size / 1024 / 1024).toFixed(2)} MB`,
-        fileUrl: previewUrl,
-        originalFile: url,
+      img.onerror = () => {
+        setAnalysisError("Invalid image URL or image cannot be loaded");
+        setIsProcessingUrl(false);
       };
 
-      if (mediaType === "video") {
-        navigate(`/video-detection/${token}`, { state: navigationState });
-      } else if (mediaType === "audio") {
-        navigate(`/audio-detection/${token}`, { state: navigationState });
-      } else {
-        navigate(`/image-detection/${token}`, { state: navigationState });
-      }
+      img.src = urlInput;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to process and analyze URL";
-      setAnalysisError(errorMessage);
-    } finally {
+      console.log("Error loading image from URL:", error);
+      setAnalysisError("Failed to load image from URL");
       setIsProcessingUrl(false);
-      setIsAnalyzing(false);
-      setUrlInput("");
     }
   };
   return (
