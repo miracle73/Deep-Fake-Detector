@@ -3,3 +3,6 @@ pillow
 torch
 flask
 werkzeug
+gunicorn
+flask-cors
+requests
