@@ -24,6 +24,7 @@ image-deep-fake-detector-cb75e9899f2d.json
 service_keys
 uploads/
 setup.py
+main2.py
 
 # PyTorch
 # *.pth
