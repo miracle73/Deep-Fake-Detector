@@ -12,6 +12,8 @@ node_modules
 dist
 dist-ssr
 *.local
+pages/analysisSection.tsx
+analysisSection.tsx
 
 # Editor directories and files
 .vscode/*
