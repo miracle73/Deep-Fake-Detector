@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Bell,
   LayoutGrid,
@@ -174,66 +174,71 @@ const Dashboard = () => {
       console.error("Failed to update media consent:", error);
     }
 
-    // Always proceed with file upload regardless of consent choice
-    const fileInput = document.getElementById(
-      "file-upload-input"
-    ) as HTMLInputElement;
-    fileInput?.click();
-  };
-
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
-    setIsUploading(true);
-
-    // Generate preview based on file type
-    // Generate preview based on file type
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFilePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else if (file.type.startsWith("video/")) {
-      // Generate video thumbnail
-      const video = document.createElement("video");
-      video.src = URL.createObjectURL(file);
-      video.currentTime = 1; // Capture frame at 1 second
-      video.onloadeddata = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(video, 0, 0);
-        setFilePreview(canvas.toDataURL());
-        URL.revokeObjectURL(video.src);
-      };
-    } else if (file.type.startsWith("audio/")) {
-      setFilePreview(
-        "https://www.premiumbeat.com/blog/wp-content/uploads/2015/08/Audio-Waveforms-Featued-Image.jpg?w=875&h=490&crop=1"
-      );
+    // Check if there's a pasted file to process
+    if (selectedFile) {
+      handleFileSelect(selectedFile);
     } else {
-      setFilePreview(null);
+      // Otherwise, trigger file input for regular upload
+      const fileInput = document.getElementById("file-upload-input");
+      fileInput?.click();
     }
-
-    // Format file size
-    const formatFileSize = (bytes: number) => {
-      if (bytes === 0) return "0 Bytes";
-      const k = 1024;
-      const sizes = ["Bytes", "KB", "MB", "GB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-
-    // Simulate upload delay
-    setTimeout(() => {
-      setUploadedFile({
-        name: file.name,
-        size: formatFileSize(file.size),
-        thumbnail: filePreview || ThirdImage,
-      });
-      setIsUploading(false);
-    }, 1000);
   };
+
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      setSelectedFile(file);
+      setIsUploading(true);
+
+      // Generate preview based on file type
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setFilePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else if (file.type.startsWith("video/")) {
+        // Generate video thumbnail
+        const video = document.createElement("video");
+        video.src = URL.createObjectURL(file);
+        video.currentTime = 1; // Capture frame at 1 second
+        video.onloadeddata = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(video, 0, 0);
+          setFilePreview(canvas.toDataURL());
+          URL.revokeObjectURL(video.src);
+        };
+      } else if (file.type.startsWith("audio/")) {
+        setFilePreview(
+          "https://www.premiumbeat.com/blog/wp-content/uploads/2015/08/Audio-Waveforms-Featued-Image.jpg?w=875&h=490&crop=1"
+        );
+      } else {
+        setFilePreview(null);
+      }
+
+      // Format file size
+      const formatFileSize = (bytes: number) => {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      };
+
+      // Simulate upload delay
+      setTimeout(() => {
+        setUploadedFile({
+          name: file.name,
+          size: formatFileSize(file.size),
+          thumbnail: filePreview || ThirdImage,
+        });
+        setIsUploading(false);
+      }, 1000);
+    },
+    [filePreview]
+  );
 
   // Add this function to handle file input change
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -298,6 +303,45 @@ const Dashboard = () => {
   //       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-PfGOczEHEKWpuIxew8P36mT0KzEkji.png",
   //   });
   // };
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const clipboardItems = e.clipboardData?.items;
+      if (!clipboardItems) return;
+
+      for (let i = 0; i < clipboardItems.length; i++) {
+        const item = clipboardItems[i];
+
+        // Check if the item is an image
+        if (item.type.startsWith("image/")) {
+          e.preventDefault();
+
+          const file = item.getAsFile();
+          if (file) {
+            // Check if we're in upload mode and don't have a file already
+            if (!isUrlMode && !uploadedFile) {
+              if (isFirstTimeUser) {
+                // Store the file temporarily and show consent modal
+                setSelectedFile(file);
+                setShowConsentModal(true);
+                return;
+              }
+              handleFileSelect(file);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    // Add paste event listener to the document
+    document.addEventListener("paste", handlePaste);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("paste", handlePaste);
+    };
+  }, [isUrlMode, uploadedFile, isFirstTimeUser, handleFileSelect]);
 
   const handleRemoveFile = () => {
     setUploadedFile(null);
@@ -809,7 +853,7 @@ const Dashboard = () => {
                   </h2>
                   <p className="text-sm sm:text-base text-gray-600 mb-6">
                     Upload your file or provide a URL for analysis, supports
-                    video, audio, and image formats.
+                    image formats.
                   </p>
 
                   {/* Toggle between Upload and URL */}
@@ -857,83 +901,11 @@ const Dashboard = () => {
                           </div>
 
                           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                            Drag and drop to upload or browse files
+                            Drag and drop to upload or browse image files
                           </h3>
                           <p className="text-xs sm:text-sm text-red-500 mb-6">
                             Max file size 10MB
                           </p>
-
-                          {/* Supported Formats Section */}
-                          <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-6 text-left max-w-full overflow-hidden">
-                            <h4 className="text-sm font-medium text-gray-700 mb-3">
-                              Currently, SafeguardMedia supports the following
-                              formats:
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                              <div className="min-w-0">
-                                <span className="font-medium text-gray-800 block">
-                                  Videos:
-                                </span>
-                                <div className="text-gray-600 mt-1">
-                                  MP4, AVI, MOV
-                                </div>
-                              </div>
-                              <div className="min-w-0">
-                                <span className="font-medium text-gray-800 block">
-                                  Images:
-                                </span>
-                                <div className="text-gray-600 mt-1">
-                                  JPEG, PNG, WEBP
-                                </div>
-                              </div>
-                              <div className="min-w-0">
-                                <span className="font-medium text-gray-800 block">
-                                  Audio:
-                                </span>
-                                <div className="text-gray-600 mt-1">
-                                  MP3, WAV, AAC
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {!isFirstTimeUser && (
-                            <div className="mb-4 max-w-full">
-                              <label className="flex items-start space-x-3 cursor-pointer text-left">
-                                <input
-                                  type="checkbox"
-                                  checked={hasConsented}
-                                  onChange={async (e) => {
-                                    const newConsentValue = e.target.checked;
-                                    setHasConsented(newConsentValue);
-
-                                    localStorage.setItem(
-                                      "safeguardmedia_consent",
-                                      newConsentValue.toString()
-                                    );
-
-                                    try {
-                                      await updateMediaConsent({
-                                        allowStorage: !newConsentValue,
-                                      }).unwrap();
-                                    } catch (error) {
-                                      console.error(
-                                        "Failed to update media consent:",
-                                        error
-                                      );
-                                    }
-                                  }}
-                                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 flex-shrink-0"
-                                />
-                                <span className="text-xs text-gray-600 leading-relaxed break-words">
-                                  I do not consent to SafeguardMedia using my
-                                  uploaded media for AI model training or
-                                  research. My upload should be used only for
-                                  analysis and detection.
-                                </span>
-                              </label>
-                            </div>
-                          )}
 
                           <button
                             className="bg-[#FBFBEF] border border-[#8C8C8C] rounded-[30px] hover:bg-gray-200 text-gray-700 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium w-full sm:w-auto max-w-xs"
@@ -1234,8 +1206,51 @@ const Dashboard = () => {
                   )}
                 </div>
               </div>
-            </div>
 
+              {!isFirstTimeUser && (
+                <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={hasConsented}
+                      onChange={async (e) => {
+                        const newConsentValue = e.target.checked;
+                        setHasConsented(newConsentValue);
+                        localStorage.setItem(
+                          "safeguardmedia_consent",
+                          newConsentValue.toString()
+                        );
+                        try {
+                          await updateMediaConsent({
+                            allowStorage: !newConsentValue,
+                          }).unwrap();
+                        } catch (error) {
+                          console.error(
+                            "Failed to update media consent:",
+                            error
+                          );
+                        }
+                      }}
+                      className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 flex-shrink-0"
+                      id="consent-checkbox"
+                    />
+                    <div className="flex-1">
+                      <label
+                        htmlFor="consent-checkbox"
+                        className="text-sm text-gray-700 leading-relaxed cursor-pointer block"
+                      >
+                        <span className="font-medium text-gray-800">
+                          Privacy Control:
+                        </span>{" "}
+                        I do not consent to SafeguardMedia using my uploaded
+                        media for AI model training or research. My upload
+                        should be used only for analysis and detection.
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Consent Modal */}
             {showConsentModal && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1277,7 +1292,6 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
-
             {/* Hidden file input */}
             <input
               type="file"
@@ -1293,20 +1307,29 @@ const Dashboard = () => {
               style={{ display: "none" }}
               id="file-upload-input"
             />
-
             {/* Right Sidebar */}
-            <div className="w-full xl:w-1/3 p-4 sm:p-6 min-w-0 xl:pt-[100px]">
+
+            <div className="w-full xl:w-[40%] p-4 sm:p-6 min-w-0 xl:pt-[100px]">
               {/* Combined Subscription and How it Works Card */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col w-full h-[300px]">
-                {/* Subscription Header */}
-                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-                  <span className="text-xs sm:text-sm font-medium leading-tight">
-                    Upgrade to Max plan for unlimited analysis
-                  </span>
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col w-full">
+                {/* Supported Formats Header */}
+                <div className="bg-[#0F2FA3] text-white px-4 sm:px-6 py-4 sm:py-5">
+                  <div className="">
+                    <p className="text-sm font-medium mb-3">
+                      Currently, SafeguardMedia supports the following formats:
+                    </p>
+                    <div className="text-center">
+                      <div className="bg-white/10 rounded-lg px-3 py-2 inline-block">
+                        <span className="text-sm font-semibold">
+                          JPEG, PNG, WEBP
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* How it Works Content */}
-                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-start overflow-y-auto">
+                <div className="p-4 sm:p-6">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
                     How it Works
                   </h3>
